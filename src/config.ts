@@ -27,7 +27,9 @@ export const CONTAINER_IMAGE =
 // Timezone for scheduled tasks (cron expressions, etc.)
 // Uses TZ env var with Asia/Shanghai fallback
 export const TIMEZONE =
-  process.env.TZ || Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Shanghai';
+  process.env.TZ ||
+  Intl.DateTimeFormat().resolvedOptions().timeZone ||
+  'Asia/Shanghai';
 
 // Web server configuration
 export const WEB_PORT = parseInt(process.env.WEB_PORT || '3000', 10);
@@ -82,12 +84,19 @@ const WECHAT_NO_PROXY_DOMAINS = [
 /** Add or remove WeChat domains from NO_PROXY based on bypassProxy flag. */
 export function updateWeChatNoProxy(bypassProxy: boolean): void {
   const current = process.env.NO_PROXY || process.env.no_proxy || '';
-  const existing = new Set(current.split(',').map((s) => s.trim()).filter(Boolean));
+  const existing = new Set(
+    current
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean),
+  );
 
   if (bypassProxy) {
     const toAdd = WECHAT_NO_PROXY_DOMAINS.filter((d) => !existing.has(d));
     if (toAdd.length) {
-      const updated = current ? `${current},${toAdd.join(',')}` : toAdd.join(',');
+      const updated = current
+        ? `${current},${toAdd.join(',')}`
+        : toAdd.join(',');
       process.env.NO_PROXY = updated;
       process.env.no_proxy = updated;
     }
@@ -102,7 +111,12 @@ export function updateWeChatNoProxy(bypassProxy: boolean): void {
 /** Check if WeChat domains are currently in NO_PROXY. */
 export function isWeChatBypassingProxy(): boolean {
   const current = process.env.NO_PROXY || process.env.no_proxy || '';
-  const existing = new Set(current.split(',').map((s) => s.trim()).filter(Boolean));
+  const existing = new Set(
+    current
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean),
+  );
   return WECHAT_NO_PROXY_DOMAINS.every((d) => existing.has(d));
 }
 

@@ -61,7 +61,12 @@ export interface RegisteredGroup {
   target_main_jid?: string; // IM 消息路由到指定工作区的主对话（web:{folder}）
   reply_policy?: 'source_only' | 'mirror'; // IM 绑定的回复策略
   require_mention?: boolean; // 群聊是否需要 @机器人 才响应（默认 false）
-  activation_mode?: 'auto' | 'always' | 'when_mentioned' | 'owner_mentioned' | 'disabled'; // 消息门控模式（默认 'auto'，兼容 require_mention）
+  activation_mode?:
+    | 'auto'
+    | 'always'
+    | 'when_mentioned'
+    | 'owner_mentioned'
+    | 'disabled'; // 消息门控模式（默认 'auto'，兼容 require_mention）
   owner_im_id?: string; // activation_mode 为 'owner_mentioned' 时，仅此 IM 标识符的发送者被响应
   mcp_mode?: 'inherit' | 'custom'; // MCP 配置模式（默认 'inherit' 继承用户配置）
   selected_mcps?: string[] | null; // custom 模式下选中的 MCP server IDs
@@ -682,9 +687,9 @@ export type BotActivationMode =
 export type BotStatus = 'active' | 'disabled';
 
 export interface Bot {
-  id: string;                          // 'bot_' + nanoid
+  id: string; // 'bot_' + nanoid
   user_id: string;
-  channel: 'feishu';                   // PR1 仅飞书，未来可扩展
+  channel: 'feishu'; // PR1 仅飞书，未来可扩展
   name: string;
   default_folder: string | null;
   activation_mode: BotActivationMode;

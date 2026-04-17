@@ -135,9 +135,7 @@ async function computeFileHashes(
         const remaining = MD5_10M_SIZE - bytesRead;
         if (remaining > 0) {
           md5_10mHash.update(
-            remaining >= buf.length
-              ? buf
-              : buf.subarray(0, remaining),
+            remaining >= buf.length ? buf : buf.subarray(0, remaining),
           );
         }
       }
@@ -630,7 +628,12 @@ export function createQQConnection(config: QQConnectionConfig): QQConnection {
 
     // Check upload cache
     const md5 = crypto.createHash('md5').update(imageBuffer).digest('hex');
-    const cached = getCachedFileInfo(md5, chatType, openid, QQMediaFileType.IMAGE);
+    const cached = getCachedFileInfo(
+      md5,
+      chatType,
+      openid,
+      QQMediaFileType.IMAGE,
+    );
     if (cached) return cached;
 
     const endpoint =
@@ -638,22 +641,29 @@ export function createQQConnection(config: QQConnectionConfig): QQConnection {
         ? `/v2/users/${openid}/files`
         : `/v2/groups/${openid}/files`;
 
-    const res = await apiRequest<{ file_info: string; file_uuid?: string; ttl?: number }>(
-      'POST',
-      endpoint,
-      {
-        file_type: 1, // 1 = image
-        file_data: imageBuffer.toString('base64'),
-        srv_send_msg: false,
-      },
-    );
+    const res = await apiRequest<{
+      file_info: string;
+      file_uuid?: string;
+      ttl?: number;
+    }>('POST', endpoint, {
+      file_type: 1, // 1 = image
+      file_data: imageBuffer.toString('base64'),
+      srv_send_msg: false,
+    });
     if (!res.file_info) {
       throw new Error('QQ uploadMedia: no file_info in response');
     }
 
     // Cache the result
     if (res.ttl && res.ttl > 0) {
-      setCachedFileInfo(md5, chatType, openid, QQMediaFileType.IMAGE, res.file_info, res.ttl);
+      setCachedFileInfo(
+        md5,
+        chatType,
+        openid,
+        QQMediaFileType.IMAGE,
+        res.file_info,
+        res.ttl,
+      );
     }
 
     return res.file_info;
@@ -817,11 +827,7 @@ export function createQQConnection(config: QQConnectionConfig): QQConnection {
 
     let lastError: Error | null = null;
 
-    for (
-      let attempt = 0;
-      attempt <= COMPLETE_UPLOAD_MAX_RETRIES;
-      attempt++
-    ) {
+    for (let attempt = 0; attempt <= COMPLETE_UPLOAD_MAX_RETRIES; attempt++) {
       try {
         return await apiRequest<QQMediaUploadResponse>('POST', endpoint, {
           upload_id: uploadId,
@@ -852,10 +858,7 @@ export function createQQConnection(config: QQConnectionConfig): QQConnection {
     const fileSize = stat.size;
     const fileName = path.basename(filePath);
 
-    logger.info(
-      { fileName, fileSize, fileType },
-      'QQ chunked upload starting',
-    );
+    logger.info({ fileName, fileSize, fileType }, 'QQ chunked upload starting');
 
     const hashes = await computeFileHashes(filePath, fileSize);
 
@@ -899,10 +902,7 @@ export function createQQConnection(config: QQConnectionConfig): QQConnection {
       const length = Math.min(block_size, fileSize - offset);
 
       const partBuffer = await readFileChunk(filePath, offset, length);
-      const md5Hex = crypto
-        .createHash('md5')
-        .update(partBuffer)
-        .digest('hex');
+      const md5Hex = crypto.createHash('md5').update(partBuffer).digest('hex');
 
       await putToPresignedUrl(
         part.presigned_url,
@@ -935,7 +935,14 @@ export function createQQConnection(config: QQConnectionConfig): QQConnection {
 
     // Cache the result
     if (result.ttl > 0) {
-      setCachedFileInfo(hashes.md5, chatType, openid, fileType, result.file_info, result.ttl);
+      setCachedFileInfo(
+        hashes.md5,
+        chatType,
+        openid,
+        fileType,
+        result.file_info,
+        result.ttl,
+      );
     }
 
     return result.file_info;
@@ -955,12 +962,7 @@ export function createQQConnection(config: QQConnectionConfig): QQConnection {
     }
 
     const fileType = getQQMediaFileType(fileName);
-    const fileInfo = await chunkedUpload(
-      chatType,
-      openid,
-      filePath,
-      fileType,
-    );
+    const fileInfo = await chunkedUpload(chatType, openid, filePath, fileType);
 
     const chatKey = `${chatType}:${openid}`;
     const msgSeq = getNextMsgSeq(chatKey);
@@ -980,9 +982,7 @@ export function createQQConnection(config: QQConnectionConfig): QQConnection {
 
   // ─── File Download ─────────────────────────────────────────
 
-  async function downloadQQAttachment(
-    url: string,
-  ): Promise<Buffer | null> {
+  async function downloadQQAttachment(url: string): Promise<Buffer | null> {
     try {
       const buffer = await new Promise<Buffer>((resolve, reject) => {
         const doRequest = (reqUrl: string, redirectCount: number = 0) => {
@@ -1061,7 +1061,12 @@ export function createQQConnection(config: QQConnectionConfig): QQConnection {
         const ext = IMAGE_EXT_MAP[imageMime] ?? '.jpg';
         const fileName = `qq_img_${msgId.slice(-8)}${ext}`;
         try {
-          const relPath = await saveDownloadedFile(groupFolder, 'qq', fileName, buffer);
+          const relPath = await saveDownloadedFile(
+            groupFolder,
+            'qq',
+            fileName,
+            buffer,
+          );
           if (relPath) content = `[图片: ${relPath}]\n${content}`.trim();
         } catch (err) {
           logger.warn({ err }, `Failed to save QQ ${logContext} image`);
@@ -1073,14 +1078,20 @@ export function createQQConnection(config: QQConnectionConfig): QQConnection {
     }
 
     // Non-image file
-    const urlFilename = attachment.filename
-      || attachUrl.split('/').pop()?.split('?')[0]
-      || `qq_file_${msgId.slice(-8)}`;
+    const urlFilename =
+      attachment.filename ||
+      attachUrl.split('/').pop()?.split('?')[0] ||
+      `qq_file_${msgId.slice(-8)}`;
     const fileName = urlFilename.replace(/[^a-zA-Z0-9._\-\u4e00-\u9fff]/g, '_');
 
     if (groupFolder) {
       try {
-        const relPath = await saveDownloadedFile(groupFolder, 'qq', fileName, buffer);
+        const relPath = await saveDownloadedFile(
+          groupFolder,
+          'qq',
+          fileName,
+          buffer,
+        );
         if (relPath) content = `[文件: ${relPath}]\n${content}`.trim();
       } catch (err) {
         logger.warn({ err }, `Failed to save QQ ${logContext} file`);
@@ -1391,7 +1402,12 @@ export function createQQConnection(config: QQConnectionConfig): QQConnection {
       let attachmentsJson: string | undefined;
       if (data.attachments?.length) {
         const result = await processQQAttachment(
-          data.attachments[0], msgId, jid, content, opts, 'c2c',
+          data.attachments[0],
+          msgId,
+          jid,
+          content,
+          opts,
+          'c2c',
         );
         content = result.content;
         attachmentsJson = result.attachmentsJson;
@@ -1547,7 +1563,12 @@ export function createQQConnection(config: QQConnectionConfig): QQConnection {
       let attachmentsJson: string | undefined;
       if (data.attachments?.length) {
         const result = await processQQAttachment(
-          data.attachments[0], msgId, jid, content, opts, 'group',
+          data.attachments[0],
+          msgId,
+          jid,
+          content,
+          opts,
+          'group',
         );
         content = result.content;
         attachmentsJson = result.attachmentsJson;
@@ -1738,12 +1759,7 @@ export function createQQConnection(config: QQConnectionConfig): QQConnection {
       }
 
       try {
-        await sendQQFileMessage(
-          parsed.type,
-          parsed.openid,
-          filePath,
-          fileName,
-        );
+        await sendQQFileMessage(parsed.type, parsed.openid, filePath, fileName);
         logger.info({ chatId, fileName }, 'QQ file sent');
       } catch (err) {
         logger.error({ err, chatId, fileName }, 'Failed to send QQ file');

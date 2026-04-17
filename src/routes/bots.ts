@@ -27,10 +27,7 @@ import {
   listBindingsByBot,
   removeBinding,
 } from '../db-bots.js';
-import {
-  saveBotFeishuConfig,
-  getSystemSettings,
-} from '../runtime-config.js';
+import { saveBotFeishuConfig, getSystemSettings } from '../runtime-config.js';
 import {
   CreateBotSchema,
   UpdateBotSchema,
@@ -88,13 +85,17 @@ botsRoutes.post('/', async (c) => {
   if (!parsed.success) return c.json({ error: parsed.error.issues }, 400);
 
   // member 强制 user_id=self
-  const targetUserId = user.role === 'admin' ? (parsed.data.user_id ?? user.id) : user.id;
+  const targetUserId =
+    user.role === 'admin' ? (parsed.data.user_id ?? user.id) : user.id;
 
   // 检查 maxBotsPerUser 上限
   const settings = getSystemSettings();
   const existing = listBotsByUser(targetUserId);
   if (existing.length >= settings.maxBotsPerUser) {
-    return c.json({ error: `exceeds maxBotsPerUser=${settings.maxBotsPerUser}` }, 400);
+    return c.json(
+      { error: `exceeds maxBotsPerUser=${settings.maxBotsPerUser}` },
+      400,
+    );
   }
 
   const bot = createBot({
@@ -115,7 +116,10 @@ botsRoutes.post('/', async (c) => {
         enabled: true,
       });
     } catch (err) {
-      logger.warn({ err, botId: bot.id }, 'Failed to save initial Feishu credentials');
+      logger.warn(
+        { err, botId: bot.id },
+        'Failed to save initial Feishu credentials',
+      );
     }
   }
 

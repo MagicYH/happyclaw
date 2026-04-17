@@ -60,7 +60,10 @@ export function verifySessionToken(signedValue: string): VerifiedToken | null {
     .digest('hex');
   const sigBuf = Buffer.from(sig, 'hex');
   const expectedBuf = Buffer.from(expected, 'hex');
-  if (sigBuf.length !== expectedBuf.length || !crypto.timingSafeEqual(sigBuf, expectedBuf)) {
+  if (
+    sigBuf.length !== expectedBuf.length ||
+    !crypto.timingSafeEqual(sigBuf, expectedBuf)
+  ) {
     return null;
   }
   return { token, legacy: false };
@@ -172,12 +175,20 @@ export function checkLoginRateLimit(
   const windowMs = lockoutMinutes * 60 * 1000;
 
   // Check per-username:ip limit
-  const ipCheck = checkAttemptRecord(`${username}:${ip}`, maxAttempts, windowMs);
+  const ipCheck = checkAttemptRecord(
+    `${username}:${ip}`,
+    maxAttempts,
+    windowMs,
+  );
   if (!ipCheck.allowed) return ipCheck;
 
   // Check per-username global limit (higher threshold, longer window)
   const globalMax = maxAttempts * GLOBAL_USERNAME_MULTIPLIER;
-  const globalCheck = checkAttemptRecord(`user:${username}`, globalMax, GLOBAL_USERNAME_WINDOW_MS);
+  const globalCheck = checkAttemptRecord(
+    `user:${username}`,
+    globalMax,
+    GLOBAL_USERNAME_WINDOW_MS,
+  );
   if (!globalCheck.allowed) return globalCheck;
 
   return { allowed: true };

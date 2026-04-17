@@ -56,7 +56,11 @@ export interface DingTalkConnectOpts {
     chatName: string,
     code: string,
   ) => Promise<boolean>;
-  onCommand?: (chatJid: string, command: string, senderImId?: string) => Promise<string | null>;
+  onCommand?: (
+    chatJid: string,
+    command: string,
+    senderImId?: string,
+  ) => Promise<string | null>;
   resolveGroupFolder?: (jid: string) => string | undefined;
   resolveEffectiveChatJid?: (
     chatJid: string,
@@ -67,7 +71,9 @@ export interface DingTalkConnectOpts {
   shouldProcessGroupMessage?: (chatJid: string, senderImId?: string) => boolean;
   isGroupOwnerMessage?: (chatJid: string, senderImId?: string) => boolean;
   /** Resolve registered group for a jid (should return { activation_mode?: string }) */
-  resolveRegisteredGroup?: (jid: string) => { activation_mode?: string } | undefined;
+  resolveRegisteredGroup?: (
+    jid: string,
+  ) => { activation_mode?: string } | undefined;
 }
 
 export interface DingTalkConnection {
@@ -202,7 +208,7 @@ function parseDingTalkChatId(
   if (chatId.startsWith('cid')) {
     return { type: 'group', conversationId: chatId };
   }
-return null;
+  return null;
 }
 
 // ─── Factory Function ───────────────────────────────────────────
@@ -239,10 +245,7 @@ export function createDingTalkConnection(
 
   // Group name cache: openConversationId → { name, expiresAt }
   // TTL: 1 hour to avoid hitting API on every message
-  const groupNameCache = new Map<
-    string,
-    { name: string; expiresAt: number }
-  >();
+  const groupNameCache = new Map<string, { name: string; expiresAt: number }>();
   const GROUP_NAME_CACHE_TTL = 60 * 60 * 1000;
 
   // ── Streaming card helper (shared between sendMessage fallback and createStreamingSession) ──
@@ -251,7 +254,10 @@ export function createDingTalkConnection(
     chatId: string,
     onCardCreated?: (messageId: string) => void,
     fallbackSend?: (text: string) => Promise<void>,
-  ): Promise<import('./dingtalk-streaming-card.js').DingTalkStreamingCardController | undefined> {
+  ): Promise<
+    | import('./dingtalk-streaming-card.js').DingTalkStreamingCardController
+    | undefined
+  > {
     const parsed = parseDingTalkChatId(chatId);
     if (!parsed) return undefined;
 
@@ -1609,19 +1615,31 @@ export function createDingTalkConnection(
       // Gate 1: 非 owner_mentioned 模式下，根据 shouldProcessGroupMessage 决定是否放行
       // Gate 2: owner_mentioned 模式下，检查发送者是否为 owner
       if (isGroup && opts.shouldProcessGroupMessage) {
-        const shouldProcess = opts.shouldProcessGroupMessage(jid, data.senderId);
+        const shouldProcess = opts.shouldProcessGroupMessage(
+          jid,
+          data.senderId,
+        );
         if (!shouldProcess) {
           // 非 owner_mentioned 模式：直接丢弃（Gate 1）
           // owner_mentioned 模式：交给 Gate 2 检查 owner
           const group = opts.resolveRegisteredGroup?.(jid);
           const mode = group?.activation_mode ?? 'auto';
           if (mode !== 'owner_mentioned') {
-            logger.debug({ jid }, 'DingTalk group message dropped (mention required)');
+            logger.debug(
+              { jid },
+              'DingTalk group message dropped (mention required)',
+            );
             return;
           }
           // owner_mentioned 模式：Gate 2 检查 sender
-          if (opts.isGroupOwnerMessage && !opts.isGroupOwnerMessage(jid, data.senderId)) {
-            logger.debug({ jid, senderId: data.senderId }, 'DingTalk group message dropped (owner_mentioned mode)');
+          if (
+            opts.isGroupOwnerMessage &&
+            !opts.isGroupOwnerMessage(jid, data.senderId)
+          ) {
+            logger.debug(
+              { jid, senderId: data.senderId },
+              'DingTalk group message dropped (owner_mentioned mode)',
+            );
             return;
           }
         }
@@ -1695,11 +1713,9 @@ export function createDingTalkConnection(
       const chatId = jid.startsWith('dingtalk:')
         ? jid.slice('dingtalk:'.length)
         : jid;
-      const attachPromise = attachAckReaction(
-        msgId,
-        conversationId,
-        jid,
-      ).catch(() => {});
+      const attachPromise = attachAckReaction(msgId, conversationId, jid).catch(
+        () => {},
+      );
       pendingAttaches.set(chatId, attachPromise);
       attachPromise.finally(() => pendingAttaches.delete(chatId));
 

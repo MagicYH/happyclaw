@@ -85,16 +85,29 @@ function ensureHostClaudeJson(): string {
 function getContainerClaudeJsonPath(): string {
   const containerJsonDir = path.join(DATA_DIR, 'config');
   fs.mkdirSync(containerJsonDir, { recursive: true });
-  const containerJsonPath = path.join(containerJsonDir, 'container-claude-json.json');
+  const containerJsonPath = path.join(
+    containerJsonDir,
+    'container-claude-json.json',
+  );
 
   try {
-    const hostJson = JSON.parse(fs.readFileSync(getHostClaudeJsonPath(), 'utf-8'));
+    const hostJson = JSON.parse(
+      fs.readFileSync(getHostClaudeJsonPath(), 'utf-8'),
+    );
     const stripped = { ...hostJson };
     delete stripped.cachedGrowthBookFeatures;
     stripped.autoUpdates = false;
-    fs.writeFileSync(containerJsonPath, JSON.stringify(stripped, null, 2) + '\n', { mode: 0o644 });
+    fs.writeFileSync(
+      containerJsonPath,
+      JSON.stringify(stripped, null, 2) + '\n',
+      { mode: 0o644 },
+    );
   } catch {
-    fs.writeFileSync(containerJsonPath, '{"hasCompletedOnboarding":true,"autoUpdates":false}\n', { mode: 0o644 });
+    fs.writeFileSync(
+      containerJsonPath,
+      '{"hasCompletedOnboarding":true,"autoUpdates":false}\n',
+      { mode: 0o644 },
+    );
   }
 
   return containerJsonPath;
@@ -117,7 +130,10 @@ function ensureSymlinkTo(localPath: string, targetPath: string): void {
   try {
     fs.symlinkSync(targetPath, localPath);
   } catch (err) {
-    logger.warn({ err, localPath, targetPath }, 'Failed to create symlink for .claude.json, deviceId may differ');
+    logger.warn(
+      { err, localPath, targetPath },
+      'Failed to create symlink for .claude.json, deviceId may differ',
+    );
   }
 }
 
@@ -237,7 +253,10 @@ interface ResolvedProvider {
  */
 const providerOverrides = new Map<string, string>();
 
-export function setProviderOverride(groupFolder: string, providerId: string): void {
+export function setProviderOverride(
+  groupFolder: string,
+  providerId: string,
+): void {
   providerOverrides.set(groupFolder, providerId);
 }
 
@@ -274,7 +293,10 @@ function trySelectPoolProvider(
         resolved: { config: resolved.config, customEnv: resolved.customEnv },
       };
     } catch (err) {
-      logger.warn({ err, providerId: overrideProviderId }, 'Provider override failed, falling back to pool');
+      logger.warn(
+        { err, providerId: overrideProviderId },
+        'Provider override failed, falling back to pool',
+      );
     }
   }
 
@@ -308,7 +330,10 @@ function trySelectPoolProvider(
       resolved: { config: resolved.config, customEnv: resolved.customEnv },
     };
   } catch (err) {
-    logger.warn({ err }, 'Provider pool selection failed, falling back to active profile');
+    logger.warn(
+      { err },
+      'Provider pool selection failed, falling back to active profile',
+    );
     return null;
   }
 }
@@ -414,7 +439,9 @@ function buildVolumeMounts(
     if (!st.isSymbolicLink() && st.size > STRIPPED_CLAUDE_JSON_MAX_SIZE) {
       fs.unlinkSync(sessionClaudeJson);
     }
-  } catch { /* not found, ok */ }
+  } catch {
+    /* not found, ok */
+  }
 
   // 挂载精简版 .claude.json（剥离 cachedGrowthBookFeatures），保留 deviceId 一致性
   const containerJson = getContainerClaudeJsonPath();
@@ -642,7 +669,11 @@ function buildContainerArgs(
 export async function runContainerAgent(
   group: RegisteredGroup,
   input: ContainerInput,
-  onProcess: (proc: ChildProcess, containerName: string, selectedProviderId: string | null) => void,
+  onProcess: (
+    proc: ChildProcess,
+    containerName: string,
+    selectedProviderId: string | null,
+  ) => void,
   onOutput?: (output: ContainerOutput) => Promise<void>,
   ownerHomeFolder?: string,
 ): Promise<ContainerOutput> {
@@ -951,7 +982,11 @@ export function killProcessTree(
 export async function runHostAgent(
   group: RegisteredGroup,
   input: ContainerInput,
-  onProcess: (proc: ChildProcess, identifier: string, selectedProviderId: string | null) => void,
+  onProcess: (
+    proc: ChildProcess,
+    identifier: string,
+    selectedProviderId: string | null,
+  ) => void,
   onOutput?: (output: ContainerOutput) => Promise<void>,
   ownerHomeFolder?: string,
 ): Promise<ContainerOutput> {
@@ -1095,7 +1130,9 @@ export async function runHostAgent(
   // 3. 写入 settings.json（合并模式，不覆盖已有用户配置）
   // Load user's global MCP servers (same logic as Docker mode).
   const settingsFile = path.join(groupSessionsDir, 'settings.json');
-  const hostMcpServers = group.created_by ? loadUserMcpServers(group.created_by) : {};
+  const hostMcpServers = group.created_by
+    ? loadUserMcpServers(group.created_by)
+    : {};
   ensureSettingsJson(settingsFile, hostMcpServers);
 
   // 4. Skills / Rules / CLAUDE.md 自动链接到 session 目录
@@ -1166,28 +1203,30 @@ export async function runHostAgent(
         if (entry.isSymbolicLink() || entry.isFile()) {
           fs.rmSync(p, { force: true });
         }
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
     const linkRuleEntries = (sourceDir: string) => {
       if (!fs.existsSync(sourceDir)) return;
       for (const entry of fs.readdirSync(sourceDir, { withFileTypes: true })) {
-        if (!entry.isFile() && !entry.isDirectory() && !entry.isSymbolicLink()) continue;
+        if (!entry.isFile() && !entry.isDirectory() && !entry.isSymbolicLink())
+          continue;
         const linkPath = path.join(rulesDir, entry.name);
         try {
           if (fs.existsSync(linkPath)) {
             fs.rmSync(linkPath, { recursive: true, force: true });
           }
           fs.symlinkSync(path.join(sourceDir, entry.name), linkPath);
-        } catch { /* ignore */ }
+        } catch {
+          /* ignore */
+        }
       }
     };
     // 外部 rules（最低优先级）
     linkRuleEntries(path.join(effectiveExtDir, 'rules'));
   } catch (err) {
-    logger.warn(
-      { folder: group.folder, err },
-      '宿主机模式 rules 符号链接失败',
-    );
+    logger.warn({ folder: group.folder, err }, '宿主机模式 rules 符号链接失败');
   }
 
   // 4c. 全局 CLAUDE.md ���接（用户级，不覆盖已有文件）
@@ -1198,7 +1237,9 @@ export async function runHostAgent(
       if (fs.existsSync(extClaudeMd) && !fs.existsSync(sessionClaudeMd)) {
         fs.symlinkSync(extClaudeMd, sessionClaudeMd);
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
   // 5. 构建环境变量
@@ -1210,7 +1251,8 @@ export async function runHostAgent(
   const containerOverride = getContainerEnvConfig(group.folder);
   const hostPoolResult = trySelectPoolProvider(group.folder);
   const hostSelectedProfileId = hostPoolResult?.profileId ?? null;
-  const globalConfig = hostPoolResult?.resolved.config ?? getClaudeProviderConfig();
+  const globalConfig =
+    hostPoolResult?.resolved.config ?? getClaudeProviderConfig();
 
   try {
     // 配置层环境变量

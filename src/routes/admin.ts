@@ -13,7 +13,11 @@ import {
   AdminPatchUserSchema,
   InviteCreateSchema,
 } from '../schemas.js';
-import { isUsernameConflictError, toUserPublic, setSessionCookie } from './auth.js';
+import {
+  isUsernameConflictError,
+  toUserPublic,
+  setSessionCookie,
+} from './auth.js';
 import type {
   AuthUser,
   PermissionTemplateKey,
@@ -28,7 +32,6 @@ import {
   updateUserFields,
   deleteUser,
   restoreUser,
-
   deleteUserSessionsByUserId,
   createUserSession,
   getActiveAdminCount,

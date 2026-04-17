@@ -173,10 +173,17 @@ function discoverSkills(userId: string, userRole?: string): Skill[] {
   return result;
 }
 
-function getSkillDetail(skillId: string, userId: string, userRole?: string): SkillDetail | null {
+function getSkillDetail(
+  skillId: string,
+  userId: string,
+  userRole?: string,
+): SkillDetail | null {
   if (!validateSkillId(skillId)) return null;
 
-  const searchDirs: Array<{ rootDir: string; source: 'user' | 'project' | 'external' }> = [
+  const searchDirs: Array<{
+    rootDir: string;
+    source: 'user' | 'project' | 'external';
+  }> = [
     { rootDir: getUserSkillsDir(userId), source: 'user' },
     { rootDir: getProjectSkillsDir(), source: 'project' },
   ];
@@ -587,7 +594,6 @@ skillsRoutes.get('/search/detail', authMiddleware, async (c) => {
   return c.json({ detail: null });
 });
 
-
 skillsRoutes.get('/:id', authMiddleware, (c) => {
   const id = c.req.param('id');
   const authUser = c.get('user') as AuthUser;
@@ -693,7 +699,9 @@ skillsRoutes.delete('/user-all', authMiddleware, (c) => {
         try {
           fs.rmSync(p, { recursive: true, force: true });
           deleted++;
-        } catch { /* ignore */ }
+        } catch {
+          /* ignore */
+        }
       }
     }
   } catch {

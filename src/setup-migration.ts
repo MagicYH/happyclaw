@@ -42,7 +42,13 @@ export async function migrateUserImToBot(
   });
 
   // 删除旧的 user-im 配置文件
-  const userImPath = path.join(DATA_DIR, 'config', 'user-im', userId, 'feishu.json');
+  const userImPath = path.join(
+    DATA_DIR,
+    'config',
+    'user-im',
+    userId,
+    'feishu.json',
+  );
   try {
     fs.unlinkSync(userImPath);
   } catch {

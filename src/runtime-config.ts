@@ -3403,9 +3403,7 @@ export function saveUserDingTalkConfig(
 
 // ========== Discord User IM Config ==========
 
-export function getUserDiscordConfig(
-  userId: string,
-): UserDiscordConfig | null {
+export function getUserDiscordConfig(userId: string): UserDiscordConfig | null {
   const filePath = path.join(userImDir(userId), 'discord.json');
   try {
     if (!fs.existsSync(filePath)) return null;
@@ -3486,9 +3484,9 @@ export interface SystemSettings {
   autoCompactWindow: number;
 
   // ── Multi-Agent (PR1) ──
-  enableMultiBot: boolean;        // 默认 false，灰度开关
-  maxBotsPerMessage: number;      // 一条消息最多触发多少个 Bot 响应，默认 3
-  maxBotsPerUser: number;         // 每个用户最多创建多少个 Bot，默认 10
+  enableMultiBot: boolean; // 默认 false，灰度开关
+  maxBotsPerMessage: number; // 一条消息最多触发多少个 Bot 响应，默认 3
+  maxBotsPerUser: number; // 每个用户最多创建多少个 Bot，默认 10
 }
 
 const DEFAULT_SYSTEM_SETTINGS: SystemSettings = {
@@ -3669,7 +3667,8 @@ function buildEnvFallbackSettings(): SystemSettings {
       DEFAULT_SYSTEM_SETTINGS.billingCurrencyRate,
     ),
     externalClaudeDir:
-      process.env.EXTERNAL_CLAUDE_DIR || DEFAULT_SYSTEM_SETTINGS.externalClaudeDir,
+      process.env.EXTERNAL_CLAUDE_DIR ||
+      DEFAULT_SYSTEM_SETTINGS.externalClaudeDir,
     autoCompactWindow: parseIntEnv(
       process.env.AUTO_COMPACT_WINDOW,
       DEFAULT_SYSTEM_SETTINGS.autoCompactWindow,
@@ -3779,7 +3778,9 @@ export function saveSystemSettings(
     if (trimmed) {
       try {
         const resolved = fs.realpathSync(trimmed);
-        merged.externalClaudeDir = fs.statSync(resolved).isDirectory() ? resolved : '';
+        merged.externalClaudeDir = fs.statSync(resolved).isDirectory()
+          ? resolved
+          : '';
       } catch {
         merged.externalClaudeDir = '';
       }
@@ -3872,7 +3873,9 @@ export function saveBotFeishuConfig(
     appId: normalized.appId,
     enabled: normalized.enabled,
     updatedAt: normalized.updatedAt || new Date().toISOString(),
-    secret: encryptChannelSecret<FeishuSecretPayload>({ appSecret: normalized.appSecret }),
+    secret: encryptChannelSecret<FeishuSecretPayload>({
+      appSecret: normalized.appSecret,
+    }),
   };
   const dir = botConfigDir(botId);
   fs.mkdirSync(dir, { recursive: true });

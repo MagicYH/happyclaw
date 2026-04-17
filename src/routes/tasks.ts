@@ -50,19 +50,31 @@ tasksRoutes.get('/', authMiddleware, async (c) => {
     const group = allGroups[task.chat_jid];
     // Conservative: if group can't be resolved, only admin can see (may be orphaned task)
     if (!group) return authUser.role === 'admin';
-    if (!canAccessGroup({ id: authUser.id, role: authUser.role }, { ...group, jid: task.chat_jid }))
+    if (
+      !canAccessGroup(
+        { id: authUser.id, role: authUser.role },
+        { ...group, jid: task.chat_jid },
+      )
+    )
       return false;
     if (isHostExecutionGroup(group) && !hasHostExecutionPermission(authUser))
       return false;
     return true;
   });
   const visibleTaskIds = new Set(tasks.map((t) => t.id));
-  const filteredRunningIds = getRunningTaskIds().filter((id) => visibleTaskIds.has(id));
+  const filteredRunningIds = getRunningTaskIds().filter((id) =>
+    visibleTaskIds.has(id),
+  );
 
   // Build jid → name mapping for all registered groups (including IM channels)
   const groupNames: Record<string, string> = {};
   for (const [jid, group] of Object.entries(allGroups)) {
-    if (canAccessGroup({ id: authUser.id, role: authUser.role }, { ...group, jid })) {
+    if (
+      canAccessGroup(
+        { id: authUser.id, role: authUser.role },
+        { ...group, jid },
+      )
+    ) {
       groupNames[jid] = group.name || jid;
     }
   }
@@ -166,11 +178,16 @@ tasksRoutes.post('/', authMiddleware, async (c) => {
   let nextRun: string;
   if (schedule_type === 'cron') {
     try {
-      const cronNext = CronExpressionParser.parse(schedule_value, { tz: TIMEZONE })
+      const cronNext = CronExpressionParser.parse(schedule_value, {
+        tz: TIMEZONE,
+      })
         .next()
         .toISOString();
       if (!cronNext) {
-        return c.json({ error: 'Cron expression produced no next run time' }, 400);
+        return c.json(
+          { error: 'Cron expression produced no next run time' },
+          400,
+        );
       }
       nextRun = cronNext;
     } catch {
@@ -249,13 +266,17 @@ tasksRoutes.patch('/:id', authMiddleware, async (c) => {
   }
 
   // Validate chat_jid if being changed
-  const patchData = { ...validation.data } as typeof validation.data & { group_folder?: string };
+  const patchData = { ...validation.data } as typeof validation.data & {
+    group_folder?: string;
+  };
   if (validation.data.chat_jid !== undefined) {
     const targetGroup = getRegisteredGroup(validation.data.chat_jid);
     if (!targetGroup) {
       return c.json({ error: '目标群组不存在' }, 404);
     }
-    if (!canAccessGroup({ id: authUser.id, role: authUser.role }, targetGroup)) {
+    if (
+      !canAccessGroup({ id: authUser.id, role: authUser.role }, targetGroup)
+    ) {
       return c.json({ error: '无权访问目标群组' }, 403);
     }
     // Keep group_folder in sync with chat_jid
@@ -263,14 +284,18 @@ tasksRoutes.patch('/:id', authMiddleware, async (c) => {
   }
 
   // Auto-recalculate next_run when schedule changes (avoid pulling cron-parser into frontend)
-  if (patchData.schedule_type !== undefined || patchData.schedule_value !== undefined) {
+  if (
+    patchData.schedule_type !== undefined ||
+    patchData.schedule_value !== undefined
+  ) {
     const schedType = patchData.schedule_type ?? existing.schedule_type;
     const schedValue = patchData.schedule_value ?? existing.schedule_value;
     try {
       if (schedType === 'cron') {
-        patchData.next_run = CronExpressionParser.parse(schedValue, { tz: TIMEZONE })
-          .next()
-          .toISOString() || new Date().toISOString();
+        patchData.next_run =
+          CronExpressionParser.parse(schedValue, { tz: TIMEZONE })
+            .next()
+            .toISOString() || new Date().toISOString();
       } else if (schedType === 'interval') {
         const ms = parseInt(schedValue, 10);
         if (!Number.isFinite(ms) || ms <= 0) {
@@ -285,7 +310,10 @@ tasksRoutes.patch('/:id', authMiddleware, async (c) => {
         patchData.next_run = new Date(ts).toISOString();
       }
     } catch {
-      return c.json({ error: 'Invalid schedule value for the given schedule type' }, 400);
+      return c.json(
+        { error: 'Invalid schedule value for the given schedule type' },
+        400,
+      );
     }
   }
 
@@ -456,7 +484,12 @@ function buildParsePrompt(description: string): string {
 function parseAiResult(
   result: string,
   description: string,
-): { prompt: string; schedule_type: string; schedule_value: string; summary: string } | null {
+): {
+  prompt: string;
+  schedule_type: string;
+  schedule_value: string;
+  summary: string;
+} | null {
   try {
     let jsonStr = result;
     const fenced = result.match(/```(?:json)?\s*([\s\S]*?)```/);
@@ -479,7 +512,8 @@ function parseAiResult(
 tasksRoutes.post('/ai', authMiddleware, async (c) => {
   const authUser = c.get('user') as AuthUser;
   const body = await c.req.json().catch(() => ({}));
-  const description = typeof body.description === 'string' ? body.description.trim() : '';
+  const description =
+    typeof body.description === 'string' ? body.description.trim() : '';
   if (!description) {
     return c.json({ error: '请输入任务描述' }, 400);
   }
@@ -514,7 +548,10 @@ tasksRoutes.post('/ai', authMiddleware, async (c) => {
     notify_channels: notifyChannels,
   });
 
-  logger.info({ taskId, description: description.slice(0, 80) }, 'AI task created, parsing in background');
+  logger.info(
+    { taskId, description: description.slice(0, 80) },
+    'AI task created, parsing in background',
+  );
 
   // Background: parse with SDK and update task
   void (async () => {
@@ -550,11 +587,15 @@ tasksRoutes.post('/ai', authMiddleware, async (c) => {
       let nextRun: string | null = null;
       try {
         if (parsed.schedule_type === 'cron') {
-          nextRun = CronExpressionParser.parse(parsed.schedule_value, { tz: TIMEZONE })
+          nextRun = CronExpressionParser.parse(parsed.schedule_value, {
+            tz: TIMEZONE,
+          })
             .next()
             .toISOString();
         } else if (parsed.schedule_type === 'interval') {
-          nextRun = new Date(Date.now() + Number(parsed.schedule_value)).toISOString();
+          nextRun = new Date(
+            Date.now() + Number(parsed.schedule_value),
+          ).toISOString();
         } else {
           nextRun = new Date(parsed.schedule_value).toISOString();
         }
@@ -566,7 +607,10 @@ tasksRoutes.post('/ai', authMiddleware, async (c) => {
           status: 'paused',
           prompt: parsed.prompt,
         });
-        logger.warn({ taskId, scheduleValue: parsed.schedule_value }, 'AI parsed schedule invalid, task paused');
+        logger.warn(
+          { taskId, scheduleValue: parsed.schedule_value },
+          'AI parsed schedule invalid, task paused',
+        );
         return;
       }
 
@@ -581,7 +625,11 @@ tasksRoutes.post('/ai', authMiddleware, async (c) => {
       });
 
       logger.info(
-        { taskId, scheduleType: parsed.schedule_type, scheduleValue: parsed.schedule_value },
+        {
+          taskId,
+          scheduleType: parsed.schedule_type,
+          scheduleValue: parsed.schedule_value,
+        },
         'AI task parse complete, activated',
       );
     } catch (err) {
@@ -591,7 +639,9 @@ tasksRoutes.post('/ai', authMiddleware, async (c) => {
         updateTask(taskId, { status: 'paused' });
       }
     }
-  })().catch((err) => logger.error({ taskId, err }, 'Unhandled AI task parse error'));
+  })().catch((err) =>
+    logger.error({ taskId, err }, 'Unhandled AI task parse error'),
+  );
 
   return c.json({ success: true, taskId });
 });
@@ -601,14 +651,18 @@ tasksRoutes.post('/ai', authMiddleware, async (c) => {
  */
 tasksRoutes.post('/parse', authMiddleware, async (c) => {
   const body = await c.req.json().catch(() => ({}));
-  const description = typeof body.description === 'string' ? body.description.trim() : '';
+  const description =
+    typeof body.description === 'string' ? body.description.trim() : '';
   if (!description) {
     return c.json({ error: '请输入任务描述' }, 400);
   }
 
   try {
     const model = process.env.RECALL_MODEL || undefined;
-    const result = await sdkQuery(buildParsePrompt(description), { model, timeout: 30_000 });
+    const result = await sdkQuery(buildParsePrompt(description), {
+      model,
+      timeout: 30_000,
+    });
 
     if (!result) {
       return c.json({ error: 'AI 解析失败，请重试或切换到手动模式' }, 502);

@@ -29,11 +29,7 @@ import type {
   NewsChannel,
   TextBasedChannel,
 } from 'discord.js';
-import {
-  storeChatMetadata,
-  storeMessageDirect,
-  updateChatName,
-} from './db.js';
+import { storeChatMetadata, storeMessageDirect, updateChatName } from './db.js';
 import { notifyNewImMessage } from './message-notifier.js';
 import { broadcastNewMessage } from './web.js';
 import { logger } from './logger.js';
@@ -72,10 +68,7 @@ export interface DiscordConnectOpts {
   onAgentMessage?: (baseChatJid: string, agentId: string) => void;
   onBotAddedToGroup?: (chatJid: string, chatName: string) => void;
   onBotRemovedFromGroup?: (chatJid: string) => void;
-  shouldProcessGroupMessage?: (
-    chatJid: string,
-    senderImId?: string,
-  ) => boolean;
+  shouldProcessGroupMessage?: (chatJid: string, senderImId?: string) => boolean;
   isGroupOwnerMessage?: (chatJid: string, senderImId?: string) => boolean;
 }
 
@@ -124,11 +117,9 @@ function parseChatId(
   if (chatId.startsWith('discord:'))
     return { type: 'guild', id: chatId.slice(8) };
   // Bare ID form (after extractChatId strips prefix): dm:{userId} or raw snowflake
-  if (chatId.startsWith('dm:'))
-    return { type: 'dm', id: chatId.slice(3) };
+  if (chatId.startsWith('dm:')) return { type: 'dm', id: chatId.slice(3) };
   // Bare snowflake — assume guild channel
-  if (/^\d+$/.test(chatId))
-    return { type: 'guild', id: chatId };
+  if (/^\d+$/.test(chatId)) return { type: 'guild', id: chatId };
   return null;
 }
 
@@ -282,10 +273,7 @@ export function createDiscordConnection(
   /**
    * Add an eyes emoji reaction to a user's message as ack confirmation.
    */
-  async function attachAckReaction(
-    msg: Message,
-    jid: string,
-  ): Promise<void> {
+  async function attachAckReaction(msg: Message, jid: string): Promise<void> {
     try {
       await msg.react('\u{1F440}'); // eyes emoji
       ackReactionByChat.set(jid, {
@@ -369,7 +357,10 @@ export function createDiscordConnection(
         ? `discord:dm:${msg.author.id}`
         : `discord:${msg.channelId}`;
 
-      const senderName = msg.member?.displayName || msg.author.displayName || msg.author.username;
+      const senderName =
+        msg.member?.displayName ||
+        msg.author.displayName ||
+        msg.author.username;
       const chatName = isDM
         ? senderName
         : (msg.channel as TextChannel).name || `Discord #${msg.channelId}`;
@@ -432,7 +423,11 @@ export function createDiscordConnection(
 
       // Process attachments
       let attachmentsJson: string | undefined;
-      const imageAttachments: { type: 'image'; data: string; mimeType: string }[] = [];
+      const imageAttachments: {
+        type: 'image';
+        data: string;
+        mimeType: string;
+      }[] = [];
 
       for (const attachment of msg.attachments.values()) {
         const contentType = attachment.contentType || '';
@@ -550,10 +545,19 @@ export function createDiscordConnection(
       const timestamp = new Date(msg.createdTimestamp).toISOString();
       const senderId = `discord:${msg.author.id}`;
       storeChatMetadata(targetJid, timestamp);
-      storeMessageDirect(id, targetJid, senderId, senderName, content, timestamp, false, {
-        attachments: attachmentsJson,
-        sourceJid: jid,
-      });
+      storeMessageDirect(
+        id,
+        targetJid,
+        senderId,
+        senderName,
+        content,
+        timestamp,
+        false,
+        {
+          attachments: attachmentsJson,
+          sourceJid: jid,
+        },
+      );
 
       broadcastNewMessage(
         targetJid,
@@ -602,7 +606,10 @@ export function createDiscordConnection(
   ): Promise<void> {
     const channel = await resolveChannel(chatId);
     if (!channel) {
-      logger.error({ chatId }, 'Discord sendMessage: failed to resolve channel');
+      logger.error(
+        { chatId },
+        'Discord sendMessage: failed to resolve channel',
+      );
       return;
     }
 
@@ -677,25 +684,32 @@ export function createDiscordConnection(
               {
                 name: 'require_mention',
                 description: '切换群聊响应模式（需要 @Bot 才响应）',
-                options: [{
-                  name: 'enabled',
-                  description: 'true 或 false',
-                  type: 3, // STRING
-                  required: true,
-                  choices: [
-                    { name: 'true - 需要 @Bot', value: 'true' },
-                    { name: 'false - 全量响应', value: 'false' },
-                  ],
-                }],
+                options: [
+                  {
+                    name: 'enabled',
+                    description: 'true 或 false',
+                    type: 3, // STRING
+                    required: true,
+                    choices: [
+                      { name: 'true - 需要 @Bot', value: 'true' },
+                      { name: 'false - 全量响应', value: 'false' },
+                    ],
+                  },
+                ],
               },
             ]);
             // Clear guild-level commands (remove any stale ones from other apps)
             for (const guild of readyClient.guilds.cache.values()) {
-              try { await guild.commands.set([]); } catch {}
+              try {
+                await guild.commands.set([]);
+              } catch {}
             }
             logger.info('Discord application commands registered');
           } catch (err: any) {
-            logger.warn({ err: err.message }, 'Failed to register application commands');
+            logger.warn(
+              { err: err.message },
+              'Failed to register application commands',
+            );
           }
         });
 
@@ -716,16 +730,24 @@ export function createDiscordConnection(
 
           try {
             await interaction.deferReply();
-            const reply = await opts.onCommand?.(jid, cmdBody, interaction.user.id);
+            const reply = await opts.onCommand?.(
+              jid,
+              cmdBody,
+              interaction.user.id,
+            );
             if (reply) {
               // Discord interaction replies have 2000 char limit
-              const truncated = reply.length > 2000 ? reply.slice(0, 1997) + '...' : reply;
+              const truncated =
+                reply.length > 2000 ? reply.slice(0, 1997) + '...' : reply;
               await interaction.editReply(truncated);
             } else {
               await interaction.editReply('命令已执行');
             }
           } catch (err: any) {
-            logger.error({ jid, cmd: cmdBody, err: err.message }, 'Discord slash command failed');
+            logger.error(
+              { jid, cmd: cmdBody, err: err.message },
+              'Discord slash command failed',
+            );
             try {
               await interaction.editReply('命令执行失败');
             } catch {}
@@ -759,10 +781,7 @@ export function createDiscordConnection(
 
         // Guild delete (bot removed from a server) — log only
         discordClient.on(Events.GuildDelete, (guild) => {
-          logger.info(
-            { guildId: guild.id },
-            'Discord bot removed from guild',
-          );
+          logger.info({ guildId: guild.id }, 'Discord bot removed from guild');
         });
 
         // Login and wait for ClientReady before returning
@@ -815,7 +834,10 @@ export function createDiscordConnection(
     ): Promise<void> {
       const channel = await resolveChannel(chatId);
       if (!channel) {
-        logger.error({ chatId }, 'Discord sendImage: failed to resolve channel');
+        logger.error(
+          { chatId },
+          'Discord sendImage: failed to resolve channel',
+        );
         throw new Error(`Discord sendImage: unknown chat ${chatId}`);
       }
 
@@ -895,9 +917,8 @@ export function createDiscordConnection(
       const channel = await resolveChannel(chatId);
       if (!channel) return undefined;
 
-      const { DiscordStreamingEditController } = await import(
-        './discord-streaming-edit.js'
-      );
+      const { DiscordStreamingEditController } =
+        await import('./discord-streaming-edit.js');
       return new DiscordStreamingEditController(
         channel as TextChannel | DMChannel,
         {

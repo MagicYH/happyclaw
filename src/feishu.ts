@@ -44,7 +44,11 @@ export interface ConnectOptions {
   /** 热重连时设置：丢弃 create_time 早于此时间戳（epoch ms）的消息，避免处理渠道关闭期间的堆积消息 */
   ignoreMessagesBefore?: number;
   /** 斜杠指令回调（如 /clear），返回回复文本或 null */
-  onCommand?: (chatJid: string, command: string, senderImId?: string) => Promise<string | null>;
+  onCommand?: (
+    chatJid: string,
+    command: string,
+    senderImId?: string,
+  ) => Promise<string | null>;
   /** 根据 chatJid 解析群组 folder，用于下载文件/图片到工作区 */
   resolveGroupFolder?: (chatJid: string) => string | undefined;
   /** 将 IM chatJid 解析为绑定目标 JID（conversation agent 或工作区主对话） */
@@ -331,8 +335,7 @@ function extractMessageContent(
     }
 
     if (messageType === 'sticker') {
-      const stickerDesc =
-        parsed.description || parsed.sticker_id || '表情包';
+      const stickerDesc = parsed.description || parsed.sticker_id || '表情包';
       return { text: `[表情包: ${stickerDesc}]` };
     }
 
@@ -355,8 +358,7 @@ function extractMessageContent(
 
     if (messageType === 'system') {
       const body = parsed.body || parsed.content || '';
-      const systemText =
-        typeof body === 'string' ? body : JSON.stringify(body);
+      const systemText = typeof body === 'string' ? body : JSON.stringify(body);
       return { text: `[系统消息: ${systemText.slice(0, 200)}]` };
     }
 
@@ -375,14 +377,10 @@ function extractMessageContent(
               parts.push(el.text);
             } else if (el.tag === 'a' && typeof el.text === 'string') {
               parts.push(`[${el.text}](${el.href || ''})`);
-            } else if (
-              el.tag === 'note' &&
-              Array.isArray(el.elements)
-            ) {
+            } else if (el.tag === 'note' && Array.isArray(el.elements)) {
               const noteText = el.elements
                 .filter(
-                  (n: any) =>
-                    n.tag === 'text' && typeof n.text === 'string',
+                  (n: any) => n.tag === 'text' && typeof n.text === 'string',
                 )
                 .map((n: any) => n.text)
                 .join('');
@@ -626,7 +624,11 @@ export function createFeishuConnection(
   let disconnectedSince: number | null = null;
   let healthTimer: NodeJS.Timeout | null = null;
 
-  function rememberChatProgress(chatId: string, createTimeMs: number, chatType?: string): void {
+  function rememberChatProgress(
+    chatId: string,
+    createTimeMs: number,
+    chatType?: string,
+  ): void {
     knownChatIds.add(chatId);
     if (chatType) chatTypeById.set(chatId, chatType);
     const prev = lastCreateTimeByChat.get(chatId) || 0;
@@ -1139,7 +1141,10 @@ export function createFeishuConnection(
           'bot connection received message before open_id was resolved; dropping',
         );
       }
-      if (!isBotMentioned && !shouldProcessGroupMessage(chatJid, senderOpenId)) {
+      if (
+        !isBotMentioned &&
+        !shouldProcessGroupMessage(chatJid, senderOpenId)
+      ) {
         logger.debug(
           { chatJid, messageId },
           'Dropped group message: mention required but bot not mentioned',
@@ -1147,7 +1152,11 @@ export function createFeishuConnection(
         return;
       }
       // owner_mentioned 模式：bot 被 @mention 但发送者不是 owner 时丢弃
-      if (isBotMentioned && isGroupOwnerMessage && !isGroupOwnerMessage(chatJid, senderOpenId)) {
+      if (
+        isBotMentioned &&
+        isGroupOwnerMessage &&
+        !isGroupOwnerMessage(chatJid, senderOpenId)
+      ) {
         logger.debug(
           { chatJid, messageId, senderOpenId },
           'Dropped group message: owner_mentioned mode, sender is not owner',
@@ -1476,7 +1485,10 @@ export function createFeishuConnection(
           method: 'GET',
           url: '/open-apis/bot/v3/info/',
         });
-        const info = botInfoRes as { bot?: { open_id?: string }; data?: { bot?: { open_id?: string } } };
+        const info = botInfoRes as {
+          bot?: { open_id?: string };
+          data?: { bot?: { open_id?: string } };
+        };
         botOpenId = info?.bot?.open_id || info?.data?.bot?.open_id || '';
         if (botOpenId) {
           logger.info(
@@ -1566,17 +1578,26 @@ export function createFeishuConnection(
 
             const chatJid = resolveJidByMessageId(messageId);
             if (!chatJid) {
-              logger.debug({ messageId }, 'Card action: no mapping for messageId');
+              logger.debug(
+                { messageId },
+                'Card action: no mapping for messageId',
+              );
               return;
             }
 
             const session = getStreamingSession(chatJid);
             if (!session?.isActive()) {
-              logger.debug({ chatJid, messageId }, 'Card action: session not active');
+              logger.debug(
+                { chatJid, messageId },
+                'Card action: session not active',
+              );
               return;
             }
 
-            logger.info({ chatJid, messageId }, 'Card action: interrupt via button');
+            logger.info(
+              { chatJid, messageId },
+              'Card action: interrupt via button',
+            );
             connectOptions?.onCardInterrupt?.(chatJid);
           } catch (err) {
             logger.error({ err }, 'Error handling card action trigger');
@@ -1663,7 +1684,7 @@ export function createFeishuConnection(
           try {
             const parsed = JSON.parse(text);
             if (parsed.type === 'interactive' && parsed.card) {
-              await sendToFeishu(chatId,'interactive', text);
+              await sendToFeishu(chatId, 'interactive', text);
               clearAckReaction();
               return;
             }
@@ -1680,18 +1701,18 @@ export function createFeishuConnection(
         if (usePostMd) {
           // Too many tables for card format, go directly to post+md
           const postContent = buildPostMdFallback(text);
-          await sendToFeishu(chatId,'post', postContent);
+          await sendToFeishu(chatId, 'post', postContent);
         } else {
           const card = buildInteractiveCard(text);
           const content = JSON.stringify(card);
           try {
-            await sendToFeishu(chatId,'interactive', content);
+            await sendToFeishu(chatId, 'interactive', content);
           } catch (err) {
             logger.warn(
               { err, chatId },
               'Feishu interactive send failed, fallback to post+md',
             );
-            await sendToFeishu(chatId,'post', buildPostMdFallback(text));
+            await sendToFeishu(chatId, 'post', buildPostMdFallback(text));
           }
         }
         logger.debug({ chatId }, 'Sent Feishu card message');
@@ -1708,8 +1729,7 @@ export function createFeishuConnection(
               | { image_key?: string; data?: { image_key?: string } }
               | null
               | undefined;
-            const imageKey =
-              uploadRes?.image_key ?? uploadRes?.data?.image_key;
+            const imageKey = uploadRes?.image_key ?? uploadRes?.data?.image_key;
             if (!imageKey) {
               logger.warn(
                 { chatId, localImagePath },
@@ -1717,7 +1737,11 @@ export function createFeishuConnection(
               );
               continue;
             }
-            await sendToFeishu(chatId,'image', JSON.stringify({ image_key: imageKey }));
+            await sendToFeishu(
+              chatId,
+              'image',
+              JSON.stringify({ image_key: imageKey }),
+            );
           } catch (imageErr) {
             logger.warn(
               { chatId, localImagePath, err: imageErr },
@@ -1771,7 +1795,11 @@ export function createFeishuConnection(
         }
 
         // Step 2: Send image message
-        await sendToFeishu(chatId, 'image', JSON.stringify({ image_key: imageKey }));
+        await sendToFeishu(
+          chatId,
+          'image',
+          JSON.stringify({ image_key: imageKey }),
+        );
 
         // Step 3: If caption provided, send it as a follow-up text message
         if (caption) {
@@ -1827,18 +1855,22 @@ export function createFeishuConnection(
           | null
           | undefined;
 
-        const fileKey =
-          uploadResult?.file_key ?? uploadResult?.data?.file_key;
+        const fileKey = uploadResult?.file_key ?? uploadResult?.data?.file_key;
         if (!fileKey) {
           throw new Error('文件上传失败：未返回 file_key');
         }
 
         // Determine msg_type: Feishu requires upload file_type and send msg_type to match.
         // mp4 → media (video message), opus → audio (audio message), others → file.
-        const msgType = fileType === 'mp4' ? 'media' : fileType === 'opus' ? 'audio' : 'file';
+        const msgType =
+          fileType === 'mp4' ? 'media' : fileType === 'opus' ? 'audio' : 'file';
 
         // Send file message
-        await sendToFeishu(chatId, msgType, JSON.stringify({ file_key: fileKey }));
+        await sendToFeishu(
+          chatId,
+          msgType,
+          JSON.stringify({ file_key: fileKey }),
+        );
 
         logger.info(
           { chatId, fileName, fileSize: buffer.length },
@@ -1904,7 +1936,8 @@ export function createFeishuConnection(
           user_count: res.data.user_count,
           chat_type: res.data.chat_type,
           chat_mode: res.data.chat_mode,
-          group_message_type: (res.data as { group_message_type?: string }).group_message_type,
+          group_message_type: (res.data as { group_message_type?: string })
+            .group_message_type,
         };
       } catch (err) {
         logger.warn({ err, chatId }, 'Failed to get Feishu chat info');
@@ -2068,6 +2101,8 @@ export async function stopFeishu(): Promise<void> {
  *
  * 该函数作为纯函数导出，便于单元测试。
  */
-export function shouldProcessWhenBotOpenIdMissing(kind: IMConnectionKind): boolean {
+export function shouldProcessWhenBotOpenIdMissing(
+  kind: IMConnectionKind,
+): boolean {
   return kind === 'user';
 }

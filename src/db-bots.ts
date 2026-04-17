@@ -26,7 +26,8 @@ function rowToBot(row: Record<string, unknown>): Bot {
     user_id: String(row.user_id),
     channel: String(row.channel) as 'feishu',
     name: String(row.name),
-    default_folder: row.default_folder === null ? null : String(row.default_folder),
+    default_folder:
+      row.default_folder === null ? null : String(row.default_folder),
     activation_mode: String(row.activation_mode) as BotActivationMode,
     concurrency_mode: String(row.concurrency_mode) as BotConcurrencyMode,
     status: String(row.status) as BotStatus,
@@ -44,9 +45,13 @@ function rowToBinding(row: Record<string, unknown>): BotGroupBinding {
     group_jid: String(row.group_jid),
     folder: String(row.folder),
     activation_mode:
-      row.activation_mode === null ? null : (String(row.activation_mode) as BotActivationMode),
+      row.activation_mode === null
+        ? null
+        : (String(row.activation_mode) as BotActivationMode),
     concurrency_mode:
-      row.concurrency_mode === null ? null : (String(row.concurrency_mode) as BotConcurrencyMode),
+      row.concurrency_mode === null
+        ? null
+        : (String(row.concurrency_mode) as BotConcurrencyMode),
     enabled: Number(row.enabled) === 1,
     bound_at: String(row.bound_at),
   };
@@ -166,11 +171,9 @@ export function updateBot(id: string, patch: UpdateBotInput): Bot {
 export function softDeleteBot(id: string): void {
   const db = getDb();
   const now = new Date().toISOString();
-  db.prepare(`UPDATE bots SET deleted_at=?, status='disabled', updated_at=? WHERE id=?`).run(
-    now,
-    now,
-    id,
-  );
+  db.prepare(
+    `UPDATE bots SET deleted_at=?, status='disabled', updated_at=? WHERE id=?`,
+  ).run(now, now, id);
 }
 
 export function hardDeleteBot(id: string): void {
@@ -211,7 +214,10 @@ export function upsertBinding(input: UpsertBindingInput): BotGroupBinding {
   return rowToBinding(row);
 }
 
-export function getBinding(botId: string, groupJid: string): BotGroupBinding | null {
+export function getBinding(
+  botId: string,
+  groupJid: string,
+): BotGroupBinding | null {
   const db = getDb();
   const row = db
     .prepare(`SELECT * FROM bot_group_bindings WHERE bot_id=? AND group_jid=?`)
@@ -222,7 +228,9 @@ export function getBinding(botId: string, groupJid: string): BotGroupBinding | n
 export function listBindingsByBot(botId: string): BotGroupBinding[] {
   const db = getDb();
   const rows = db
-    .prepare(`SELECT * FROM bot_group_bindings WHERE bot_id=? ORDER BY bound_at DESC`)
+    .prepare(
+      `SELECT * FROM bot_group_bindings WHERE bot_id=? ORDER BY bound_at DESC`,
+    )
     .all(botId) as Record<string, unknown>[];
   return rows.map(rowToBinding);
 }
@@ -239,14 +247,18 @@ export function listBindingsByGroup(groupJid: string): BotGroupBinding[] {
 
 export function removeBinding(botId: string, groupJid: string): void {
   const db = getDb();
-  db.prepare(`DELETE FROM bot_group_bindings WHERE bot_id=? AND group_jid=?`).run(botId, groupJid);
+  db.prepare(
+    `DELETE FROM bot_group_bindings WHERE bot_id=? AND group_jid=?`,
+  ).run(botId, groupJid);
 }
 
-export function setBindingEnabled(botId: string, groupJid: string, enabled: boolean): void {
+export function setBindingEnabled(
+  botId: string,
+  groupJid: string,
+  enabled: boolean,
+): void {
   const db = getDb();
-  db.prepare(`UPDATE bot_group_bindings SET enabled=? WHERE bot_id=? AND group_jid=?`).run(
-    enabled ? 1 : 0,
-    botId,
-    groupJid,
-  );
+  db.prepare(
+    `UPDATE bot_group_bindings SET enabled=? WHERE bot_id=? AND group_jid=?`,
+  ).run(enabled ? 1 : 0, botId, groupJid);
 }

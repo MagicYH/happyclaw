@@ -262,7 +262,10 @@ function writeMemoryFile(
   if (isBlockedMemoryPath(normalized)) {
     throw new Error('Cannot write to system path');
   }
-  if (normalized.includes('user-global/') && normalized.endsWith('/HEARTBEAT.md')) {
+  if (
+    normalized.includes('user-global/') &&
+    normalized.endsWith('/HEARTBEAT.md')
+  ) {
     throw new Error('HEARTBEAT.md is read-only (auto-generated)');
   }
   if (Buffer.byteLength(content, 'utf-8') > MAX_MEMORY_FILE_LENGTH) {
@@ -285,7 +288,13 @@ function writeMemoryFile(
 }
 
 // Directories to skip when scanning group workspaces for memory files
-const WALK_SKIP_DIRS = new Set(['logs', '.claude', 'conversations', 'downloads', 'node_modules']);
+const WALK_SKIP_DIRS = new Set([
+  'logs',
+  '.claude',
+  'conversations',
+  'downloads',
+  'node_modules',
+]);
 
 function walkFiles(
   baseDir: string,
@@ -390,7 +399,9 @@ function listMemorySources(user: AuthUser): MemorySource[] {
         const fullPath = path.join(convDir, entry.name);
         if (isMemoryCandidateFile(fullPath)) files.add(fullPath);
       }
-    } catch { /* skip unreadable */ }
+    } catch {
+      /* skip unreadable */
+    }
   }
 
   const sources: MemorySource[] = [];
@@ -412,7 +423,8 @@ function listMemorySources(user: AuthUser): MemorySource[] {
     }
 
     const classified = classifyMemorySource(relativePath);
-    const writable = classified.type !== 'heartbeat' && classified.type !== 'conversation';
+    const writable =
+      classified.type !== 'heartbeat' && classified.type !== 'conversation';
     sources.push({
       path: relativePath,
       writable,

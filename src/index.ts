@@ -185,10 +185,7 @@ import {
   getActiveStreamingTexts,
   clearStreamingSnapshot,
 } from './web.js';
-import {
-  installSkillForUser,
-  deleteSkillForUser,
-} from './routes/skills.js';
+import { installSkillForUser, deleteSkillForUser } from './routes/skills.js';
 import { verifyPairingCode } from './telegram-pairing.js';
 import { sdkQuery } from './sdk-query.js';
 import { executeSessionReset } from './commands.js';
@@ -750,7 +747,13 @@ function writeUsageRecords(opts: {
     numTurns: number;
     modelUsage?: Record<
       string,
-      { inputTokens: number; outputTokens: number; cacheReadInputTokens: number; cacheCreationInputTokens: number; costUSD: number }
+      {
+        inputTokens: number;
+        outputTokens: number;
+        cacheReadInputTokens: number;
+        cacheCreationInputTokens: number;
+        costUSD: number;
+      }
     >;
   };
 }): void {
@@ -1477,7 +1480,11 @@ async function handleNewCommand(
   return `工作区「${name}」已创建并绑定\n📁 ${folder}\n🔁 回复策略: source_only\n\n发送 /unbind 可解绑回默认工作区`;
 }
 
-function handleRequireMentionCommand(chatJid: string, rawArgs: string, senderImId?: string): string {
+function handleRequireMentionCommand(
+  chatJid: string,
+  rawArgs: string,
+  senderImId?: string,
+): string {
   const group = registeredGroups[chatJid] ?? getRegisteredGroup(chatJid);
   if (!group) return '未找到当前会话';
 
@@ -1529,7 +1536,10 @@ function handleRequireMentionCommand(chatJid: string, rawArgs: string, senderImI
  * 执行后该群组只响应此发送者的 @mention，其他人的 @mention 被静默忽略。
  * 如果已有 owner，只有当前 owner 可以重新设置。
  */
-function handleOwnerMentionCommand(chatJid: string, senderImId?: string): string {
+function handleOwnerMentionCommand(
+  chatJid: string,
+  senderImId?: string,
+): string {
   const group = registeredGroups[chatJid] ?? getRegisteredGroup(chatJid);
   if (!group) return '未找到当前会话';
 
@@ -1538,7 +1548,11 @@ function handleOwnerMentionCommand(chatJid: string, senderImId?: string): string
   }
 
   // 已有 owner 时，只有 owner 本人可以重新设置
-  if (group.activation_mode === 'owner_mentioned' && group.owner_im_id && group.owner_im_id !== senderImId) {
+  if (
+    group.activation_mode === 'owner_mentioned' &&
+    group.owner_im_id &&
+    group.owner_im_id !== senderImId
+  ) {
     return '当前群组已有 owner，只有 owner 本人可以重新设置';
   }
 
@@ -2005,7 +2019,10 @@ export async function loadBotConnections(
       });
     } catch (err) {
       // 不阻塞其他 Bot 的加载
-      logger.error({ err, botId: bot.id }, 'Failed to connect bot during loadState');
+      logger.error(
+        { err, botId: bot.id },
+        'Failed to connect bot during loadState',
+      );
     }
   }
 }
@@ -2221,7 +2238,7 @@ function loadState(): void {
       connectBot: (input) =>
         imManager.connectBot({
           ...input,
-          callbacks: {},  // PR1 暂不注入回调，PR2 再完善
+          callbacks: {}, // PR1 暂不注入回调，PR2 再完善
         }),
     }).catch((err: unknown) => {
       logger.error({ err }, 'loadBotConnections failed during loadState');
@@ -6252,11 +6269,9 @@ async function startMessageLoop(): Promise<void> {
 async function hasActiveCpuDescendants(pid: number): Promise<boolean> {
   const execFileAsync = promisify(execFile);
   try {
-    const { stdout } = await execFileAsync(
-      'ps',
-      ['-eo', 'pid=,ppid=,pcpu='],
-      { timeout: 3000 },
-    );
+    const { stdout } = await execFileAsync('ps', ['-eo', 'pid=,ppid=,pcpu='], {
+      timeout: 3000,
+    });
 
     const children = new Map<number, number[]>();
     const cpuByPid = new Map<number, number>();
@@ -6547,7 +6562,10 @@ function buildOnNewChat(
           existing.name = trimmed;
           setRegisteredGroup(chatJid, existing);
           registeredGroups[chatJid] = existing;
-          logger.debug({ chatJid, chatName: trimmed }, 'Updated IM group name (buildOnNewChat)');
+          logger.debug(
+            { chatJid, chatName: trimmed },
+            'Updated IM group name (buildOnNewChat)',
+          );
         }
         return;
       }
@@ -6759,7 +6777,8 @@ function resolveOrCreateThreadAgent(
   const routeJid = buildFeishuThreadRouteJid(chatJid, threadId, rootMessageId);
   const nextTitle = summarizeFeishuThreadTitle(messageMeta.text);
   let binding = getImContextBinding(chatJid, 'thread', threadId);
-  let agent = binding?.agent_id != null ? getAgent(binding.agent_id) : undefined;
+  let agent =
+    binding?.agent_id != null ? getAgent(binding.agent_id) : undefined;
 
   if (!binding || !agent || agent.chat_jid !== workspaceJid) {
     const agentId = crypto.randomUUID();
@@ -7021,7 +7040,10 @@ function buildOnAgentMessage(): (baseChatJid: string, agentId: string) => void {
  *
  * @param senderImId - 发送者的 IM 标识符（如飞书 open_id），用于 owner_mentioned 模式
  */
-function shouldProcessGroupMessage(chatJid: string, senderImId?: string): boolean {
+function shouldProcessGroupMessage(
+  chatJid: string,
+  senderImId?: string,
+): boolean {
   const group = registeredGroups[chatJid] ?? getRegisteredGroup(chatJid);
   if (!group) return false;
 
@@ -7204,9 +7226,7 @@ async function connectUserIMChannels(
       : Promise.resolve(false);
 
   const discordTask =
-    discordConfig &&
-    discordConfig.enabled !== false &&
-    discordConfig.botToken
+    discordConfig && discordConfig.enabled !== false && discordConfig.botToken
       ? imManager.connectUserDiscord(userId, discordConfig, onNewChat, {
           ignoreMessagesBefore,
           onCommand: handleCommand,

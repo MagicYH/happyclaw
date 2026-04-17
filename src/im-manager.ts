@@ -17,7 +17,10 @@ import {
   createDingTalkChannel,
   createDiscordChannel,
 } from './im-channel.js';
-import { parseFeishuRouteTarget, type FeishuConnectionConfig } from './feishu.js';
+import {
+  parseFeishuRouteTarget,
+  type FeishuConnectionConfig,
+} from './feishu.js';
 import type { TelegramConnectionConfig } from './telegram.js';
 import type { QQConnectionConfig } from './qq.js';
 import type { WeChatConnectionConfig } from './wechat.js';
@@ -274,7 +277,11 @@ export class IMConnectionManager {
     onCardCreated?: (messageId: string) => void,
   ): Promise<StreamingSession | undefined> {
     const channelType = getChannelType(jid);
-    if (channelType !== 'feishu' && channelType !== 'dingtalk' && channelType !== 'discord')
+    if (
+      channelType !== 'feishu' &&
+      channelType !== 'dingtalk' &&
+      channelType !== 'discord'
+    )
       return undefined;
 
     // Check DingTalk streaming mode: if text mode, skip streaming session creation
@@ -574,9 +581,14 @@ export class IMConnectionManager {
       onAgentMessage?: (baseChatJid: string, agentId: string) => void;
       onBotAddedToGroup?: (chatJid: string, chatName: string) => void;
       onBotRemovedFromGroup?: (chatJid: string) => void;
-      shouldProcessGroupMessage?: (chatJid: string, senderImId?: string) => boolean;
+      shouldProcessGroupMessage?: (
+        chatJid: string,
+        senderImId?: string,
+      ) => boolean;
       isGroupOwnerMessage?: (chatJid: string, senderImId?: string) => boolean;
-      resolveRegisteredGroup?: (jid: string) => { activation_mode?: string } | undefined;
+      resolveRegisteredGroup?: (
+        jid: string,
+      ) => { activation_mode?: string } | undefined;
     },
   ): Promise<boolean> {
     if (!config.clientId || !config.clientSecret) {
@@ -623,11 +635,16 @@ export class IMConnectionManager {
       isChatAuthorized?: (jid: string) => boolean;
       onCommand?: (chatJid: string, command: string) => Promise<string | null>;
       resolveGroupFolder?: (jid: string) => string | undefined;
-      resolveEffectiveChatJid?: (chatJid: string) => { effectiveJid: string; agentId: string | null } | null;
+      resolveEffectiveChatJid?: (
+        chatJid: string,
+      ) => { effectiveJid: string; agentId: string | null } | null;
       onAgentMessage?: (baseChatJid: string, agentId: string) => void;
       onBotAddedToGroup?: (chatJid: string, chatName: string) => void;
       onBotRemovedFromGroup?: (chatJid: string) => void;
-      shouldProcessGroupMessage?: (chatJid: string, senderImId?: string) => boolean;
+      shouldProcessGroupMessage?: (
+        chatJid: string,
+        senderImId?: string,
+      ) => boolean;
       isGroupOwnerMessage?: (chatJid: string, senderImId?: string) => boolean;
     },
   ): Promise<boolean> {
@@ -873,7 +890,7 @@ export class IMConnectionManager {
         appId: input.credentials.appId,
         appSecret: input.credentials.appSecret,
       },
-      { kind: 'bot' },  // Task 10 integration: bot 连接空 open_id 强制丢弃
+      { kind: 'bot' }, // Task 10 integration: bot 连接空 open_id 强制丢弃
     );
     const ok = await channel.connect({
       // Required fields for IMChannelConnectOpts
@@ -885,7 +902,10 @@ export class IMConnectionManager {
     });
     if (ok) {
       this.botConnections.set(input.botId, channel);
-      logger.info({ botId: input.botId, userId: input.userId }, 'Bot IM channel connected');
+      logger.info(
+        { botId: input.botId, userId: input.userId },
+        'Bot IM channel connected',
+      );
     }
     return ok;
   }

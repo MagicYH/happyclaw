@@ -209,7 +209,8 @@ workspaceConfigRoutes.get(
   authMiddleware,
   async (c) => {
     const group = resolveGroup(c);
-    if (!group) return c.json({ error: 'Group not found or access denied' }, 404);
+    if (!group)
+      return c.json({ error: 'Group not found or access denied' }, 404);
 
     const skillsDir = getWorkspaceSkillsDir(group);
     const skills = scanSkillDirectory(skillsDir, 'workspace');
@@ -223,7 +224,8 @@ workspaceConfigRoutes.post(
   authMiddleware,
   async (c) => {
     const group = resolveGroup(c);
-    if (!group) return c.json({ error: 'Group not found or access denied' }, 404);
+    if (!group)
+      return c.json({ error: 'Group not found or access denied' }, 404);
 
     const body = await c.req.json().catch(() => ({}));
     const pkg = typeof body.package === 'string' ? body.package.trim() : '';
@@ -245,16 +247,7 @@ workspaceConfigRoutes.post(
     try {
       await execFileAsync(
         'npx',
-        [
-          '-y',
-          'skills',
-          'add',
-          pkg,
-          '--global',
-          '--yes',
-          '-a',
-          'claude-code',
-        ],
+        ['-y', 'skills', 'add', pkg, '--global', '--yes', '-a', 'claude-code'],
         {
           timeout: 60_000,
           env: { ...process.env, HOME: tempHome },
@@ -328,7 +321,8 @@ workspaceConfigRoutes.patch(
   authMiddleware,
   async (c) => {
     const group = resolveGroup(c);
-    if (!group) return c.json({ error: 'Group not found or access denied' }, 404);
+    if (!group)
+      return c.json({ error: 'Group not found or access denied' }, 404);
 
     const id = c.req.param('id');
     if (!validateSkillId(id)) {
@@ -373,7 +367,8 @@ workspaceConfigRoutes.delete(
   authMiddleware,
   async (c) => {
     const group = resolveGroup(c);
-    if (!group) return c.json({ error: 'Group not found or access denied' }, 404);
+    if (!group)
+      return c.json({ error: 'Group not found or access denied' }, 404);
 
     const id = c.req.param('id');
     if (!validateSkillId(id)) {
@@ -405,7 +400,8 @@ workspaceConfigRoutes.get(
   authMiddleware,
   async (c) => {
     const group = resolveGroup(c);
-    if (!group) return c.json({ error: 'Group not found or access denied' }, 404);
+    if (!group)
+      return c.json({ error: 'Group not found or access denied' }, 404);
 
     const meta = readWorkspaceMeta(group);
     const settings = readWorkspaceSettings(group);
@@ -457,7 +453,8 @@ workspaceConfigRoutes.post(
   authMiddleware,
   async (c) => {
     const group = resolveGroup(c);
-    if (!group) return c.json({ error: 'Group not found or access denied' }, 404);
+    if (!group)
+      return c.json({ error: 'Group not found or access denied' }, 404);
 
     const body = await c.req.json().catch(() => ({}));
     const { id, command, args, env, description, type, url, headers } =
@@ -525,7 +522,8 @@ workspaceConfigRoutes.patch(
   authMiddleware,
   async (c) => {
     const group = resolveGroup(c);
-    if (!group) return c.json({ error: 'Group not found or access denied' }, 404);
+    if (!group)
+      return c.json({ error: 'Group not found or access denied' }, 404);
 
     const id = c.req.param('id');
     if (!/^[\w\-]+$/.test(id)) {
@@ -533,16 +531,15 @@ workspaceConfigRoutes.patch(
     }
 
     const body = await c.req.json().catch(() => ({}));
-    const { command, args, env, enabled, description, url, headers } =
-      body as {
-        command?: string;
-        args?: string[];
-        env?: Record<string, string>;
-        enabled?: boolean;
-        description?: string;
-        url?: string;
-        headers?: Record<string, string>;
-      };
+    const { command, args, env, enabled, description, url, headers } = body as {
+      command?: string;
+      args?: string[];
+      env?: Record<string, string>;
+      enabled?: boolean;
+      description?: string;
+      url?: string;
+      headers?: Record<string, string>;
+    };
 
     const meta = readWorkspaceMeta(group);
     let entry = meta.mcpServers[id];
@@ -596,7 +593,8 @@ workspaceConfigRoutes.delete(
   authMiddleware,
   async (c) => {
     const group = resolveGroup(c);
-    if (!group) return c.json({ error: 'Group not found or access denied' }, 404);
+    if (!group)
+      return c.json({ error: 'Group not found or access denied' }, 404);
 
     const id = c.req.param('id');
     if (!/^[\w\-]+$/.test(id)) {
@@ -609,8 +607,7 @@ workspaceConfigRoutes.delete(
 
     // Also remove from settings.json directly
     const settings = readWorkspaceSettings(group);
-    const settingsMcp =
-      (settings.mcpServers as Record<string, unknown>) || {};
+    const settingsMcp = (settings.mcpServers as Record<string, unknown>) || {};
     const hadSettings = id in settingsMcp;
 
     if (!hadMeta && !hadSettings) {

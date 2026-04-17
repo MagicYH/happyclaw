@@ -17,7 +17,9 @@ export const TaskPatchSchema = z.object({
   status: z.enum(['active', 'paused']).optional(),
   next_run: z.string().optional(),
   notify_channels: z
-    .array(z.enum(['feishu', 'telegram', 'qq', 'wechat', 'dingtalk', 'discord']))
+    .array(
+      z.enum(['feishu', 'telegram', 'qq', 'wechat', 'dingtalk', 'discord']),
+    )
     .nullable()
     .optional(),
 });
@@ -39,7 +41,9 @@ export const TaskCreateSchema = z
     execution_mode: z.enum(['host', 'container']).optional(),
     script_command: z.string().max(4096).optional(),
     notify_channels: z
-      .array(z.enum(['feishu', 'telegram', 'qq', 'wechat', 'dingtalk', 'discord']))
+      .array(
+        z.enum(['feishu', 'telegram', 'qq', 'wechat', 'dingtalk', 'discord']),
+      )
       .nullable()
       .optional(),
   })
@@ -752,7 +756,11 @@ export const DiscordConfigSchema = z
 // ── Multi-Agent Bot schemas (PR1) ────────────────────────────────────────────
 
 export const CreateBotSchema = z.object({
-  name: z.string().min(1).max(50).regex(/^[\w\s\u4e00-\u9fa5\-.]+$/),
+  name: z
+    .string()
+    .min(1)
+    .max(50)
+    .regex(/^[\w\s\u4e00-\u9fa5\-.]+$/),
   channel: z.literal('feishu'),
   default_folder: z.string().optional(),
   activation_mode: z

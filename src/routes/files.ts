@@ -119,7 +119,14 @@ const TEXT_EXTENSIONS = new Set([
 ]);
 
 // 不安全的扩展名（HTML/SVG 有 XSS 风险，压缩包不可预览）
-const UNSAFE_PREVIEW_EXTENSIONS = new Set(['html', 'svg', 'zip', 'tar', 'gz', '7z']);
+const UNSAFE_PREVIEW_EXTENSIONS = new Set([
+  'html',
+  'svg',
+  'zip',
+  'tar',
+  'gz',
+  '7z',
+]);
 
 // 允许 inline 预览的安全 MIME 类型（从 MIME_MAP 中排除不安全扩展名自动推导）
 const SAFE_PREVIEW_MIME_TYPES = new Set(
@@ -589,8 +596,7 @@ fileRoutes.get('/:jid/files/preview/:path', authMiddleware, (c) => {
       const rangeHeader = c.req.header('range');
       if (rangeHeader) {
         const normalizedRange = rangeHeader.trim();
-        const isBytesRange =
-          normalizedRange.toLowerCase().startsWith('bytes=');
+        const isBytesRange = normalizedRange.toLowerCase().startsWith('bytes=');
         const isMultiRange = isBytesRange && normalizedRange.includes(',');
 
         if (isBytesRange && !isMultiRange) {

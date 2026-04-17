@@ -89,7 +89,9 @@ export interface IMChannelConnectOpts {
   /** owner_mentioned 模式下检查发送者是否为 owner */
   isGroupOwnerMessage?: (chatJid: string, senderImId?: string) => boolean;
   /** Resolve registered group for a jid */
-  resolveRegisteredGroup?: (jid: string) => { activation_mode?: string } | undefined;
+  resolveRegisteredGroup?: (
+    jid: string,
+  ) => { activation_mode?: string } | undefined;
   /** 飞书流式卡片按钮中断回调 */
   onCardInterrupt?: (chatJid: string) => void;
 }
@@ -478,10 +480,7 @@ export function createQQChannel(config: QQConnectionConfig): IMChannel {
       fileName?: string,
     ): Promise<void> {
       if (!inner) {
-        logger.warn(
-          { chatId },
-          'QQ channel not connected, skip sending image',
-        );
+        logger.warn({ chatId }, 'QQ channel not connected, skip sending image');
         return;
       }
       await inner.sendImage(chatId, imageBuffer, mimeType, caption, fileName);
@@ -493,10 +492,7 @@ export function createQQChannel(config: QQConnectionConfig): IMChannel {
       fileName: string,
     ): Promise<void> {
       if (!inner) {
-        logger.warn(
-          { chatId },
-          'QQ channel not connected, skip sending file',
-        );
+        logger.warn({ chatId }, 'QQ channel not connected, skip sending file');
         return;
       }
       await inner.sendFile(chatId, filePath, fileName);
@@ -787,7 +783,9 @@ export function createDiscordChannel(
         if (!typingIntervals.has(chatId)) {
           await inner.setTyping(chatId, true);
           const interval = setInterval(async () => {
-            try { if (inner) await inner.setTyping(chatId, true); } catch {}
+            try {
+              if (inner) await inner.setTyping(chatId, true);
+            } catch {}
           }, 9000);
           typingIntervals.set(chatId, interval);
         }
