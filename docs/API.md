@@ -90,6 +90,27 @@
 
 - `GET /api/status` · `GET /api/health`（无需认证）
 
+## Bot 管理（PR1，需 `ENABLE_MULTI_BOT=true`）
+
+> 所有端点需登录认证（Cookie Session）。创建 / 更新 / 删除操作会写入审计日志。
+> Bot 从属于创建者（owner），admin 可查询任意用户的 Bot（传 `?user_id=`）。
+
+- `GET /api/bots` — 列出当前用户的 Bot（admin 可传 `?user_id=` 查询指定用户）
+- `POST /api/bots` — 创建 Bot（body: `name`、`channel`、`role`、`description?`；返回 201 + Bot 对象）
+- `GET /api/bots/:id` — 获取 Bot 详情（仅 owner 或 admin 可访问，否则 403）
+- `PUT /api/bots/:id` — 更新 Bot 元数据（`name`、`role`、`description`）
+- `PUT /api/bots/:id/credentials` — 更新飞书凭证（`appId`、`appSecret`；凭证 AES-256-GCM 加密写入 `data/config/bots/{id}/feishu.json`）
+- `POST /api/bots/:id/enable` — 启用 Bot（建立飞书 WebSocket 长连接）
+- `POST /api/bots/:id/disable` — 停用 Bot（断开连接，`status` 置为 `disabled`）
+- `DELETE /api/bots/:id` — 软删除 Bot（`deleted_at` 打时间戳，同时断开连接并级联删除 `bot_group_bindings`）
+- `GET /api/bots/:id/bindings` — 列出该 Bot 绑定的群组（返回 `bot_group_bindings` 列表）
+- `POST /api/bots/:id/bindings` — 添加 Bot 与群的绑定（body: `groupJid`；重复绑定返回 409）
+- `DELETE /api/bots/:id/bindings/:groupJid` — 移除 Bot 与指定群的绑定
+
+## Setup 向导（迁移辅助）
+
+- `POST /api/config/setup/migrate-feishu-to-bot` — Setup 向导：将用户现有 per-user 飞书 IM 配置（`data/config/user-im/{userId}/feishu.json`）迁移为一个 Bot 实体，写入 `bots` 表并创建 `bot_group_bindings`（仅在 `ENABLE_MULTI_BOT=true` 时可用）
+
 ## WebSocket
 
 - `/ws`（详见 `CLAUDE.md` §3.6 WebSocket 协议）

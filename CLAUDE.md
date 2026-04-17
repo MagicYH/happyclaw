@@ -334,6 +334,8 @@ SQLite WAL 模式，Schema 经历 v1→v24 演进（`db.ts` 中的 `SCHEMA_VERSI
 | `usage_records` | `id` | Token 用量明细（per-model 拆行，关联 user_id、group_folder、message_id） |
 | `usage_daily_summary` | `(user_id, model, date)` | 日维度用量预聚合（本地时区日期，增量 UPSERT） |
 | `user_quotas` | `user_id` | 用户配额（预留，暂不写入数据） |
+| `bots` | `id` | Bot 实体（IM 渠道身份 + 角色）。PR1 引入的多 Agent 基础设施（`ENABLE_MULTI_BOT=true` 才生效） |
+| `bot_group_bindings` | `(bot_id, group_jid)` | Bot 与飞书群的 M:N 绑定 |
 
 **注意**：`registered_groups.folder` 允许重复（多个飞书群组可映射到同一 folder）。`registered_groups.is_home` 标记用户主容器。
 
@@ -366,6 +368,7 @@ data/
   config/user-im/{userId}/telegram.json    # 用户级 Telegram IM 配置（AES-256-GCM 加密）
   config/user-im/{userId}/qq.json          # 用户级 QQ IM 配置（AES-256-GCM 加密）
   config/user-im/{userId}/dingtalk.json   # 用户级钉钉 IM 配置（AES-256-GCM 加密）
+  config/bots/{botId}/feishu.json          # per-bot 飞书凭证（AES-256-GCM 加密，0600 权限）
   config/registration.json                 # 注册设置（开关、邀请码要求）
   config/session-secret.key                # 会话签名密钥（0600 权限）
   config/system-settings.json              # 系统运行参数（容器超时、并发限制等）
@@ -406,6 +409,7 @@ scripts/                      # 构建辅助脚本
 | Sub-Agent | `src/routes/agents.ts` |
 | 目录浏览 | `src/routes/browse.ts` |
 | MCP Servers | `src/routes/mcp-servers.ts` |
+| Bot 管理 | `src/routes/bots.ts`（PR1，需 `enableMultiBot=true` 才可用） |
 | 用量统计 | `src/routes/usage.ts` |
 | 监控 / 健康检查 | `src/routes/monitor.ts`（`GET /api/health` 无需认证） |
 
@@ -532,6 +536,9 @@ WebSocket：`/ws`（协议详见 §3.6）。
 | `AUTO_COMPACT_WINDOW` | `0`（禁用，使用 SDK 默认 ~1M） | Claude Agent SDK 自动对话压缩触发点（tokens），0 = 关闭，>0 范围 [10000, 2000000]（可通过设置页覆盖） |
 | `TRUST_PROXY` | `false` | 信任反向代理的 `X-Forwarded-For` 头（启用后从代理头获取客户端 IP） |
 | `TZ` | 系统时区 | 定时任务时区 |
+| `ENABLE_MULTI_BOT` | `false` | 多 Bot 功能灰度开关（v35 schema 起可用） |
+| `MAX_BOTS_PER_MESSAGE` | `3` | 一条消息最多触发多少个 Bot 响应 |
+| `MAX_BOTS_PER_USER` | `10` | 每个用户最多可创建的 Bot 数 |
 
 ## 10. 开发约束
 
