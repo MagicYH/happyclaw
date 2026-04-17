@@ -89,6 +89,7 @@ import {
   touchImContextBindingActivity,
   updateAgentContextInfo,
 } from './db.js';
+import { listAllActiveBots } from './db-bots.js';
 // feishu.js deprecated exports are no longer needed; imManager handles all connections
 import { imManager } from './im-manager.js';
 import {
@@ -125,10 +126,12 @@ import {
   getUserDingTalkConfig,
   getUserDiscordConfig,
   getSystemSettings,
+  getBotFeishuConfig,
   saveUserFeishuConfig,
   saveUserTelegramConfig,
   updateAllSessionCredentials,
 } from './runtime-config.js';
+import type { BotFeishuConfig } from './runtime-config.js';
 import type {
   FeishuConnectConfig,
   TelegramConnectConfig,
@@ -151,6 +154,7 @@ import {
 } from './billing.js';
 import {
   AgentStatus,
+  Bot,
   FeishuMessageMeta,
   MessageCursor,
   NewMessage,
@@ -1968,6 +1972,46 @@ function migrateSystemIMToPerUser(): void {
   }
 }
 
+// ── Multi-Agent: per-bot connection loading ──────────────────────────────────
+
+export interface LoadBotConnectionsDeps {
+  getBotFeishuConfig: (botId: string) => BotFeishuConfig | null;
+  connectBot: (input: {
+    botId: string;
+    userId: string;
+    channel: 'feishu';
+    credentials: { appId: string; appSecret: string };
+  }) => Promise<boolean>;
+}
+
+/**
+ * 启动时遍历所有 active bots，对每个有有效凭证的 Bot 建立连接。
+ * 纯函数版本（deps 注入），便于单测。
+ */
+export async function loadBotConnections(
+  bots: Bot[],
+  deps: LoadBotConnectionsDeps,
+): Promise<void> {
+  for (const bot of bots) {
+    if (bot.status !== 'active' || bot.deleted_at !== null) continue;
+    const cfg = deps.getBotFeishuConfig(bot.id);
+    if (!cfg || !cfg.enabled) continue;
+    try {
+      await deps.connectBot({
+        botId: bot.id,
+        userId: bot.user_id,
+        channel: 'feishu',
+        credentials: { appId: cfg.appId, appSecret: cfg.appSecret },
+      });
+    } catch (err) {
+      // 不阻塞其他 Bot 的加载
+      logger.error({ err, botId: bot.id }, 'Failed to connect bot during loadState');
+    }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 function loadState(): void {
   // Load from SQLite
   const persistedTimestamp = getRouterState('last_timestamp') || '';
@@ -2167,6 +2211,22 @@ function loadState(): void {
     { groupCount: Object.keys(registeredGroups).length },
     'State loaded',
   );
+
+  // ── Multi-Agent (PR1): load bot connections if feature flag is enabled ──
+  const settings = getSystemSettings();
+  if (settings.enableMultiBot) {
+    const bots = listAllActiveBots();
+    loadBotConnections(bots, {
+      getBotFeishuConfig,
+      connectBot: (input) =>
+        imManager.connectBot({
+          ...input,
+          callbacks: {},  // PR1 暂不注入回调，PR2 再完善
+        }),
+    }).catch((err: unknown) => {
+      logger.error({ err }, 'loadBotConnections failed during loadState');
+    });
+  }
 }
 
 function saveState(): void {
