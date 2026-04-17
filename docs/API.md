@@ -107,6 +107,14 @@
 - `POST /api/bots/:id/bindings` — 添加 Bot 与群的绑定（body: `groupJid`；重复绑定返回 409）
 - `DELETE /api/bots/:id/bindings/:groupJid` — 移除 Bot 与指定群的绑定
 
+### Bot Profile 编辑（PR2）
+
+- `GET /api/bots/:id/profile` — 读取 Bot 角色 CLAUDE.md（若不存在则返回默认模板）
+- `PUT /api/bots/:id/profile` — 写入 Bot 角色 CLAUDE.md（含路径遍历防御 + 审计）
+  - 鉴权：`authorizeBot` 中间件（admin 任意、member 仅自己的 bot）
+  - 校验：Zod `UpdateBotProfileSchema`（content 最大 64KB）
+  - 审计：`bot_profile_updated` 事件
+
 ## Setup 向导（迁移辅助）
 
 - `POST /api/config/setup/migrate-feishu-to-bot` — Setup 向导：将用户现有 per-user 飞书 IM 配置（`data/config/user-im/{userId}/feishu.json`）迁移为一个 Bot 实体，写入 `bots` 表并创建 `bot_group_bindings`（仅在 `ENABLE_MULTI_BOT=true` 时可用）

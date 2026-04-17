@@ -65,6 +65,7 @@ HappyClaw 是一个自托管的多用户 AI Agent 系统：
 | `src/reset-admin.ts` | 管理员密码重置脚本入口 |
 | `src/config.ts` | 常量：路径、超时、并发限制、会话密钥（优先级：环境变量 > 文件 > 生成，0600 权限） |
 | `src/logger.ts` | 日志：pino + pino-pretty |
+| `src/bot-profile-manager.ts` | Bot profile CLAUDE.md 读写 + 路径遍历防御（PR2） |
 
 ### 2.2 前端
 
@@ -375,6 +376,8 @@ data/
   streaming-buffer/                         # 流式文本磁盘缓冲（崩溃恢复用，自动清理）
   skills/{userId}/                         # 用户级 Skills 数据
   mcp-servers/{userId}/servers.json        # 用户 MCP Servers 配置
+  bot-profiles/{botId}/CLAUDE.md           # Bot 角色（用户维护，advisor/writer 默认模板）
+  scratch/{folder}/bots/{botId}/           # advisor 可写 scratch（跨会话持久）
 
 config/default-groups.json                 # 预注册群组配置
 config/mount-allowlist.json                # 容器挂载白名单
@@ -409,7 +412,7 @@ scripts/                      # 构建辅助脚本
 | Sub-Agent | `src/routes/agents.ts` |
 | 目录浏览 | `src/routes/browse.ts` |
 | MCP Servers | `src/routes/mcp-servers.ts` |
-| Bot 管理 | `src/routes/bots.ts`（PR1，需 `enableMultiBot=true` 才可用） |
+| Bot 管理 | `src/routes/bots.ts`（PR1，需 `enableMultiBot=true` 才可用；PR2 新增 GET/PUT `/api/bots/:id/profile`） |
 | 用量统计 | `src/routes/usage.ts` |
 | 监控 / 健康检查 | `src/routes/monitor.ts`（`GET /api/health` 无需认证） |
 
@@ -539,6 +542,10 @@ WebSocket：`/ws`（协议详见 §3.6）。
 | `ENABLE_MULTI_BOT` | `false` | 多 Bot 功能灰度开关（v35 schema 起可用） |
 | `MAX_BOTS_PER_MESSAGE` | `3` | 一条消息最多触发多少个 Bot 响应 |
 | `MAX_BOTS_PER_USER` | `10` | 每个用户最多可创建的 Bot 数 |
+| `HAPPYCLAW_BOT_MODE` | - | 容器内 Bot 模式（writer / advisor，由 container-runner 注入） |
+| `HAPPYCLAW_BOT_ID` | - | 容器内 Bot ID（由 container-runner 注入） |
+| `HAPPYCLAW_SCRATCH_DIR` | - | 宿主机模式的 scratch 目录绝对路径 |
+| `HAPPYCLAW_BOT_PROFILE_DIR` | - | 宿主机模式的 bot-profile 目录绝对路径 |
 
 ## 10. 开发约束
 
