@@ -214,8 +214,16 @@ function getRouterStateInternal(key: string): string | undefined {
   }
 }
 
-export function initDatabase(): void {
-  const dbPath = path.join(STORE_DIR, 'messages.db');
+/**
+ * Returns the raw database connection.
+ * Primarily intended for testing; prefer using exported functions in production code.
+ */
+export function getDb(): InstanceType<typeof Database> {
+  return db;
+}
+
+export function initDatabase(customDbPath?: string): void {
+  const dbPath = customDbPath ?? path.join(STORE_DIR, 'messages.db');
   fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 
   db = new Database(dbPath);
@@ -223,6 +231,10 @@ export function initDatabase(): void {
   // Enable WAL mode for better concurrency and performance
   db.exec('PRAGMA journal_mode = WAL');
   db.exec('PRAGMA busy_timeout = 5000');
+  // Enable FK enforcement per-connection (must be set each time a connection is opened).
+  // v35 migration rebuilt messages and task_run_logs tables with ON DELETE CASCADE
+  // so FK violations are no longer a risk on those tables.
+  db.exec('PRAGMA foreign_keys = ON');
   db.exec(`
     CREATE TABLE IF NOT EXISTS chats (
       jid TEXT PRIMARY KEY,
@@ -1233,7 +1245,175 @@ export function initDatabase(): void {
     db.exec('ALTER TABLE agents ADD COLUMN spawned_from_jid TEXT');
   }
 
-  const SCHEMA_VERSION = '34';
+  // ─── v34 → v35: Multi-Agent 基础设施 ───────────────────────────────────────
+  //
+  // Decision note (FK audit §5 — Plan B):
+  //   • messages and task_run_logs are rebuilt to add ON DELETE CASCADE.
+  //   • invite_codes, user_subscriptions, user_balances keep NO ACTION
+  //     because users are soft-deleted (never physically removed).
+  //   • PRAGMA foreign_keys = ON is set at connection open time (see top of initDatabase).
+  //
+  // Sessions PK note: PR1 only adds the bot_id column; PK rebuild
+  // (group_folder, bot_id, agent_id) is deferred to PR2/PR3 to minimise risk.
+
+  const v35Ver = getRouterStateInternal('schema_version');
+  if (!v35Ver || parseInt(v35Ver, 10) < 35) {
+    db.transaction(() => {
+      // ── Step 1: data hygiene before enabling FK checks ──────────────────
+      // Orphaned messages (chat_jid not in chats) must be removed before rebuilding
+      // the messages table with ON DELETE CASCADE.
+      const orphanedMessages = (
+        db
+          .prepare('SELECT COUNT(*) AS cnt FROM messages WHERE chat_jid NOT IN (SELECT jid FROM chats)')
+          .get() as { cnt: number }
+      ).cnt;
+      if (orphanedMessages > 0) {
+        logger.warn({ orphanedMessages }, 'v35 migration: deleting orphaned messages before FK rebuild');
+        db.exec('DELETE FROM messages WHERE chat_jid NOT IN (SELECT jid FROM chats)');
+      }
+
+      // Orphaned task_run_logs (task_id not in scheduled_tasks)
+      const orphanedLogs = (
+        db
+          .prepare('SELECT COUNT(*) AS cnt FROM task_run_logs WHERE task_id NOT IN (SELECT id FROM scheduled_tasks)')
+          .get() as { cnt: number }
+      ).cnt;
+      if (orphanedLogs > 0) {
+        logger.warn({ orphanedLogs }, 'v35 migration: deleting orphaned task_run_logs before FK rebuild');
+        db.exec('DELETE FROM task_run_logs WHERE task_id NOT IN (SELECT id FROM scheduled_tasks)');
+      }
+
+      // ── Step 2: rebuild messages with ON DELETE CASCADE ─────────────────
+      // Temporarily disable FK checks during table reconstruction (SQLite best practice).
+      db.exec('PRAGMA foreign_keys = OFF');
+
+      // Collect all columns currently in messages (handles previously-ensureColumn'd columns).
+      const msgCols = (db.prepare("PRAGMA table_info('messages')").all() as Array<{ name: string }>)
+        .map((c) => c.name);
+
+      db.exec(`
+        CREATE TABLE messages_new (
+          id TEXT,
+          chat_jid TEXT,
+          source_jid TEXT,
+          sender TEXT,
+          sender_name TEXT,
+          content TEXT,
+          timestamp TEXT,
+          is_from_me INTEGER,
+          attachments TEXT,
+          token_usage TEXT,
+          turn_id TEXT,
+          session_id TEXT,
+          sdk_message_uuid TEXT,
+          source_kind TEXT,
+          finalization_reason TEXT,
+          cost_usd REAL,
+          PRIMARY KEY (id, chat_jid),
+          FOREIGN KEY (chat_jid) REFERENCES chats(jid) ON DELETE CASCADE
+        );
+      `);
+      // Insert only columns that exist in both old and new tables to be safe
+      const newMsgCols = (db.prepare("PRAGMA table_info('messages_new')").all() as Array<{ name: string }>)
+        .map((c) => c.name);
+      const commonMsgCols = msgCols.filter((c) => newMsgCols.includes(c)).join(', ');
+      db.exec(`INSERT INTO messages_new (${commonMsgCols}) SELECT ${commonMsgCols} FROM messages`);
+      db.exec('DROP TABLE messages');
+      db.exec('ALTER TABLE messages_new RENAME TO messages');
+      db.exec('CREATE INDEX IF NOT EXISTS idx_timestamp ON messages(timestamp)');
+      db.exec('CREATE INDEX IF NOT EXISTS idx_messages_jid_ts ON messages(chat_jid, timestamp)');
+
+      // ── Step 3: rebuild task_run_logs with ON DELETE CASCADE ─────────────
+      db.exec(`
+        CREATE TABLE task_run_logs_new (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          task_id TEXT NOT NULL,
+          run_at TEXT NOT NULL,
+          duration_ms INTEGER NOT NULL,
+          status TEXT NOT NULL,
+          result TEXT,
+          error TEXT,
+          FOREIGN KEY (task_id) REFERENCES scheduled_tasks(id) ON DELETE CASCADE
+        );
+        INSERT INTO task_run_logs_new SELECT * FROM task_run_logs;
+        DROP TABLE task_run_logs;
+        ALTER TABLE task_run_logs_new RENAME TO task_run_logs;
+        CREATE INDEX IF NOT EXISTS idx_task_run_logs ON task_run_logs(task_id, run_at);
+      `);
+
+      // Re-enable FK checks after reconstruction
+      db.exec('PRAGMA foreign_keys = ON');
+
+      // ── Step 4: bots table ───────────────────────────────────────────────
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS bots (
+          id               TEXT PRIMARY KEY,
+          user_id          TEXT NOT NULL,
+          channel          TEXT NOT NULL DEFAULT 'feishu',
+          name             TEXT NOT NULL,
+          default_folder   TEXT,
+          activation_mode  TEXT NOT NULL DEFAULT 'when_mentioned',
+          concurrency_mode TEXT NOT NULL DEFAULT 'writer',
+          status           TEXT NOT NULL DEFAULT 'active',
+          deleted_at       TEXT,
+          open_id          TEXT,
+          remote_name      TEXT,
+          created_at       TEXT NOT NULL,
+          updated_at       TEXT NOT NULL,
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS idx_bots_user ON bots(user_id) WHERE deleted_at IS NULL;
+        CREATE INDEX IF NOT EXISTS idx_bots_channel_status ON bots(channel, status) WHERE deleted_at IS NULL;
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_bots_open_id
+          ON bots(channel, open_id) WHERE deleted_at IS NULL AND open_id IS NOT NULL;
+      `);
+
+      // ── Step 5: bot_group_bindings table ────────────────────────────────
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS bot_group_bindings (
+          bot_id           TEXT NOT NULL,
+          group_jid        TEXT NOT NULL,
+          folder           TEXT NOT NULL,
+          activation_mode  TEXT,
+          concurrency_mode TEXT,
+          enabled          INTEGER NOT NULL DEFAULT 1,
+          bound_at         TEXT NOT NULL,
+          PRIMARY KEY (bot_id, group_jid),
+          FOREIGN KEY (bot_id) REFERENCES bots(id) ON DELETE CASCADE,
+          FOREIGN KEY (group_jid) REFERENCES registered_groups(jid) ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS idx_bgb_group ON bot_group_bindings(group_jid);
+        CREATE INDEX IF NOT EXISTS idx_bgb_folder ON bot_group_bindings(folder);
+      `);
+
+      // ── Step 6: trigger to sync folder when registered_groups.folder changes ──
+      db.exec(`
+        CREATE TRIGGER IF NOT EXISTS sync_bgb_folder_on_rg_update
+        AFTER UPDATE OF folder ON registered_groups
+        FOR EACH ROW
+        WHEN OLD.folder != NEW.folder
+        BEGIN
+          UPDATE bot_group_bindings
+          SET folder = NEW.folder
+          WHERE group_jid = NEW.jid;
+        END;
+      `);
+
+      // ── Step 7: sessions.bot_id column ──────────────────────────────────
+      // PR1 decision: only add column, do not rebuild sessions PK.
+      // PK rebuild (group_folder, bot_id, agent_id) is deferred to PR2/PR3.
+      ensureColumn('sessions', 'bot_id', "TEXT NOT NULL DEFAULT ''");
+
+      // ── Step 8: usage_records.bot_id column ─────────────────────────────
+      ensureColumn('usage_records', 'bot_id', 'TEXT');
+      db.exec("UPDATE usage_records SET bot_id = '' WHERE bot_id IS NULL");
+
+      // ── Step 9: usage_daily_summary.bot_id column ───────────────────────
+      ensureColumn('usage_daily_summary', 'bot_id', "TEXT DEFAULT ''");
+    })();
+  }
+
+  const SCHEMA_VERSION = '35';
   db.prepare(
     'INSERT OR REPLACE INTO router_state (key, value) VALUES (?, ?)',
   ).run('schema_version', SCHEMA_VERSION);
