@@ -89,7 +89,11 @@ import {
   touchImContextBindingActivity,
   updateAgentContextInfo,
 } from './db.js';
-import { listAllActiveBots } from './db-bots.js';
+import {
+  listAllActiveBots,
+  getBotById,
+  listBindingsByGroup,
+} from './db-bots.js';
 // feishu.js deprecated exports are no longer needed; imManager handles all connections
 import { imManager } from './im-manager.js';
 import {
@@ -633,6 +637,34 @@ export function resolveRouteTarget(
   const binding = deps.getBinding(botId, groupJid);
   if (!binding || !binding.enabled) return null;
   return { folder: binding.folder, botId };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * PR2: 解析 concurrency_mode 覆盖链。
+ *
+ * 优先级：binding.concurrency_mode > bot.concurrency_mode > 'writer'
+ *
+ * @param groupJid  IM 群组 JID（如 feishu:xxx）
+ * @param folder    目标 folder（effectiveGroup.folder），用于选择正确的 binding
+ * @returns         { botId, concurrencyMode } 或 null（无 bot binding 时走兼容路径）
+ */
+export function resolveBotContext(
+  groupJid: string,
+  folder: string,
+): { botId: string; concurrencyMode: import('./types.js').BotConcurrencyMode } | null {
+  // listBindingsByGroup 返回按 bound_at ASC 排序的所有 enabled binding
+  const bindings = listBindingsByGroup(groupJid);
+  const binding = bindings.find((b) => b.folder === folder);
+  if (!binding) return null;
+
+  const bot = getBotById(binding.bot_id);
+  // 覆盖链：binding.concurrency_mode ?? bot.concurrency_mode ?? 'writer'
+  const concurrencyMode: import('./types.js').BotConcurrencyMode =
+    binding.concurrency_mode ?? bot?.concurrency_mode ?? 'writer';
+
+  return { botId: binding.bot_id, concurrencyMode };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -2496,6 +2528,13 @@ async function processGroupMessages(chatJid: string): Promise<boolean> {
   const images = collectMessageImages(chatJid, missedMessages);
   const imagesForAgent = images.length > 0 ? images : undefined;
 
+  // PR2: 解析 Bot 上下文（concurrency_mode 覆盖链）
+  // chatJid 是 IM 群组 JID（如 feishu:xxx），effectiveGroup.folder 用于匹配 binding
+  // 若 chatJid 是 web: 前缀（Web 消息）则无 bot binding，走兼容路径
+  const botCtx = chatJid.startsWith('web:')
+    ? null
+    : resolveBotContext(chatJid, effectiveGroup.folder);
+
   logger.info(
     {
       group: group.name,
@@ -2504,6 +2543,7 @@ async function processGroupMessages(chatJid: string): Promise<boolean> {
       imageCount: images.length,
       shared,
       isRecovery,
+      ...(botCtx && { botId: botCtx.botId, concurrencyMode: botCtx.concurrencyMode }),
     },
     'Processing messages',
   );
@@ -3219,6 +3259,9 @@ async function processGroupMessages(chatJid: string): Promise<boolean> {
         }
       },
       imagesForAgent,
+      // PR2: 透传 bot 上下文（botId 空时 buildBotMounts 返回 null，走兼容路径）
+      botCtx?.botId,
+      botCtx?.concurrencyMode,
     );
   } finally {
     await setTyping(chatJid, false);
@@ -3649,6 +3692,10 @@ async function runAgent(
   turnId?: string,
   onOutput?: (output: ContainerOutput) => Promise<void>,
   images?: Array<{ data: string; mimeType?: string }>,
+  /** PR2: Bot ID（非空时启用 bot-profile/scratch 挂载） */
+  botId?: string,
+  /** PR2: concurrency_mode 覆盖链结果（botId 非空时有效） */
+  concurrencyMode?: import('./types.js').BotConcurrencyMode,
 ): Promise<{ status: 'success' | 'error' | 'closed'; error?: string }> {
   const isHome = !!group.is_home;
   // For the agent-runner: isMain means this is an admin home container (full privileges)
@@ -3738,6 +3785,9 @@ async function runAgent(
           isHome,
           isAdminHome,
           images,
+          // PR2: 透传 bot 信息（botId 空时走兼容路径，buildBotMounts 返回 null）
+          botId: botId || undefined,
+          concurrencyMode: botId ? concurrencyMode : undefined,
         },
         onProcessCb,
         wrappedOnOutput,
@@ -3756,6 +3806,9 @@ async function runAgent(
           isHome,
           isAdminHome,
           images,
+          // PR2: 透传 bot 信息（botId 空时走兼容路径，buildBotMounts 返回 null）
+          botId: botId || undefined,
+          concurrencyMode: botId ? concurrencyMode : undefined,
         },
         onProcessCb,
         wrappedOnOutput,
