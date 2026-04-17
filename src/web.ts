@@ -58,6 +58,7 @@ import agentDefinitionsRoutes from './routes/agent-definitions.js';
 import { usage as usageRoutes } from './routes/usage.js';
 import billingRoutes from './routes/billing.js';
 import bugReportRoutes from './routes/bug-report.js';
+import { botsRoutes } from './routes/bots.js';
 import {
   checkBillingAccess,
   formatBillingAccessDeniedMessage,
@@ -187,6 +188,7 @@ app.route('/api', monitorRoutes);
 app.route('/api/usage', usageRoutes);
 app.route('/api/billing', billingRoutes);
 app.route('/api/bug-report', bugReportRoutes);
+app.route('/api/bots', botsRoutes);
 
 // --- POST /api/messages ---
 

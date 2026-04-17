@@ -748,3 +748,48 @@ export const DiscordConfigSchema = z
       typeof data.streamingMode === 'string',
     { message: 'At least one config field must be provided' },
   );
+
+// ── Multi-Agent Bot schemas (PR1) ────────────────────────────────────────────
+
+export const CreateBotSchema = z.object({
+  name: z.string().min(1).max(50).regex(/^[\w\s\u4e00-\u9fa5\-.]+$/),
+  channel: z.literal('feishu'),
+  default_folder: z.string().optional(),
+  activation_mode: z
+    .enum(['auto', 'always', 'when_mentioned', 'owner_mentioned', 'disabled'])
+    .optional(),
+  concurrency_mode: z.enum(['writer', 'advisor']).optional(),
+  // admin 可指定 user_id；member 忽略此字段（强制 req.user.id）
+  user_id: z.string().optional(),
+  // 创建同时写入凭证（可选；若省略则仅建 DB 行，后续通过 PUT credentials 写入）
+  app_id: z.string().optional(),
+  app_secret: z.string().optional(),
+});
+
+export const UpdateBotSchema = z.object({
+  name: z
+    .string()
+    .min(1)
+    .max(50)
+    .regex(/^[\w\s\u4e00-\u9fa5\-.]+$/)
+    .optional(),
+  default_folder: z.string().nullable().optional(),
+  activation_mode: z
+    .enum(['auto', 'always', 'when_mentioned', 'owner_mentioned', 'disabled'])
+    .optional(),
+  concurrency_mode: z.enum(['writer', 'advisor']).optional(),
+});
+
+export const UpdateBotCredentialsSchema = z.object({
+  app_id: z.string().min(1),
+  app_secret: z.string().min(1),
+});
+
+export const UpsertBindingSchema = z.object({
+  group_jid: z.string().min(1),
+  folder: z.string().min(1),
+  activation_mode: z
+    .enum(['auto', 'always', 'when_mentioned', 'owner_mentioned', 'disabled'])
+    .nullable()
+    .optional(),
+});

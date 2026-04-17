@@ -19,6 +19,7 @@ import {
   SESSION_COOKIE_NAME_PLAIN,
 } from '../config.js';
 import { logger } from '../logger.js';
+import { getBotById } from '../db-bots.js';
 
 /**
  * Extract ALL values for a given cookie name from the raw Cookie header.
@@ -159,6 +160,25 @@ export const requireAnyPermission =
     }
     await next();
   };
+
+/**
+ * 校验当前用户对目标 Bot 有操作权限：
+ * - admin：允许
+ * - member：仅允许操作自己创建的 Bot（bot.user_id === req.user.id）
+ */
+export const authorizeBot = async (c: any, next: any) => {
+  const user = c.get('user');
+  if (!user) return c.json({ error: 'unauthorized' }, 401);
+  const botId = c.req.param('id');
+  if (!botId) return c.json({ error: 'bot id required' }, 400);
+  const bot = getBotById(botId, { includeDeleted: true });
+  if (!bot) return c.json({ error: 'not found' }, 404);
+  if (bot.user_id !== user.id && user.role !== 'admin') {
+    return c.json({ error: 'forbidden' }, 403);
+  }
+  c.set('bot', bot);
+  return next();
+};
 
 export const systemConfigMiddleware = requirePermission('manage_system_config');
 export const groupEnvMiddleware = requireAnyPermission([
