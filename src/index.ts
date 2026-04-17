@@ -653,7 +653,10 @@ export function resolveRouteTarget(
 export function resolveBotContext(
   groupJid: string,
   folder: string,
-): { botId: string; concurrencyMode: import('./types.js').BotConcurrencyMode } | null {
+): {
+  botId: string;
+  concurrencyMode: import('./types.js').BotConcurrencyMode;
+} | null {
   // listBindingsByGroup 返回按 bound_at ASC 排序的所有 enabled binding
   const bindings = listBindingsByGroup(groupJid);
   const binding = bindings.find((b) => b.folder === folder);
@@ -2543,7 +2546,10 @@ async function processGroupMessages(chatJid: string): Promise<boolean> {
       imageCount: images.length,
       shared,
       isRecovery,
-      ...(botCtx && { botId: botCtx.botId, concurrencyMode: botCtx.concurrencyMode }),
+      ...(botCtx && {
+        botId: botCtx.botId,
+        concurrencyMode: botCtx.concurrencyMode,
+      }),
     },
     'Processing messages',
   );

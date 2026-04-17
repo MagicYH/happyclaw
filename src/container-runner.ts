@@ -85,7 +85,13 @@ export function buildBotMounts(input: BotMountInput): BotMountInfo | null {
   if (!input.botId) return null;
 
   const effectiveDataDir = process.env.DATA_DIR ?? DATA_DIR;
-  const scratchHost = path.join(effectiveDataDir, 'scratch', input.folder, 'bots', input.botId);
+  const scratchHost = path.join(
+    effectiveDataDir,
+    'scratch',
+    input.folder,
+    'bots',
+    input.botId,
+  );
   fs.mkdirSync(scratchHost, { recursive: true });
 
   const profileHost = getProfileMountPath(input.botId);
@@ -771,10 +777,14 @@ export async function runContainerAgent(
       containerArgs.splice(
         imageIdx,
         0,
-        '-v', `${botMounts.scratchHost}:/workspace/scratch:rw`,
-        '-v', `${botMounts.profileHost}:/workspace/bot-profile:ro`,
-        '-e', `HAPPYCLAW_BOT_MODE=${botMounts.botMode}`,
-        '-e', `HAPPYCLAW_BOT_ID=${input.botId}`,
+        '-v',
+        `${botMounts.scratchHost}:/workspace/scratch:rw`,
+        '-v',
+        `${botMounts.profileHost}:/workspace/bot-profile:ro`,
+        '-e',
+        `HAPPYCLAW_BOT_MODE=${botMounts.botMode}`,
+        '-e',
+        `HAPPYCLAW_BOT_ID=${input.botId}`,
       );
       logger.debug(
         { group: group.name, botId: input.botId, botMode: botMounts.botMode },
@@ -1397,7 +1407,11 @@ export async function runHostAgent(
       hostEnv['HAPPYCLAW_SCRATCH_DIR'] = hostBotMounts.scratchHost;
       hostEnv['HAPPYCLAW_BOT_PROFILE_DIR'] = hostBotMounts.profileHost;
       logger.debug(
-        { group: group.name, botId: input.botId, botMode: hostBotMounts.botMode },
+        {
+          group: group.name,
+          botId: input.botId,
+          botMode: hostBotMounts.botMode,
+        },
         'Bot env vars injected for host agent',
       );
     }

@@ -108,7 +108,10 @@ function advisorTemplate(): string {
  * 读取 bot 的 CLAUDE.md profile。
  * 若文件不存在或读取失败，回落到对应 mode 的默认模板。
  */
-export function readBotProfile(botId: string, mode: BotConcurrencyMode): string {
+export function readBotProfile(
+  botId: string,
+  mode: BotConcurrencyMode,
+): string {
   const dir = safeProfilePath(botId);
   const file = path.join(dir, 'CLAUDE.md');
   if (!fs.existsSync(file)) {
@@ -117,7 +120,10 @@ export function readBotProfile(botId: string, mode: BotConcurrencyMode): string 
   try {
     return fs.readFileSync(file, 'utf-8');
   } catch (err) {
-    logger.warn({ err, botId }, 'Failed to read bot profile, returning default template');
+    logger.warn(
+      { err, botId },
+      'Failed to read bot profile, returning default template',
+    );
     return mode === 'advisor' ? advisorTemplate() : writerTemplate();
   }
 }
@@ -139,7 +145,10 @@ export function writeBotProfile(botId: string, content: string): void {
  * 若 profile 文件不存在，写入对应 mode 的默认模板。
  * 返回 true 表示新建了文件，false 表示文件已存在（未覆盖）。
  */
-export function ensureProfileExists(botId: string, mode: BotConcurrencyMode): boolean {
+export function ensureProfileExists(
+  botId: string,
+  mode: BotConcurrencyMode,
+): boolean {
   const dir = safeProfilePath(botId);
   const file = path.join(dir, 'CLAUDE.md');
   if (fs.existsSync(file)) return false;
