@@ -801,3 +801,9 @@ export const UpsertBindingSchema = z.object({
     .nullable()
     .optional(),
 });
+
+// ── Multi-Agent Bot profile schemas (PR2) ────────────────────────────────────
+
+export const UpdateBotProfileSchema = z.object({
+  content: z.string().max(64 * 1024), // 64KB 上限
+});

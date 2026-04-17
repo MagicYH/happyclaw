@@ -303,7 +303,9 @@ export type AuthEventType =
   | 'bot_binding_removed'
   | 'bot_connect_failed'
   | 'user_im_migrated_to_bot'
-  | 'schema_migrated';
+  | 'schema_migrated'
+  // ── Multi-Agent PR2 ──
+  | 'bot_profile_updated';
 
 export interface AuthAuditLog {
   id: number;

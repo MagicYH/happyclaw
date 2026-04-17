@@ -33,7 +33,13 @@ import {
   UpdateBotSchema,
   UpdateBotCredentialsSchema,
   UpsertBindingSchema,
+  UpdateBotProfileSchema,
 } from '../schemas.js';
+import {
+  readBotProfile,
+  writeBotProfile,
+  InvalidBotIdError,
+} from '../bot-profile-manager.js';
 import { logAuthEvent } from '../db.js';
 import { logger } from '../logger.js';
 import type { AuthUser, Bot } from '../types.js';
@@ -316,6 +322,62 @@ botsRoutes.delete('/:id/bindings/:groupJid', authorizeBot, async (c) => {
     username: user.username,
     actor_username: user.username,
     details: { bot_id: bot.id, group_jid: groupJid },
+    ip_address: c.req.header('x-forwarded-for') ?? null,
+    user_agent: c.req.header('user-agent') ?? null,
+  });
+
+  return c.json({ success: true });
+});
+
+// ─────────────────────────────────────────────────────
+// GET /api/bots/:id/profile  — 读取 per-bot CLAUDE.md
+// ─────────────────────────────────────────────────────
+botsRoutes.get('/:id/profile', authorizeBot, async (c) => {
+  const bot = c.get('bot');
+  try {
+    const content = readBotProfile(bot.id, bot.concurrency_mode);
+    return c.json({ content, mode: bot.concurrency_mode });
+  } catch (err) {
+    if (err instanceof InvalidBotIdError) {
+      return c.json({ error: 'invalid bot id' }, 400);
+    }
+    throw err;
+  }
+});
+
+// ─────────────────────────────────────────────────────
+// PUT /api/bots/:id/profile  — 更新 per-bot CLAUDE.md
+// ─────────────────────────────────────────────────────
+botsRoutes.put('/:id/profile', authorizeBot, async (c) => {
+  const bot = c.get('bot');
+  const user = c.get('user') as AuthUser;
+
+  let body: unknown;
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: 'invalid json' }, 400);
+  }
+
+  const parsed = UpdateBotProfileSchema.safeParse(body);
+  if (!parsed.success) {
+    return c.json({ error: parsed.error.issues }, 400);
+  }
+
+  try {
+    writeBotProfile(bot.id, parsed.data.content);
+  } catch (err) {
+    if (err instanceof InvalidBotIdError) {
+      return c.json({ error: 'invalid bot id' }, 400);
+    }
+    throw err;
+  }
+
+  logAuthEvent({
+    event_type: 'bot_profile_updated',
+    username: user.username,
+    actor_username: user.username,
+    details: { bot_id: bot.id },
     ip_address: c.req.header('x-forwarded-for') ?? null,
     user_agent: c.req.header('user-agent') ?? null,
   });
