@@ -7,7 +7,7 @@ import os from 'os';
 // by using a module-level variable that the mock factory captures.
 let mockDataDir = '';
 
-vi.mock('../../src/config.js', () => ({
+vi.mock('../src/config.js', () => ({
   get DATA_DIR() {
     return mockDataDir;
   },
@@ -15,7 +15,7 @@ vi.mock('../../src/config.js', () => ({
 }));
 
 // Import db after mock so db.js uses mocked config if needed
-import { initDatabase, getDb, closeDatabase } from '../../src/db.js';
+import { initDatabase, getDb, closeDatabase } from '../src/db.js';
 
 describe('migrateUserImToBot', () => {
   let tmpDir: string;
@@ -47,10 +47,10 @@ describe('migrateUserImToBot', () => {
   });
 
   test('migrates user Feishu config to a new Bot', async () => {
-    const { saveUserFeishuConfig } = await import('../../src/runtime-config.js');
+    const { saveUserFeishuConfig } = await import('../src/runtime-config.js');
     saveUserFeishuConfig('u1', { appId: 'cli_x', appSecret: 'secret_y', enabled: true });
 
-    const { migrateUserImToBot } = await import('../../src/setup-migration.js');
+    const { migrateUserImToBot } = await import('../src/setup-migration.js');
     const result = await migrateUserImToBot('u1', { botName: 'My Migrated Bot' });
 
     expect(result.bot.channel).toBe('feishu');
@@ -65,14 +65,14 @@ describe('migrateUserImToBot', () => {
     ).toBe(false);
 
     // 读回凭证应匹配
-    const { getBotFeishuConfig } = await import('../../src/runtime-config.js');
+    const { getBotFeishuConfig } = await import('../src/runtime-config.js');
     const loaded = getBotFeishuConfig(result.bot.id);
     expect(loaded?.appId).toBe('cli_x');
     expect(loaded?.appSecret).toBe('secret_y');
   });
 
   test('returns error when user has no user-im config', async () => {
-    const { migrateUserImToBot } = await import('../../src/setup-migration.js');
+    const { migrateUserImToBot } = await import('../src/setup-migration.js');
     await expect(migrateUserImToBot('u1', { botName: 'X' })).rejects.toThrow(/no user-im config/i);
   });
 });

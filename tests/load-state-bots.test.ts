@@ -1,9 +1,9 @@
 import { describe, expect, test, vi } from 'vitest';
-import type { Bot } from '../../src/types.js';
+import type { Bot } from '../src/types.js';
 
 describe('loadBotConnections', () => {
   test('skips bots without feishu config', async () => {
-    const { loadBotConnections } = await import('../../src/index.js');
+    const { loadBotConnections } = await import('../src/index.js');
     const connectBot = vi.fn();
     const bots: Bot[] = [
       {
@@ -30,7 +30,7 @@ describe('loadBotConnections', () => {
   });
 
   test('connects each bot with valid feishu config', async () => {
-    const { loadBotConnections } = await import('../../src/index.js');
+    const { loadBotConnections } = await import('../src/index.js');
     const connectBot = vi.fn().mockResolvedValue(true);
     const bots: Bot[] = [
       {
@@ -63,7 +63,7 @@ describe('loadBotConnections', () => {
   });
 
   test('skips disabled bots', async () => {
-    const { loadBotConnections } = await import('../../src/index.js');
+    const { loadBotConnections } = await import('../src/index.js');
     const connectBot = vi.fn();
     await loadBotConnections(
       [
