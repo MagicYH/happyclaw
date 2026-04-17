@@ -17,6 +17,7 @@ import {
   updateChatName,
   getAgent,
   VALID_ACTIVATION_MODES,
+  logAuthEvent,
 } from '../db.js';
 import { authMiddleware, systemConfigMiddleware } from '../middleware/auth.js';
 import {
@@ -2696,6 +2697,40 @@ configRoutes.put('/user-im/bindings/:imJid', authMiddleware, async (c) => {
     { error: 'Must provide target_main_jid, target_agent_id, activation_mode, or unbind' },
     400,
   );
+});
+
+// ── Setup 向导迁移端点：user-im → Bot ─────────────────────────────────────────
+
+export { migrateUserImToBot } from '../setup-migration.js';
+export type { MigrateResult } from '../setup-migration.js';
+
+import { migrateUserImToBot as _migrateUserImToBot } from '../setup-migration.js';
+
+/**
+ * POST /api/config/setup/migrate-feishu-to-bot
+ * 将当前用户的 user-im Feishu 凭证迁移为一个新的 Bot。
+ */
+configRoutes.post('/setup/migrate-feishu-to-bot', authMiddleware, async (c) => {
+  const user = c.get('user');
+  const body = await c.req.json().catch(() => ({}));
+  const botName =
+    typeof (body as Record<string, unknown>)?.bot_name === 'string'
+      ? (body as Record<string, unknown>).bot_name as string
+      : `${user.username} Bot`;
+  try {
+    const result = await _migrateUserImToBot(user.id, { botName });
+    logAuthEvent({
+      event_type: 'user_im_migrated_to_bot',
+      username: user.username,
+      actor_username: user.username,
+      details: { bot_id: result.bot.id },
+      ip_address: c.req.header('x-forwarded-for') ?? null,
+      user_agent: c.req.header('user-agent') ?? null,
+    });
+    return c.json(result);
+  } catch (err) {
+    return c.json({ error: (err as Error).message }, 400);
+  }
 });
 
 export default configRoutes;
