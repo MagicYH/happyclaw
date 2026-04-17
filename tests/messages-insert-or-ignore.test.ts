@@ -2,7 +2,12 @@ import { describe, expect, test, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import { initDatabase, getDb, closeDatabase, storeMessageDirect } from '../src/db.js';
+import {
+  initDatabase,
+  getDb,
+  closeDatabase,
+  storeMessageDirect,
+} from '../src/db.js';
 
 describe('storeMessageDirect: INSERT OR IGNORE semantics', () => {
   let tmpDir: string;
@@ -14,7 +19,9 @@ describe('storeMessageDirect: INSERT OR IGNORE semantics', () => {
     initDatabase(dbPath);
     // Insert a chat record required by the FK constraint
     getDb()
-      .prepare(`INSERT INTO chats (jid, name, last_message_time) VALUES ('feishu:chat_a', 'Test Chat', ?)`)
+      .prepare(
+        `INSERT INTO chats (jid, name, last_message_time) VALUES ('feishu:chat_a', 'Test Chat', ?)`,
+      )
       .run(new Date().toISOString());
   });
 
@@ -56,7 +63,9 @@ describe('storeMessageDirect: INSERT OR IGNORE semantics', () => {
       .prepare(
         `SELECT sender, content, is_from_me FROM messages WHERE id='msg_1' AND chat_jid='feishu:chat_a'`,
       )
-      .get() as { sender: string; content: string; is_from_me: number } | undefined;
+      .get() as
+      | { sender: string; content: string; is_from_me: number }
+      | undefined;
 
     expect(row).toBeDefined();
     // First write should survive — IGNORE semantics
@@ -89,7 +98,9 @@ describe('storeMessageDirect: INSERT OR IGNORE semantics', () => {
 
     const count = (
       db
-        .prepare(`SELECT COUNT(*) as cnt FROM messages WHERE chat_jid='feishu:chat_a'`)
+        .prepare(
+          `SELECT COUNT(*) as cnt FROM messages WHERE chat_jid='feishu:chat_a'`,
+        )
         .get() as { cnt: number }
     ).cnt;
     expect(count).toBe(2);

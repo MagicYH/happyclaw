@@ -44,8 +44,18 @@ describe('Foreign keys: bots cascade', () => {
 
     db.prepare(`DELETE FROM users WHERE id='u1'`).run();
 
-    const botCount = (db.prepare(`SELECT COUNT(*) AS c FROM bots WHERE id='bot_a'`).get() as { c: number }).c;
-    const bgbCount = (db.prepare(`SELECT COUNT(*) AS c FROM bot_group_bindings WHERE bot_id='bot_a'`).get() as { c: number }).c;
+    const botCount = (
+      db.prepare(`SELECT COUNT(*) AS c FROM bots WHERE id='bot_a'`).get() as {
+        c: number;
+      }
+    ).c;
+    const bgbCount = (
+      db
+        .prepare(
+          `SELECT COUNT(*) AS c FROM bot_group_bindings WHERE bot_id='bot_a'`,
+        )
+        .get() as { c: number }
+    ).c;
     expect(botCount).toBe(0);
     expect(bgbCount).toBe(0);
   });
@@ -72,7 +82,13 @@ describe('Foreign keys: bots cascade', () => {
 
     db.prepare(`DELETE FROM bots WHERE id='bot_a'`).run();
 
-    const bgbCount = (db.prepare(`SELECT COUNT(*) AS c FROM bot_group_bindings WHERE bot_id='bot_a'`).get() as { c: number }).c;
+    const bgbCount = (
+      db
+        .prepare(
+          `SELECT COUNT(*) AS c FROM bot_group_bindings WHERE bot_id='bot_a'`,
+        )
+        .get() as { c: number }
+    ).c;
     expect(bgbCount).toBe(0);
   });
 });

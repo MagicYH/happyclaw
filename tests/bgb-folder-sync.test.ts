@@ -51,11 +51,15 @@ describe('Trigger: sync_bgb_folder_on_rg_update', () => {
     ).run(now);
 
     // Update registered_group folder — should trigger sync
-    db.prepare(`UPDATE registered_groups SET folder='new-folder' WHERE jid='feishu:g1'`).run();
+    db.prepare(
+      `UPDATE registered_groups SET folder='new-folder' WHERE jid='feishu:g1'`,
+    ).run();
 
     // Verify the trigger fired and updated bot_group_bindings.folder
     const row = db
-      .prepare(`SELECT folder FROM bot_group_bindings WHERE bot_id='bot_a' AND group_jid='feishu:g1'`)
+      .prepare(
+        `SELECT folder FROM bot_group_bindings WHERE bot_id='bot_a' AND group_jid='feishu:g1'`,
+      )
       .get() as { folder: string };
     expect(row.folder).toBe('new-folder');
   });
@@ -81,10 +85,14 @@ describe('Trigger: sync_bgb_folder_on_rg_update', () => {
     ).run(now);
 
     // Update name only — folder stays the same
-    db.prepare(`UPDATE registered_groups SET name='g2-updated' WHERE jid='feishu:g2'`).run();
+    db.prepare(
+      `UPDATE registered_groups SET name='g2-updated' WHERE jid='feishu:g2'`,
+    ).run();
 
     const row = db
-      .prepare(`SELECT folder FROM bot_group_bindings WHERE bot_id='bot_b' AND group_jid='feishu:g2'`)
+      .prepare(
+        `SELECT folder FROM bot_group_bindings WHERE bot_id='bot_b' AND group_jid='feishu:g2'`,
+      )
       .get() as { folder: string };
     // folder should remain unchanged
     expect(row.folder).toBe('same-folder');

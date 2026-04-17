@@ -15,7 +15,9 @@ const mockFeishuChannel = {
 };
 
 vi.mock('../src/im-channel.js', async () => {
-  const actual = await vi.importActual<typeof import('../src/im-channel.js')>('../src/im-channel.js');
+  const actual = await vi.importActual<typeof import('../src/im-channel.js')>(
+    '../src/im-channel.js',
+  );
   return {
     ...actual,
     createFeishuChannel: vi.fn(() => mockFeishuChannel),

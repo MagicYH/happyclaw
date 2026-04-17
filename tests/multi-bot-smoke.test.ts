@@ -25,7 +25,10 @@ interface RouteTarget {
 
 interface RouteDeps {
   getRegisteredGroup: (jid: string) => { folder: string } | null;
-  getBinding: (botId: string, jid: string) => { folder: string; enabled: boolean } | null;
+  getBinding: (
+    botId: string,
+    jid: string,
+  ) => { folder: string; enabled: boolean } | null;
 }
 
 function resolveRouteTarget(
@@ -103,8 +106,13 @@ describe('Multi-Agent PR1 smoke: create bot → bind → resolve route', () => {
       ).run(now);
 
       // ── Step 1: 创建 Bot ─────────────────────────────────────────────────────
-      const { createBot, upsertBinding, getBinding, softDeleteBot, getBotById } =
-        await import('../src/db-bots.js');
+      const {
+        createBot,
+        upsertBinding,
+        getBinding,
+        softDeleteBot,
+        getBotById,
+      } = await import('../src/db-bots.js');
 
       const bot = createBot({
         user_id: 'u1',
@@ -117,16 +125,25 @@ describe('Multi-Agent PR1 smoke: create bot → bind → resolve route', () => {
       expect(bot.id).toMatch(/^bot_/);
 
       // ── Step 2: 写入 Bot 飞书凭证 ────────────────────────────────────────────
-      const { saveBotFeishuConfig, getBotFeishuConfig } = await import('../src/runtime-config.js');
+      const { saveBotFeishuConfig, getBotFeishuConfig } =
+        await import('../src/runtime-config.js');
 
-      saveBotFeishuConfig(bot.id, { appId: 'cli_x', appSecret: 'secret_y', enabled: true });
+      saveBotFeishuConfig(bot.id, {
+        appId: 'cli_x',
+        appSecret: 'secret_y',
+        enabled: true,
+      });
       const loaded = getBotFeishuConfig(bot.id);
 
       // Assertion 2: AES-256-GCM 加解密后 appId 正确
       expect(loaded?.appId).toBe('cli_x');
 
       // ── Step 3: 绑定群组 ─────────────────────────────────────────────────────
-      upsertBinding({ bot_id: bot.id, group_jid: 'feishu:g1', folder: 'alice-home' });
+      upsertBinding({
+        bot_id: bot.id,
+        group_jid: 'feishu:g1',
+        folder: 'alice-home',
+      });
       const binding = getBinding(bot.id, 'feishu:g1');
 
       // Assertion 3: folder 写入正确

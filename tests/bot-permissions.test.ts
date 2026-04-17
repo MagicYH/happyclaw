@@ -25,7 +25,11 @@ describe('Bot API permissions', () => {
     bootstrap();
   });
   afterEach(() => {
-    try { closeDatabase(); } catch { /* ignore */ }
+    try {
+      closeDatabase();
+    } catch {
+      /* ignore */
+    }
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
@@ -41,11 +45,16 @@ describe('Bot API permissions', () => {
 
   test('authorizeBot rejects cross-user access for member', async () => {
     const { createBot } = await import('../src/db-bots.js');
-    const aliceBot = createBot({ user_id: 'u_alice', name: 'alice bot', channel: 'feishu' });
+    const aliceBot = createBot({
+      user_id: 'u_alice',
+      name: 'alice bot',
+      channel: 'feishu',
+    });
     const { authorizeBot } = await import('../src/middleware/auth.js');
     // 模拟 Hono context
     const mockC = {
-      get: (key: string) => (key === 'user' ? { id: 'u_bob', role: 'member' } : undefined),
+      get: (key: string) =>
+        key === 'user' ? { id: 'u_bob', role: 'member' } : undefined,
       set: vi.fn(),
       req: { param: (_: string) => aliceBot.id },
       json: vi.fn((body: unknown, status: number) => ({ body, status })),
@@ -58,10 +67,15 @@ describe('Bot API permissions', () => {
 
   test('authorizeBot admin can access any user bot', async () => {
     const { createBot } = await import('../src/db-bots.js');
-    const aliceBot = createBot({ user_id: 'u_alice', name: 'alice bot', channel: 'feishu' });
+    const aliceBot = createBot({
+      user_id: 'u_alice',
+      name: 'alice bot',
+      channel: 'feishu',
+    });
     const { authorizeBot } = await import('../src/middleware/auth.js');
     const mockC = {
-      get: (key: string) => (key === 'user' ? { id: 'u_admin', role: 'admin' } : undefined),
+      get: (key: string) =>
+        key === 'user' ? { id: 'u_admin', role: 'admin' } : undefined,
       set: vi.fn(),
       req: { param: (_: string) => aliceBot.id },
       json: vi.fn(),
@@ -69,6 +83,9 @@ describe('Bot API permissions', () => {
     const next = vi.fn();
     await authorizeBot(mockC as any, next);
     expect(next).toHaveBeenCalled();
-    expect(mockC.set).toHaveBeenCalledWith('bot', expect.objectContaining({ id: aliceBot.id }));
+    expect(mockC.set).toHaveBeenCalledWith(
+      'bot',
+      expect.objectContaining({ id: aliceBot.id }),
+    );
   });
 });

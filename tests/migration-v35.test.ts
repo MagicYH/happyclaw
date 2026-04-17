@@ -35,7 +35,9 @@ describe('Migration v35', () => {
     initDatabase(dbPath);
     const db = getDb();
     const tables = db
-      .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name IN ('bots','bot_group_bindings')")
+      .prepare(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('bots','bot_group_bindings')",
+      )
       .all() as Array<{ name: string }>;
     expect(tables.length).toBe(2);
   });
@@ -55,7 +57,9 @@ describe('Migration v35', () => {
   test('PRAGMA foreign_keys returns 1 (enabled)', () => {
     initDatabase(dbPath);
     const db = getDb();
-    const result = db.prepare('PRAGMA foreign_keys').get() as { foreign_keys: number };
+    const result = db.prepare('PRAGMA foreign_keys').get() as {
+      foreign_keys: number;
+    };
     expect(result.foreign_keys).toBe(1);
   });
 
@@ -63,7 +67,9 @@ describe('Migration v35', () => {
     initDatabase(dbPath);
     const db = getDb();
     const trg = db
-      .prepare("SELECT name FROM sqlite_master WHERE type='trigger' AND name='sync_bgb_folder_on_rg_update'")
+      .prepare(
+        "SELECT name FROM sqlite_master WHERE type='trigger' AND name='sync_bgb_folder_on_rg_update'",
+      )
       .get() as { name: string } | undefined;
     expect(trg?.name).toBe('sync_bgb_folder_on_rg_update');
   });
@@ -71,14 +77,18 @@ describe('Migration v35', () => {
   test('usage_records has bot_id column', () => {
     initDatabase(dbPath);
     const db = getDb();
-    const cols = db.prepare("PRAGMA table_info('usage_records')").all() as Array<{ name: string }>;
+    const cols = db
+      .prepare("PRAGMA table_info('usage_records')")
+      .all() as Array<{ name: string }>;
     expect(cols.some((c) => c.name === 'bot_id')).toBe(true);
   });
 
   test('usage_daily_summary has bot_id column', () => {
     initDatabase(dbPath);
     const db = getDb();
-    const cols = db.prepare("PRAGMA table_info('usage_daily_summary')").all() as Array<{ name: string }>;
+    const cols = db
+      .prepare("PRAGMA table_info('usage_daily_summary')")
+      .all() as Array<{ name: string }>;
     expect(cols.some((c) => c.name === 'bot_id')).toBe(true);
   });
 });

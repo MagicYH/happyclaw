@@ -25,7 +25,9 @@ describe('Migration v35: Foreign Keys', () => {
 
   test('PRAGMA foreign_keys is 1 (enabled)', () => {
     const db = getDb();
-    const result = db.prepare('PRAGMA foreign_keys').get() as { foreign_keys: number };
+    const result = db.prepare('PRAGMA foreign_keys').get() as {
+      foreign_keys: number;
+    };
     expect(result.foreign_keys).toBe(1);
   });
 
@@ -34,19 +36,29 @@ describe('Migration v35: Foreign Keys', () => {
     // SQLite stores FK info in sqlite_master. We verify by checking that
     // deleting a chat cascades to messages (behavior test).
     const now = new Date().toISOString();
-    db.prepare(`INSERT INTO chats (jid, name, last_message_time) VALUES ('test-chat', 'Test', ?)`).run(now);
+    db.prepare(
+      `INSERT INTO chats (jid, name, last_message_time) VALUES ('test-chat', 'Test', ?)`,
+    ).run(now);
     db.prepare(
       `INSERT INTO messages (id, chat_jid, timestamp, is_from_me) VALUES ('msg1', 'test-chat', ?, 0)`,
     ).run(now);
 
     // Verify message exists
-    const before = db.prepare(`SELECT COUNT(*) AS cnt FROM messages WHERE chat_jid='test-chat'`).get() as { cnt: number };
+    const before = db
+      .prepare(
+        `SELECT COUNT(*) AS cnt FROM messages WHERE chat_jid='test-chat'`,
+      )
+      .get() as { cnt: number };
     expect(before.cnt).toBe(1);
 
     // Delete the chat — should cascade to messages
     db.prepare(`DELETE FROM chats WHERE jid='test-chat'`).run();
 
-    const after = db.prepare(`SELECT COUNT(*) AS cnt FROM messages WHERE chat_jid='test-chat'`).get() as { cnt: number };
+    const after = db
+      .prepare(
+        `SELECT COUNT(*) AS cnt FROM messages WHERE chat_jid='test-chat'`,
+      )
+      .get() as { cnt: number };
     expect(after.cnt).toBe(0);
   });
 
@@ -64,13 +76,21 @@ describe('Migration v35: Foreign Keys', () => {
     ).run(now);
 
     // Verify log exists
-    const before = db.prepare(`SELECT COUNT(*) AS cnt FROM task_run_logs WHERE task_id='task1'`).get() as { cnt: number };
+    const before = db
+      .prepare(
+        `SELECT COUNT(*) AS cnt FROM task_run_logs WHERE task_id='task1'`,
+      )
+      .get() as { cnt: number };
     expect(before.cnt).toBe(1);
 
     // Delete the task — should cascade to task_run_logs
     db.prepare(`DELETE FROM scheduled_tasks WHERE id='task1'`).run();
 
-    const after = db.prepare(`SELECT COUNT(*) AS cnt FROM task_run_logs WHERE task_id='task1'`).get() as { cnt: number };
+    const after = db
+      .prepare(
+        `SELECT COUNT(*) AS cnt FROM task_run_logs WHERE task_id='task1'`,
+      )
+      .get() as { cnt: number };
     expect(after.cnt).toBe(0);
   });
 
@@ -86,12 +106,16 @@ describe('Migration v35: Foreign Keys', () => {
        VALUES ('bot-fk', 'u-fk', 'feishu', 'FKBot', 'when_mentioned', 'writer', 'active', ?, ?)`,
     ).run(now, now);
 
-    const before = db.prepare(`SELECT COUNT(*) AS cnt FROM bots WHERE id='bot-fk'`).get() as { cnt: number };
+    const before = db
+      .prepare(`SELECT COUNT(*) AS cnt FROM bots WHERE id='bot-fk'`)
+      .get() as { cnt: number };
     expect(before.cnt).toBe(1);
 
     db.prepare(`DELETE FROM users WHERE id='u-fk'`).run();
 
-    const after = db.prepare(`SELECT COUNT(*) AS cnt FROM bots WHERE id='bot-fk'`).get() as { cnt: number };
+    const after = db
+      .prepare(`SELECT COUNT(*) AS cnt FROM bots WHERE id='bot-fk'`)
+      .get() as { cnt: number };
     expect(after.cnt).toBe(0);
   });
 
@@ -117,14 +141,20 @@ describe('Migration v35: Foreign Keys', () => {
     // Delete the bot — cascade to bot_group_bindings
     db.prepare(`DELETE FROM bots WHERE id='bot-bgb'`).run();
 
-    const after = db.prepare(`SELECT COUNT(*) AS cnt FROM bot_group_bindings WHERE bot_id='bot-bgb'`).get() as { cnt: number };
+    const after = db
+      .prepare(
+        `SELECT COUNT(*) AS cnt FROM bot_group_bindings WHERE bot_id='bot-bgb'`,
+      )
+      .get() as { cnt: number };
     expect(after.cnt).toBe(0);
   });
 
   test('user_sessions FK still cascades on user delete (existing behavior preserved)', () => {
     const db = getDb();
     const now = new Date().toISOString();
-    const future = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString();
+    const future = new Date(
+      Date.now() + 1000 * 60 * 60 * 24 * 30,
+    ).toISOString();
     db.prepare(
       `INSERT INTO users (id, username, password_hash, role, permissions, status, created_at, updated_at)
        VALUES ('u-sess', 'sessuser', 'x', 'admin', '[]', 'active', ?, ?)`,
@@ -136,7 +166,11 @@ describe('Migration v35: Foreign Keys', () => {
 
     db.prepare(`DELETE FROM users WHERE id='u-sess'`).run();
 
-    const after = db.prepare(`SELECT COUNT(*) AS cnt FROM user_sessions WHERE user_id='u-sess'`).get() as { cnt: number };
+    const after = db
+      .prepare(
+        `SELECT COUNT(*) AS cnt FROM user_sessions WHERE user_id='u-sess'`,
+      )
+      .get() as { cnt: number };
     expect(after.cnt).toBe(0);
   });
 
@@ -146,7 +180,9 @@ describe('Migration v35: Foreign Keys', () => {
     // This test verifies we can still query invite_codes after a user is soft-deleted.
     const db = getDb();
     const now = new Date().toISOString();
-    const future = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString();
+    const future = new Date(
+      Date.now() + 1000 * 60 * 60 * 24 * 30,
+    ).toISOString();
     db.prepare(
       `INSERT INTO users (id, username, password_hash, role, permissions, status, created_at, updated_at)
        VALUES ('u-inv', 'invuser', 'x', 'admin', '[]', 'active', ?, ?)`,
@@ -157,10 +193,14 @@ describe('Migration v35: Foreign Keys', () => {
     ).run(future, now);
 
     // Soft-delete user (no physical DELETE)
-    db.prepare(`UPDATE users SET status='deleted', deleted_at=? WHERE id='u-inv'`).run(now);
+    db.prepare(
+      `UPDATE users SET status='deleted', deleted_at=? WHERE id='u-inv'`,
+    ).run(now);
 
     // invite_code should still be queryable
-    const code = db.prepare(`SELECT code FROM invite_codes WHERE code='INV001'`).get() as { code: string } | undefined;
+    const code = db
+      .prepare(`SELECT code FROM invite_codes WHERE code='INV001'`)
+      .get() as { code: string } | undefined;
     expect(code?.code).toBe('INV001');
   });
 });

@@ -47,17 +47,27 @@ describe('Bot CRUD', () => {
   });
 
   test('getBotById returns Bot when id exists', () => {
-    const created = mod.createBot({ user_id: 'u1', name: 'A', channel: 'feishu' });
+    const created = mod.createBot({
+      user_id: 'u1',
+      name: 'A',
+      channel: 'feishu',
+    });
     const found = mod.getBotById(created.id);
     expect(found?.id).toBe(created.id);
     expect(found?.name).toBe('A');
   });
 
   test('getBotById ignores soft-deleted by default', () => {
-    const created = mod.createBot({ user_id: 'u1', name: 'A', channel: 'feishu' });
+    const created = mod.createBot({
+      user_id: 'u1',
+      name: 'A',
+      channel: 'feishu',
+    });
     mod.softDeleteBot(created.id);
     expect(mod.getBotById(created.id)).toBeNull();
-    expect(mod.getBotById(created.id, { includeDeleted: true })?.id).toBe(created.id);
+    expect(mod.getBotById(created.id, { includeDeleted: true })?.id).toBe(
+      created.id,
+    );
   });
 
   test('listBotsByUser filters by user_id and excludes deleted', () => {
@@ -70,16 +80,27 @@ describe('Bot CRUD', () => {
   });
 
   test('updateBot updates fields and bumps updated_at', () => {
-    const created = mod.createBot({ user_id: 'u1', name: 'A', channel: 'feishu' });
+    const created = mod.createBot({
+      user_id: 'u1',
+      name: 'A',
+      channel: 'feishu',
+    });
     const origUpdated = created.updated_at;
-    const updated = mod.updateBot(created.id, { name: 'A renamed', default_folder: 'main' });
+    const updated = mod.updateBot(created.id, {
+      name: 'A renamed',
+      default_folder: 'main',
+    });
     expect(updated.name).toBe('A renamed');
     expect(updated.default_folder).toBe('main');
     expect(updated.updated_at >= origUpdated).toBe(true);
   });
 
   test('hardDeleteBot removes row (and bindings via CASCADE)', () => {
-    const created = mod.createBot({ user_id: 'u1', name: 'A', channel: 'feishu' });
+    const created = mod.createBot({
+      user_id: 'u1',
+      name: 'A',
+      channel: 'feishu',
+    });
     mod.hardDeleteBot(created.id);
     expect(mod.getBotById(created.id, { includeDeleted: true })).toBeNull();
   });
@@ -118,7 +139,11 @@ describe('BotGroupBinding CRUD', () => {
 
   test('upsertBinding inserts when new', () => {
     const bot = mod.createBot({ user_id: 'u1', name: 'A', channel: 'feishu' });
-    const binding = mod.upsertBinding({ bot_id: bot.id, group_jid: 'feishu:g', folder: 'f' });
+    const binding = mod.upsertBinding({
+      bot_id: bot.id,
+      group_jid: 'feishu:g',
+      folder: 'f',
+    });
     expect(binding.enabled).toBe(true);
     expect(binding.folder).toBe('f');
   });

@@ -23,8 +23,18 @@ describe('Bot Feishu credentials', () => {
 
   test('saveBotFeishuConfig writes encrypted file with 0600 mode', async () => {
     const { saveBotFeishuConfig } = await import('../src/runtime-config.js');
-    saveBotFeishuConfig('bot_a', { appId: 'cli_x', appSecret: 'secret_y', enabled: true });
-    const filePath = path.join(tmpDir, 'config', 'bots', 'bot_a', 'feishu.json');
+    saveBotFeishuConfig('bot_a', {
+      appId: 'cli_x',
+      appSecret: 'secret_y',
+      enabled: true,
+    });
+    const filePath = path.join(
+      tmpDir,
+      'config',
+      'bots',
+      'bot_a',
+      'feishu.json',
+    );
     expect(fs.existsSync(filePath)).toBe(true);
     const stat = fs.statSync(filePath);
     // mode 0o600 在 POSIX 下严格相等；跨平台时使用 mask
@@ -35,8 +45,13 @@ describe('Bot Feishu credentials', () => {
   });
 
   test('getBotFeishuConfig returns decrypted config after save', async () => {
-    const { saveBotFeishuConfig, getBotFeishuConfig } = await import('../src/runtime-config.js');
-    saveBotFeishuConfig('bot_a', { appId: 'cli_x', appSecret: 'secret_y', enabled: true });
+    const { saveBotFeishuConfig, getBotFeishuConfig } =
+      await import('../src/runtime-config.js');
+    saveBotFeishuConfig('bot_a', {
+      appId: 'cli_x',
+      appSecret: 'secret_y',
+      enabled: true,
+    });
     const loaded = getBotFeishuConfig('bot_a');
     expect(loaded?.appId).toBe('cli_x');
     expect(loaded?.appSecret).toBe('secret_y');

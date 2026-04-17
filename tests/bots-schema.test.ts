@@ -5,7 +5,9 @@ import path from 'path';
 import os from 'os';
 
 function createTempDb(): { db: InstanceType<typeof Database>; path: string } {
-  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'happyclaw-schema-test-'));
+  const tmpDir = fs.mkdtempSync(
+    path.join(os.tmpdir(), 'happyclaw-schema-test-'),
+  );
   const dbPath = path.join(tmpDir, 'test.db');
   const db = new Database(dbPath);
   return { db, path: dbPath };
@@ -31,7 +33,9 @@ describe('Schema v35: bots and bot_group_bindings', () => {
         updated_at TEXT NOT NULL
       );
     `);
-    const cols = db.prepare("PRAGMA table_info('bots')").all() as Array<{ name: string }>;
+    const cols = db.prepare("PRAGMA table_info('bots')").all() as Array<{
+      name: string;
+    }>;
     const names = cols.map((c) => c.name);
     expect(names).toEqual([
       'id',
@@ -65,7 +69,9 @@ describe('Schema v35: bots and bot_group_bindings', () => {
         PRIMARY KEY (bot_id, group_jid)
       );
     `);
-    const indexes = db.prepare("PRAGMA index_list('bot_group_bindings')").all() as Array<{
+    const indexes = db
+      .prepare("PRAGMA index_list('bot_group_bindings')")
+      .all() as Array<{
       name: string;
       unique: number;
     }>;
@@ -117,7 +123,9 @@ describe('Schema v35: bots and bot_group_bindings', () => {
         PRIMARY KEY (bot_id, group_jid)
       );
     `);
-    const cols = db.prepare("PRAGMA table_info('bot_group_bindings')").all() as Array<{
+    const cols = db
+      .prepare("PRAGMA table_info('bot_group_bindings')")
+      .all() as Array<{
       name: string;
       notnull: number;
     }>;
