@@ -3822,3 +3822,73 @@ export function parseOAuthUsageBucket(v: unknown): OAuthUsageBucket | null {
     return null;
   return { utilization: obj.utilization, resets_at: obj.resets_at };
 }
+
+// ─── Bot-scoped Feishu config (Multi-Agent PR1) ─────────────────────────────
+
+function botConfigDir(botId: string): string {
+  return path.join(DATA_DIR, 'config', 'bots', botId);
+}
+
+export interface BotFeishuConfig {
+  appId: string;
+  appSecret: string;
+  enabled?: boolean;
+  updatedAt?: string | null;
+}
+
+export function getBotFeishuConfig(botId: string): BotFeishuConfig | null {
+  const filePath = path.join(botConfigDir(botId), 'feishu.json');
+  try {
+    if (!fs.existsSync(filePath)) return null;
+    const content = fs.readFileSync(filePath, 'utf-8');
+    const parsed = JSON.parse(content) as Record<string, unknown>;
+    if (parsed.version !== 1) return null;
+    const stored = parsed as unknown as StoredFeishuProviderConfigV1;
+    const secret = decryptChannelSecret<FeishuSecretPayload>(stored.secret);
+    return {
+      appId: normalizeFeishuAppId(stored.appId ?? ''),
+      appSecret: secret.appSecret,
+      enabled: stored.enabled,
+      updatedAt: stored.updatedAt || null,
+    };
+  } catch (err) {
+    logger.warn({ err, botId }, 'Failed to read bot Feishu config');
+    return null;
+  }
+}
+
+export function saveBotFeishuConfig(
+  botId: string,
+  next: Omit<BotFeishuConfig, 'updatedAt'>,
+): BotFeishuConfig {
+  const normalized: BotFeishuConfig = {
+    appId: normalizeFeishuAppId(next.appId),
+    appSecret: normalizeSecret(next.appSecret, 'appSecret'),
+    enabled: next.enabled,
+    updatedAt: new Date().toISOString(),
+  };
+  const payload: StoredFeishuProviderConfigV1 = {
+    version: 1,
+    appId: normalized.appId,
+    enabled: normalized.enabled,
+    updatedAt: normalized.updatedAt || new Date().toISOString(),
+    secret: encryptChannelSecret<FeishuSecretPayload>({ appSecret: normalized.appSecret }),
+  };
+  const dir = botConfigDir(botId);
+  fs.mkdirSync(dir, { recursive: true });
+  const filePath = path.join(dir, 'feishu.json');
+  const tmp = `${filePath}.tmp`;
+  fs.writeFileSync(tmp, JSON.stringify(payload, null, 2) + '\n', 'utf-8');
+  fs.chmodSync(tmp, 0o600);
+  fs.renameSync(tmp, filePath);
+  return normalized;
+}
+
+export function deleteBotFeishuConfig(botId: string): void {
+  const dir = botConfigDir(botId);
+  try {
+    fs.rmSync(dir, { recursive: true, force: true });
+  } catch (err) {
+    logger.warn({ err, botId }, 'Failed to delete bot config directory');
+  }
+}
