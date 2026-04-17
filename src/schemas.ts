@@ -244,6 +244,9 @@ export const SystemSettingsSchema = z.object({
       'autoCompactWindow must be 0 (disabled) or between 10000 and 2000000',
     )
     .optional(),
+  enableMultiBot: z.boolean().optional(),
+  maxBotsPerMessage: z.number().int().min(1).max(10).optional(),
+  maxBotsPerUser: z.number().int().min(1).max(100).optional(),
 });
 
 export const AppearanceConfigSchema = z.object({

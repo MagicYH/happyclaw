@@ -3484,6 +3484,11 @@ export interface SystemSettings {
   externalClaudeDir: string;
   // Claude Agent SDK 自动对话压缩触发点（tokens）。0 = 保留 SDK 默认（约 1M）
   autoCompactWindow: number;
+
+  // ── Multi-Agent (PR1) ──
+  enableMultiBot: boolean;        // 默认 false，灰度开关
+  maxBotsPerMessage: number;      // 一条消息最多触发多少个 Bot 响应，默认 3
+  maxBotsPerUser: number;         // 每个用户最多创建多少个 Bot，默认 10
 }
 
 const DEFAULT_SYSTEM_SETTINGS: SystemSettings = {
@@ -3503,6 +3508,9 @@ const DEFAULT_SYSTEM_SETTINGS: SystemSettings = {
   billingCurrencyRate: 1,
   externalClaudeDir: '',
   autoCompactWindow: 0,
+  enableMultiBot: false,
+  maxBotsPerMessage: 3,
+  maxBotsPerUser: 10,
 };
 
 function parseIntEnv(envVar: string | undefined, fallback: number): number {
@@ -3593,6 +3601,18 @@ function readSystemSettingsFromFile(): SystemSettings | null {
       typeof raw.autoCompactWindow === 'number' && raw.autoCompactWindow >= 0
         ? raw.autoCompactWindow
         : DEFAULT_SYSTEM_SETTINGS.autoCompactWindow,
+    enableMultiBot:
+      typeof raw.enableMultiBot === 'boolean'
+        ? raw.enableMultiBot
+        : DEFAULT_SYSTEM_SETTINGS.enableMultiBot,
+    maxBotsPerMessage:
+      typeof raw.maxBotsPerMessage === 'number' && raw.maxBotsPerMessage > 0
+        ? raw.maxBotsPerMessage
+        : DEFAULT_SYSTEM_SETTINGS.maxBotsPerMessage,
+    maxBotsPerUser:
+      typeof raw.maxBotsPerUser === 'number' && raw.maxBotsPerUser > 0
+        ? raw.maxBotsPerUser
+        : DEFAULT_SYSTEM_SETTINGS.maxBotsPerUser,
   };
 }
 
@@ -3654,6 +3674,9 @@ function buildEnvFallbackSettings(): SystemSettings {
       process.env.AUTO_COMPACT_WINDOW,
       DEFAULT_SYSTEM_SETTINGS.autoCompactWindow,
     ),
+    enableMultiBot: process.env.ENABLE_MULTI_BOT === 'true',
+    maxBotsPerMessage: parseIntEnv(process.env.MAX_BOTS_PER_MESSAGE, 3),
+    maxBotsPerUser: parseIntEnv(process.env.MAX_BOTS_PER_USER, 10),
   };
 }
 
