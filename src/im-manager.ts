@@ -868,18 +868,19 @@ export class IMConnectionManager {
     if (this.botConnections.has(input.botId)) {
       await this.disconnectBot(input.botId);
     }
-    const channel = createFeishuChannel({
-      appId: input.credentials.appId,
-      appSecret: input.credentials.appSecret,
-    });
+    const channel = createFeishuChannel(
+      {
+        appId: input.credentials.appId,
+        appSecret: input.credentials.appSecret,
+      },
+      { kind: 'bot' },  // Task 10 integration: bot 连接空 open_id 强制丢弃
+    );
     const ok = await channel.connect({
       // Required fields for IMChannelConnectOpts
       onReady: () => {
         logger.info({ botId: input.botId }, 'Bot Feishu WebSocket connected');
       },
       onNewChat: input.onNewChat ?? (() => undefined),
-      // Optional callbacks; connectionKind ('bot') will be used in Task 10 by feishu.ts
-      // kind: 'bot'  ← placeholder for Task 10 integration
       ...input.callbacks,
     });
     if (ok) {
