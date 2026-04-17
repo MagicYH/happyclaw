@@ -17,6 +17,7 @@
 import fs from 'fs';
 import path from 'path';
 import { query, HookCallback, PreCompactHookInput, createSdkMcpServer } from '@anthropic-ai/claude-agent-sdk';
+import { createAdvisorGuardHook } from './advisor-guard.js';
 import { detectImageMimeTypeFromBase64Strict } from './image-detector.js';
 import { pruneProcessedHistoryImagesInTranscript as pruneProcessedHistoryImagesInTranscriptFile } from './history-image-prune.js';
 import { getChannelFromJid } from './channel-prefixes.js';
@@ -643,6 +644,45 @@ function createPreCompactHook(
   };
 }
 
+// ---------------------------------------------------------------------------
+// Bot mode helpers — exported for unit tests and pr2-smoke
+// ---------------------------------------------------------------------------
+
+export type BotMode = 'writer' | 'advisor';
+
+/**
+ * Resolve the bot operating mode from environment variables.
+ * Only 'advisor' is trusted; everything else (missing, 'writer', invalid) → 'writer'.
+ * fail-safe default: writer mode does not restrict tool use.
+ */
+export function resolveBotModeFromEnv(
+  env: Record<string, string | undefined>,
+): BotMode {
+  const raw = env.HAPPYCLAW_BOT_MODE;
+  return raw === 'advisor' ? 'advisor' : 'writer';
+}
+
+export interface HooksConfigInput {
+  botMode: BotMode;
+  projectRoot: string;
+  preCompactHook: HookCallback;
+}
+
+/**
+ * Build the hooks configuration object for query().
+ * - writer: only PreCompact hook (no restriction on tool use)
+ * - advisor: PreCompact + PreToolUse (write-protect project root)
+ */
+export function buildHooksConfig(input: HooksConfigInput): Record<string, Array<{ hooks: HookCallback[] }>> {
+  const hooks: Record<string, Array<{ hooks: HookCallback[] }>> = {
+    PreCompact: [{ hooks: [input.preCompactHook] }],
+  };
+  if (input.botMode === 'advisor') {
+    hooks.PreToolUse = [{ hooks: [createAdvisorGuardHook(input.projectRoot)] }];
+  }
+  return hooks;
+}
+
 /**
  * Wrapper around the pure extractSessionHistory implementation in
  * session-history.ts. Resolves the SDK transcript directory using the
@@ -1190,9 +1230,22 @@ async function runQuery(
   const channel = getChannelFromJid(containerInput.chatJid);
   const channelGuidelines = CHANNEL_GUIDELINES[channel] ?? '';
 
+  // Bot-profile CLAUDE.md prefix（advisor / writer per-bot 角色定义）
+  let botProfilePrefix = '';
+  try {
+    const botProfileDir = process.env.HAPPYCLAW_BOT_PROFILE_DIR ?? '/workspace/bot-profile';
+    const profileFile = path.join(botProfileDir, 'CLAUDE.md');
+    if (fs.existsSync(profileFile)) {
+      botProfilePrefix = fs.readFileSync(profileFile, 'utf-8');
+    }
+  } catch (err) {
+    log(`failed to read bot-profile CLAUDE.md: ${err}`);
+  }
+
   // SDK settingSources 只加载 ~/.claude/CLAUDE.md 本体，不递归加载 rules/；
   // 容器模式下 $HOME 指向会话目录，宿主机 CLAUDE.md 也读不到。因此 guidelines 必须 inline 注入。
   const systemPromptAppend = [
+    botProfilePrefix && `<bot-profile>\n${botProfilePrefix}\n</bot-profile>`,
     `<behavior>\n${INTERACTION_GUIDELINES}\n</behavior>`,
     `<skill-routing>\n${SKILL_ROUTING_GUIDELINES}\n</skill-routing>`,
     `<security>\n${SECURITY_RULES}\n</security>`,
@@ -1250,13 +1303,15 @@ async function runQuery(
         ...loadUserMcpServers(),     // 用户配置的 MCP（stdio/http/sse），SDK 原生支持
         happyclaw: mcpServerConfig,  // 内置 SDK MCP 放最后，确保不被同名覆盖
       },
-      hooks: {
-        PreCompact: [{ hooks: [createPreCompactHook(isHome, isAdminHome, {
+      hooks: buildHooksConfig({
+        botMode: resolveBotModeFromEnv(process.env),
+        projectRoot: process.env.HAPPYCLAW_PROJECT_ROOT ?? WORKSPACE_GROUP,
+        preCompactHook: createPreCompactHook(isHome, isAdminHome, {
           emit,
           getFullText: () => processor.getFullText(),
           resetFullText: () => processor.resetFullTextAccumulator(),
-        })] }]
-      },
+        }),
+      }),
       agents: PREDEFINED_AGENTS,
     }
   });
