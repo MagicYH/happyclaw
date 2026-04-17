@@ -73,6 +73,17 @@ export interface DiscordConnectConfig {
   streamingMode?: 'edit' | 'off';
 }
 
+// ── PR1 Multi-Bot: per-bot connection input ──────────────────────
+export interface ConnectBotInput {
+  botId: string;
+  userId: string;
+  channel: 'feishu';
+  credentials: { appId: string; appSecret: string };
+  callbacks: ConnectFeishuOptions; // reuse existing callback interface
+  /** Optional: called when a new chat registers via this bot connection */
+  onNewChat?: (chatJid: string, chatName: string) => void;
+}
+
 export interface ConnectFeishuOptions {
   ignoreMessagesBefore?: number;
   onCommand?: (chatJid: string, command: string) => Promise<string | null>;
@@ -89,9 +100,12 @@ export interface ConnectFeishuOptions {
   onCardInterrupt?: (chatJid: string) => void;
 }
 
-class IMConnectionManager {
+export class IMConnectionManager {
   private connections = new Map<string, UserIMConnection>();
   private adminUserIds = new Set<string>();
+
+  // ── PR1 Multi-Bot: per-bot connections ───────────────────────
+  private botConnections = new Map<string, IMChannel>();
 
   /** Register a user ID as admin (for fallback routing) */
   registerAdminUser(userId: string): void {
@@ -837,6 +851,95 @@ class IMConnectionManager {
       }
     }
     return ids;
+  }
+
+  // ── PR1 Multi-Bot: bot connection management ─────────────────
+
+  /**
+   * Connect a Feishu channel for a specific bot (identified by botId).
+   * Bot connections are tracked separately from per-user connections.
+   * The `kind: 'bot'` will be propagated in Task 10 once feishu.ts supports it.
+   */
+  async connectBot(input: ConnectBotInput): Promise<boolean> {
+    if (input.channel !== 'feishu') {
+      throw new Error(`connectBot: unsupported channel ${input.channel}`);
+    }
+    // Disconnect any existing connection for this bot first
+    if (this.botConnections.has(input.botId)) {
+      await this.disconnectBot(input.botId);
+    }
+    const channel = createFeishuChannel({
+      appId: input.credentials.appId,
+      appSecret: input.credentials.appSecret,
+    });
+    const ok = await channel.connect({
+      // Required fields for IMChannelConnectOpts
+      onReady: () => {
+        logger.info({ botId: input.botId }, 'Bot Feishu WebSocket connected');
+      },
+      onNewChat: input.onNewChat ?? (() => undefined),
+      // Optional callbacks; connectionKind ('bot') will be used in Task 10 by feishu.ts
+      // kind: 'bot'  ← placeholder for Task 10 integration
+      ...input.callbacks,
+    });
+    if (ok) {
+      this.botConnections.set(input.botId, channel);
+      logger.info({ botId: input.botId, userId: input.userId }, 'Bot IM channel connected');
+    }
+    return ok;
+  }
+
+  /**
+   * Disconnect and remove a bot connection by botId.
+   */
+  async disconnectBot(botId: string): Promise<void> {
+    const channel = this.botConnections.get(botId);
+    if (!channel) return;
+    await channel.disconnect();
+    this.botConnections.delete(botId);
+    logger.info({ botId }, 'Bot IM channel disconnected');
+  }
+
+  /**
+   * Reconnect a bot: disconnect old connection, then connect with ignoreMessagesBefore=now.
+   * Used for hot-reload of bot credentials.
+   */
+  async reconnectBot(input: ConnectBotInput): Promise<boolean> {
+    await this.disconnectBot(input.botId);
+    return this.connectBot({
+      ...input,
+      callbacks: {
+        ...input.callbacks,
+        ignoreMessagesBefore: Date.now(),
+      },
+    });
+  }
+
+  /** Returns true if a bot connection exists for the given botId. */
+  hasBotConnection(botId: string): boolean {
+    return this.botConnections.has(botId);
+  }
+
+  /** Returns the IMChannel for a bot, or null if not connected. */
+  getBotConnection(botId: string): IMChannel | null {
+    return this.botConnections.get(botId) ?? null;
+  }
+
+  /** Returns all currently-registered bot IDs. */
+  listBotConnectionIds(): string[] {
+    return [...this.botConnections.keys()];
+  }
+
+  /** Disconnect all bot connections. Called during graceful shutdown. */
+  async disconnectAllBots(): Promise<void> {
+    const promises = [...this.botConnections.values()].map((ch) =>
+      ch.disconnect().catch((err) => {
+        logger.warn({ err }, 'Error disconnecting bot channel');
+      }),
+    );
+    this.botConnections.clear();
+    await Promise.all(promises);
+    logger.info('All bot IM connections disconnected');
   }
 
   /**
