@@ -286,7 +286,19 @@ export type AuthEventType =
   | 'invite_deleted'
   | 'invite_used'
   | 'recovery_reset'
-  | 'register_success';
+  | 'register_success'
+  // ── Multi-Agent (PR1) ──
+  | 'bot_created'
+  | 'bot_enabled'
+  | 'bot_disabled'
+  | 'bot_credentials_updated'
+  | 'bot_deleted'
+  | 'bot_hard_deleted'
+  | 'bot_binding_added'
+  | 'bot_binding_removed'
+  | 'bot_connect_failed'
+  | 'user_im_migrated_to_bot'
+  | 'schema_migrated';
 
 export interface AuthAuditLog {
   id: number;
@@ -652,3 +664,48 @@ export interface BillingAccessResult {
   exceededWindow?: QuotaCheckResult['exceededWindow'];
   resetAt?: string;
 }
+
+// ─── Multi-Agent ───────────────────────────────────────────
+
+/** Bot 并发模式（PR1 仅定义，PR2 实际启用 advisor 分支） */
+export type BotConcurrencyMode = 'writer' | 'advisor';
+
+/** Bot 活性策略（复用 registered_groups.activation_mode 取值） */
+export type BotActivationMode =
+  | 'auto'
+  | 'always'
+  | 'when_mentioned'
+  | 'owner_mentioned'
+  | 'disabled';
+
+/** Bot 状态 */
+export type BotStatus = 'active' | 'disabled';
+
+export interface Bot {
+  id: string;                          // 'bot_' + nanoid
+  user_id: string;
+  channel: 'feishu';                   // PR1 仅飞书，未来可扩展
+  name: string;
+  default_folder: string | null;
+  activation_mode: BotActivationMode;
+  concurrency_mode: BotConcurrencyMode;
+  status: BotStatus;
+  deleted_at: string | null;
+  open_id: string | null;
+  remote_name: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BotGroupBinding {
+  bot_id: string;
+  group_jid: string;
+  folder: string;
+  activation_mode: BotActivationMode | null;
+  concurrency_mode: BotConcurrencyMode | null;
+  enabled: boolean;
+  bound_at: string;
+}
+
+/** 传给 Feishu 连接层的来源标记 */
+export type IMConnectionKind = 'user' | 'bot';
