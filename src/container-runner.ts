@@ -41,6 +41,7 @@ import {
   logCapabilityPreflight,
 } from './agent-capabilities.js';
 import { MessageSourceKind, RegisteredGroup, StreamEvent } from './types.js';
+import type { BotConcurrencyMode } from './types.js';
 import {
   attachStderrHandler,
   attachStdoutHandler,
@@ -52,6 +53,52 @@ import {
   writeRunLog,
   type CloseHandlerContext,
 } from './agent-output-parser.js';
+import {
+  ensureProfileExists,
+  getProfileMountPath,
+} from './bot-profile-manager.js';
+
+// ─── Bot Mount Types ───────────────────────────────────────────────────────────
+
+export interface BotMountInfo {
+  scratchHost: string;
+  profileHost: string;
+  botMode: BotConcurrencyMode;
+}
+
+export interface BotMountInput {
+  folder: string;
+  botId: string;
+  mode: BotConcurrencyMode;
+}
+
+/**
+ * 为 Bot 构建 scratch 和 bot-profile 挂载目录。
+ *
+ * - 返回 null 表示老路径（无 bot_id），不做 PR2 挂载
+ * - 否则 mkdir scratch + ensureProfileExists（若不存在则写默认模板）
+ *
+ * 设计参考 v3 §7.4 / §7.5（scratch per-bot per-folder，bot-profile per-bot）。
+ * DATA_DIR 动态读取（process.env.DATA_DIR 优先）以支持测试覆盖。
+ */
+export function buildBotMounts(input: BotMountInput): BotMountInfo | null {
+  if (!input.botId) return null;
+
+  const effectiveDataDir = process.env.DATA_DIR ?? DATA_DIR;
+  const scratchHost = path.join(effectiveDataDir, 'scratch', input.folder, 'bots', input.botId);
+  fs.mkdirSync(scratchHost, { recursive: true });
+
+  const profileHost = getProfileMountPath(input.botId);
+  ensureProfileExists(input.botId, input.mode);
+
+  return {
+    scratchHost,
+    profileHost,
+    botMode: input.mode,
+  };
+}
+
+// ─── End Bot Mount Types ───────────────────────────────────────────────────────
 
 /**
  * 宿主机的 ~/.claude.json 路径。
@@ -207,6 +254,10 @@ export interface ContainerInput {
   images?: Array<{ data: string; mimeType?: string }>;
   agentId?: string;
   agentName?: string;
+  /** Bot ID for PR2 bot-profile + scratch mounts (optional, absent = PR1 legacy path) */
+  botId?: string;
+  /** Bot concurrency mode — determines advisor guard hook + mount behavior */
+  concurrencyMode?: BotConcurrencyMode;
 }
 
 export interface ContainerOutput {
@@ -707,6 +758,30 @@ export async function runContainerAgent(
       : '';
     const containerName = `happyclaw-${safeName}${agentSuffix}-${Date.now()}`;
     const containerArgs = buildContainerArgs(mounts, containerName, TIMEZONE);
+
+    // ─── PR2: Bot-profile + scratch mounts ────────────────────────────────────
+    const botMounts = buildBotMounts({
+      folder: group.folder,
+      botId: input.botId ?? '',
+      mode: input.concurrencyMode ?? 'writer',
+    });
+    if (botMounts) {
+      // Insert before the image name (last element of containerArgs)
+      const imageIdx = containerArgs.length - 1;
+      containerArgs.splice(
+        imageIdx,
+        0,
+        '-v', `${botMounts.scratchHost}:/workspace/scratch:rw`,
+        '-v', `${botMounts.profileHost}:/workspace/bot-profile:ro`,
+        '-e', `HAPPYCLAW_BOT_MODE=${botMounts.botMode}`,
+        '-e', `HAPPYCLAW_BOT_ID=${input.botId}`,
+      );
+      logger.debug(
+        { group: group.name, botId: input.botId, botMode: botMounts.botMode },
+        'Bot mounts injected into container args',
+      );
+    }
+    // ─────────────────────────────────────────────────────────────────────────
 
     logger.debug(
       {
@@ -1309,6 +1384,25 @@ export async function runHostAgent(
       memoryFolder,
     );
     hostEnv['HAPPYCLAW_WORKSPACE_IPC'] = groupIpcDir;
+
+    // ─── PR2: Bot-profile + scratch paths via env vars (host mode has no docker mounts) ───
+    const hostBotMounts = buildBotMounts({
+      folder: group.folder,
+      botId: input.botId ?? '',
+      mode: input.concurrencyMode ?? 'writer',
+    });
+    if (hostBotMounts) {
+      hostEnv['HAPPYCLAW_BOT_MODE'] = hostBotMounts.botMode;
+      hostEnv['HAPPYCLAW_BOT_ID'] = input.botId!;
+      hostEnv['HAPPYCLAW_SCRATCH_DIR'] = hostBotMounts.scratchHost;
+      hostEnv['HAPPYCLAW_BOT_PROFILE_DIR'] = hostBotMounts.profileHost;
+      logger.debug(
+        { group: group.name, botId: input.botId, botMode: hostBotMounts.botMode },
+        'Bot env vars injected for host agent',
+      );
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
     hostEnv['CLAUDE_CONFIG_DIR'] = groupSessionsDir;
     // 让 SDK 捕获 CLI 的 stderr 输出，便于排查启动失败
     hostEnv['DEBUG_CLAUDE_AGENT_SDK'] = '1';
