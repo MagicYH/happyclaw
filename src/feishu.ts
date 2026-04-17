@@ -22,7 +22,7 @@ import {
   getStreamingSession,
 } from './feishu-streaming-card.js';
 import { optimizeMarkdownStyle } from './feishu-markdown-style.js';
-import type { FeishuMessageMeta } from './types.js';
+import type { FeishuMessageMeta, IMConnectionKind } from './types.js';
 
 // ─── FeishuConnection Interface ────────────────────────────────
 
@@ -595,7 +595,10 @@ function buildInteractiveCard(text: string): object {
  */
 export function createFeishuConnection(
   config: FeishuConnectionConfig,
+  opts?: { kind?: IMConnectionKind },
 ): FeishuConnection {
+  const kind: IMConnectionKind = opts?.kind ?? 'user';
+
   // LRU deduplication cache
   const MSG_DEDUP_MAX = 1000;
   const MSG_DEDUP_TTL = 30 * 60 * 1000; // 30min
@@ -1129,7 +1132,13 @@ export function createFeishuConnection(
     if (chatType === 'group' && shouldProcessGroupMessage) {
       const isBotMentioned = botOpenId
         ? (mentions?.some((m) => m.id?.open_id === botOpenId) ?? false)
-        : true; // 无 bot open_id 时默认放行（安全降级）
+        : shouldProcessWhenBotOpenIdMissing(kind); // user 连接默认放行，bot 连接强制丢弃
+      if (!botOpenId && kind === 'bot') {
+        logger.warn(
+          { chatJid: chatId, kind },
+          'bot connection received message before open_id was resolved; dropping',
+        );
+      }
       if (!isBotMentioned && !shouldProcessGroupMessage(chatJid, senderOpenId)) {
         logger.debug(
           { chatJid, messageId },
@@ -2047,4 +2056,18 @@ export async function stopFeishu(): Promise<void> {
     await _defaultInstance.stop();
     _defaultInstance = null;
   }
+}
+
+// ─── Connection Kind Helpers ────────────────────────────────────
+
+/**
+ * 当 botOpenId 尚未解析（空字符串）时，决定是否放行当前消息。
+ *
+ * - user 连接（`kind === 'user'`）：向后兼容，默认放行（true）
+ * - bot  连接（`kind === 'bot'`）：严格模式，强制丢弃（false）
+ *
+ * 该函数作为纯函数导出，便于单元测试。
+ */
+export function shouldProcessWhenBotOpenIdMissing(kind: IMConnectionKind): boolean {
+  return kind === 'user';
 }

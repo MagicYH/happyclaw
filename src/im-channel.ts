@@ -35,7 +35,7 @@ import {
   type DiscordConnectionConfig,
 } from './discord.js';
 import { logger } from './logger.js';
-import type { FeishuMessageMeta } from './types.js';
+import type { FeishuMessageMeta, IMConnectionKind } from './types.js';
 import {
   StreamingCardController,
   type StreamingCardOptions,
@@ -166,14 +166,17 @@ export function extractChatId(jid: string): string {
 
 // ─── Feishu Adapter ─────────────────────────────────────────────
 
-export function createFeishuChannel(config: FeishuConnectionConfig): IMChannel {
+export function createFeishuChannel(
+  config: FeishuConnectionConfig,
+  channelOpts?: { kind?: IMConnectionKind },
+): IMChannel {
   let inner: FeishuConnection | null = null;
 
   const channel: IMChannel = {
     channelType: 'feishu',
 
     async connect(opts: IMChannelConnectOpts): Promise<boolean> {
-      inner = createFeishuConnection(config);
+      inner = createFeishuConnection(config, channelOpts);
       const connected = await inner.connect({
         onReady: opts.onReady,
         onNewChat: opts.onNewChat,

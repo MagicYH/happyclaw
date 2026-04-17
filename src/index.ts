@@ -594,6 +594,48 @@ function resolveEffectiveFolder(chatJid: string): string | undefined {
   return group.folder;
 }
 
+// ── v3 §5.2 路由阶段 0+4：按连接类型选择 folder 来源 ─────────────────────────
+
+export interface RouteTarget {
+  folder: string;
+  /** '' 表示 user 连接（兼容路径）；非空时为 Bot ID */
+  botId: string;
+}
+
+export interface RouteDeps {
+  getRegisteredGroup: (jid: string) => Pick<RegisteredGroup, 'folder'> | null;
+  getBinding: (
+    botId: string,
+    jid: string,
+  ) => Pick<import('./types.js').BotGroupBinding, 'folder' | 'enabled'> | null;
+}
+
+/**
+ * 阶段 0：按连接类型（user / bot）选择 folder 来源。
+ * - user 连接：查 registered_groups.folder（单 Bot 兼容路径，`botId` 返回 ''）
+ * - bot  连接：查 bot_group_bindings.folder（多 Bot 路径，binding 须 enabled）
+ *
+ * 返回 null 表示无法路由（消息应被丢弃）。
+ */
+export function resolveRouteTarget(
+  kind: import('./types.js').IMConnectionKind,
+  groupJid: string,
+  botId: string | undefined,
+  deps: RouteDeps,
+): RouteTarget | null {
+  if (kind === 'user') {
+    const rg = deps.getRegisteredGroup(groupJid);
+    if (!rg) return null;
+    return { folder: rg.folder, botId: '' };
+  }
+  if (!botId) return null;
+  const binding = deps.getBinding(botId, groupJid);
+  if (!binding || !binding.enabled) return null;
+  return { folder: binding.folder, botId };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 /**
  * Resolve the effective group for a non-home group by finding its sibling home group.
  * Non-home groups use their own executionMode/customCwd — no owner fallback.
