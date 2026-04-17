@@ -75,7 +75,7 @@ function stmts() {
          ORDER BY timestamp DESC LIMIT 1`,
       ),
       storeMessageInsert: db.prepare(
-        `INSERT OR REPLACE INTO messages (
+        `INSERT OR IGNORE INTO messages (
           id, chat_jid, source_jid, sender, sender_name, content, timestamp, is_from_me,
           attachments, token_usage, turn_id, session_id, sdk_message_uuid, source_kind, finalization_reason
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
