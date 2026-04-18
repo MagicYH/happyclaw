@@ -52,6 +52,7 @@ interface AuthState {
   appearance: AppearanceConfig | null;
   initialized: boolean | null; // null = not checked yet
   checking: boolean;
+  enableMultiBot: boolean;
   login: (username: string, password: string) => Promise<void>;
   register: (data: { username: string; password: string; display_name?: string; invite_code?: string }) => Promise<void>;
   logout: () => Promise<void>;
@@ -74,13 +75,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   appearance: null,
   initialized: null,
   checking: true,
+  enableMultiBot: false,
 
   login: async (username: string, password: string) => {
-    const data = await api.post<{ success: boolean; user: UserPublic; setupStatus?: SetupStatus; appearance?: AppearanceConfig }>(
+    const data = await api.post<{ success: boolean; user: UserPublic; setupStatus?: SetupStatus; appearance?: AppearanceConfig; features?: { enableMultiBot?: boolean } }>(
       '/api/auth/login',
       { username, password },
     );
-    set({ authenticated: true, user: data.user, setupStatus: data.setupStatus ?? null, appearance: data.appearance ?? null, initialized: true });
+    set({ authenticated: true, user: data.user, setupStatus: data.setupStatus ?? null, appearance: data.appearance ?? null, initialized: true, enableMultiBot: data.features?.enableMultiBot ?? false });
   },
 
   register: async (payload) => {
@@ -124,8 +126,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ checking: true });
       for (let attempt = 0; attempt < 3; attempt++) {
         try {
-          const data = await api.get<{ user: UserPublic; setupStatus?: SetupStatus; appearance?: AppearanceConfig }>('/api/auth/me');
-          set({ authenticated: true, user: data.user, setupStatus: data.setupStatus ?? null, appearance: data.appearance ?? null, initialized: true, checking: false });
+          const data = await api.get<{ user: UserPublic; setupStatus?: SetupStatus; appearance?: AppearanceConfig; features?: { enableMultiBot?: boolean } }>('/api/auth/me');
+          set({ authenticated: true, user: data.user, setupStatus: data.setupStatus ?? null, appearance: data.appearance ?? null, initialized: true, checking: false, enableMultiBot: data.features?.enableMultiBot ?? false });
           return;
         } catch (err) {
           const status =
