@@ -5,8 +5,9 @@ import { promisify } from 'util';
 
 import { Hono } from 'hono';
 import type { Variables } from '../web-context.js';
-import { authMiddleware, systemConfigMiddleware } from '../middleware/auth.js';
+import { authMiddleware, auditViewMiddleware, systemConfigMiddleware } from '../middleware/auth.js';
 import type { AuthUser } from '../types.js';
+import { getMetrics } from '../bot-metrics.js';
 import {
   isHostExecutionGroup,
   hasHostExecutionPermission,
@@ -512,5 +513,10 @@ monitorRoutes.post(
     );
   },
 );
+
+// GET /api/monitor/bot-metrics — 队列 + Hook 指标（需 view_audit_log 权限）
+monitorRoutes.get('/bot-metrics', authMiddleware, auditViewMiddleware, (c) => {
+  return c.json(getMetrics());
+});
 
 export default monitorRoutes;
