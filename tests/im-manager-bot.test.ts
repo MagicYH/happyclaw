@@ -1,5 +1,26 @@
 import { describe, expect, test, beforeEach, vi } from 'vitest';
 
+// mock bot-connection-state to avoid needing a real database in this test
+vi.mock('../src/bot-connection-state.js', () => ({
+  markConnecting: vi.fn(),
+  markConnected: vi.fn(),
+  markFailed: vi.fn(),
+  markDisconnected: vi.fn(),
+  markReconnecting: vi.fn(),
+  markDisabled: vi.fn(),
+}));
+
+// mock web-context broadcastBotConnectionStatus to avoid WS deps
+vi.mock('../src/web-context.js', async () => {
+  const actual = await vi.importActual<typeof import('../src/web-context.js')>(
+    '../src/web-context.js',
+  );
+  return {
+    ...actual,
+    broadcastBotConnectionStatus: vi.fn(),
+  };
+});
+
 // mock feishu connection factory
 const mockConnect = vi.fn().mockResolvedValue(true);
 const mockDisconnect = vi.fn().mockResolvedValue(undefined);

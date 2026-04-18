@@ -31,6 +31,14 @@ import { getRegisteredGroup, getJidsByFolder } from './db.js';
 import { getUserDingTalkConfig } from './runtime-config.js';
 import { logger } from './logger.js';
 import type { FeishuMessageMeta } from './types.js';
+import {
+  markConnecting,
+  markConnected,
+  markFailed,
+  markDisconnected,
+  markReconnecting,
+} from './bot-connection-state.js';
+import { broadcastBotConnectionStatus } from './web-context.js';
 
 export interface UserIMConnection {
   userId: string;
@@ -885,6 +893,10 @@ export class IMConnectionManager {
     if (this.botConnections.has(input.botId)) {
       await this.disconnectBot(input.botId);
     }
+
+    const stateDeps = { broadcast: broadcastBotConnectionStatus };
+    markConnecting(input.botId, stateDeps);
+
     const channel = createFeishuChannel(
       {
         appId: input.credentials.appId,
@@ -892,20 +904,31 @@ export class IMConnectionManager {
       },
       { kind: 'bot' }, // Task 10 integration: bot 连接空 open_id 强制丢弃
     );
-    const ok = await channel.connect({
-      // Required fields for IMChannelConnectOpts
-      onReady: () => {
-        logger.info({ botId: input.botId }, 'Bot Feishu WebSocket connected');
-      },
-      onNewChat: input.onNewChat ?? (() => undefined),
-      ...input.callbacks,
-    });
+    let ok: boolean;
+    try {
+      ok = await channel.connect({
+        // Required fields for IMChannelConnectOpts
+        onReady: () => {
+          logger.info({ botId: input.botId }, 'Bot Feishu WebSocket connected');
+        },
+        onNewChat: input.onNewChat ?? (() => undefined),
+        ...input.callbacks,
+      });
+    } catch (err) {
+      const errorCode = err instanceof Error ? err.message : 'UNKNOWN_ERROR';
+      markFailed(input.botId, errorCode, stateDeps);
+      throw err;
+    }
+
     if (ok) {
       this.botConnections.set(input.botId, channel);
+      markConnected(input.botId, stateDeps);
       logger.info(
         { botId: input.botId, userId: input.userId },
         'Bot IM channel connected',
       );
+    } else {
+      markFailed(input.botId, 'CONNECT_RETURNED_FALSE', stateDeps);
     }
     return ok;
   }
@@ -918,6 +941,7 @@ export class IMConnectionManager {
     if (!channel) return;
     await channel.disconnect();
     this.botConnections.delete(botId);
+    markDisconnected(botId, { broadcast: broadcastBotConnectionStatus });
     logger.info({ botId }, 'Bot IM channel disconnected');
   }
 
@@ -926,6 +950,7 @@ export class IMConnectionManager {
    * Used for hot-reload of bot credentials.
    */
   async reconnectBot(input: ConnectBotInput): Promise<boolean> {
+    markReconnecting(input.botId, { broadcast: broadcastBotConnectionStatus });
     await this.disconnectBot(input.botId);
     return this.connectBot({
       ...input,

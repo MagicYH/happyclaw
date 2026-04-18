@@ -22,13 +22,13 @@ describe('Migration v35', () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  test('schema_version advances to 35', () => {
+  test('schema_version advances to at least 35', () => {
     initDatabase(dbPath);
     const db = getDb();
     const row = db
       .prepare("SELECT value FROM router_state WHERE key='schema_version'")
       .get() as { value: string } | undefined;
-    expect(row?.value).toBe('35');
+    expect(parseInt(row?.value ?? '0', 10)).toBeGreaterThanOrEqual(35);
   });
 
   test('bots and bot_group_bindings tables exist', () => {

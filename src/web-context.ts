@@ -1,7 +1,7 @@
 // Shared state and utilities for web server
 
 import { WebSocket } from 'ws';
-import { RegisteredGroup, UserRole } from './types.js';
+import { RegisteredGroup, UserRole, type WsMessageOut } from './types.js';
 import { GroupQueue } from './group-queue.js';
 import type {
   AuthUser,
@@ -264,4 +264,23 @@ export function canDeleteGroup(
 ): boolean {
   if (group.is_home) return false;
   return canModifyGroup(user, group);
+}
+
+/**
+ * Broadcast a bot_connection_status message to all connected WebSocket clients.
+ * Used by im-manager.ts when bot connection state changes.
+ */
+export function broadcastBotConnectionStatus(
+  msg: Extract<WsMessageOut, { type: 'bot_connection_status' }>,
+): void {
+  const payload = JSON.stringify(msg);
+  for (const [client] of wsClients) {
+    try {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(payload);
+      }
+    } catch {
+      // Ignore send errors — client may have just disconnected
+    }
+  }
 }

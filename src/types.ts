@@ -305,7 +305,11 @@ export type AuthEventType =
   | 'user_im_migrated_to_bot'
   | 'schema_migrated'
   // ── Multi-Agent PR2 ──
-  | 'bot_profile_updated';
+  | 'bot_profile_updated'
+  // ── Multi-Agent PR3 ──
+  | 'scratch_gc_run'
+  | 'scratch_quota_exceeded'
+  | 'bot_connection_failed';
 
 export interface AuthAuditLog {
   id: number;
@@ -426,6 +430,21 @@ export type WsMessageOut =
       usage: BillingAccessResult;
     }
   | { type: 'ws_error'; error: string; chatJid?: string }
+  | {
+      type: 'bot_connection_status';
+      bot_id: string;
+      user_id: string;
+      state: BotConnectionState;
+      last_connected_at: string | null;
+      consecutive_failures: number;
+      last_error_code: string | null;
+    }
+  | {
+      type: 'bot_queue_status';
+      folder: string;
+      depth: number;
+      running_bot_id: string | null;
+    }
   | {
       type: 'stream_snapshot';
       chatJid: string;
@@ -688,6 +707,15 @@ export type BotActivationMode =
 /** Bot 状态 */
 export type BotStatus = 'active' | 'disabled';
 
+/** Bot 连接状态（PR3 新增） */
+export type BotConnectionState =
+  | 'disconnected'
+  | 'connecting'
+  | 'connected'
+  | 'error'
+  | 'reconnecting'
+  | 'disabled';
+
 export interface Bot {
   id: string; // 'bot_' + nanoid
   user_id: string;
@@ -702,6 +730,11 @@ export interface Bot {
   remote_name: string | null;
   created_at: string;
   updated_at: string;
+  // ── PR3: connection state ──
+  connection_state: BotConnectionState;
+  last_connected_at: string | null;
+  consecutive_failures: number;
+  last_error_code: string | null;
 }
 
 export interface BotGroupBinding {

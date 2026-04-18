@@ -10,6 +10,7 @@ import type {
   Bot,
   BotActivationMode,
   BotConcurrencyMode,
+  BotConnectionState,
   BotGroupBinding,
   BotStatus,
 } from './types.js';
@@ -36,6 +37,13 @@ function rowToBot(row: Record<string, unknown>): Bot {
     remote_name: row.remote_name === null ? null : String(row.remote_name),
     created_at: String(row.created_at),
     updated_at: String(row.updated_at),
+    // PR3: connection state fields
+    connection_state: (row.connection_state ?? 'disconnected') as BotConnectionState,
+    last_connected_at:
+      row.last_connected_at == null ? null : String(row.last_connected_at),
+    consecutive_failures: Number(row.consecutive_failures ?? 0),
+    last_error_code:
+      row.last_error_code == null ? null : String(row.last_error_code),
   };
 }
 
@@ -261,4 +269,58 @@ export function setBindingEnabled(
   db.prepare(
     `UPDATE bot_group_bindings SET enabled=? WHERE bot_id=? AND group_jid=?`,
   ).run(enabled ? 1 : 0, botId, groupJid);
+}
+
+// ── PR3: Bot connection state ─────────────────────────────
+
+export function updateBotConnectionState(
+  botId: string,
+  patch: {
+    state: BotConnectionState;
+    lastConnectedAt?: string | null;
+    consecutiveFailures?: number;
+    lastErrorCode?: string | null;
+  },
+): void {
+  const db = getDb();
+  const now = new Date().toISOString();
+  db.prepare(
+    `UPDATE bots
+       SET connection_state = ?,
+           last_connected_at = COALESCE(?, last_connected_at),
+           consecutive_failures = COALESCE(?, consecutive_failures),
+           last_error_code = ?,
+           updated_at = ?
+     WHERE id = ? AND deleted_at IS NULL`,
+  ).run(
+    patch.state,
+    patch.lastConnectedAt ?? null,
+    patch.consecutiveFailures ?? null,
+    patch.lastErrorCode !== undefined ? patch.lastErrorCode : null,
+    now,
+    botId,
+  );
+}
+
+export function getBotConnectionState(botId: string): {
+  state: BotConnectionState;
+  last_connected_at: string | null;
+  consecutive_failures: number;
+  last_error_code: string | null;
+} | null {
+  const db = getDb();
+  const row = db
+    .prepare(
+      `SELECT connection_state AS state, last_connected_at,
+              consecutive_failures, last_error_code
+         FROM bots WHERE id = ? AND deleted_at IS NULL`,
+    )
+    .get(botId) as Record<string, unknown> | undefined;
+  if (!row) return null;
+  return {
+    state: (row.state ?? 'disconnected') as BotConnectionState,
+    last_connected_at: row.last_connected_at == null ? null : String(row.last_connected_at),
+    consecutive_failures: Number(row.consecutive_failures ?? 0),
+    last_error_code: row.last_error_code == null ? null : String(row.last_error_code),
+  };
 }
