@@ -309,7 +309,8 @@ export type AuthEventType =
   // ── Multi-Agent PR3 ──
   | 'scratch_gc_run'
   | 'scratch_quota_exceeded'
-  | 'bot_connection_failed';
+  | 'bot_connection_failed'
+  | 'bot_test_connection';
 
 export interface AuthAuditLog {
   id: number;

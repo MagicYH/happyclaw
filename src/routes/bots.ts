@@ -13,9 +13,11 @@
  *   GET    /api/bots/:id/bindings      — 查看 Bot 的绑定
  *   POST   /api/bots/:id/bindings      — 添加 / 更新绑定
  *   DELETE /api/bots/:id/bindings/:groupJid — 删除绑定
+ *   POST   /api/bots/:id/test-connection  — 测试飞书连接（不持久化，纯预演）
  */
 
 import { Hono } from 'hono';
+import * as lark from '@larksuiteoapi/node-sdk';
 import type { Variables } from '../web-context.js';
 import { authMiddleware, authorizeBot } from '../middleware/auth.js';
 import {
@@ -27,7 +29,11 @@ import {
   listBindingsByBot,
   removeBinding,
 } from '../db-bots.js';
-import { saveBotFeishuConfig, getSystemSettings } from '../runtime-config.js';
+import {
+  saveBotFeishuConfig,
+  getSystemSettings,
+  getBotFeishuConfig,
+} from '../runtime-config.js';
 import {
   CreateBotSchema,
   UpdateBotSchema,
@@ -43,6 +49,57 @@ import {
 import { logAuthEvent } from '../db.js';
 import { logger } from '../logger.js';
 import type { AuthUser, Bot } from '../types.js';
+
+// ─────────────────────────────────────────────────────
+// testBotConnection — 导出供测试直接调用
+// 临时创建 lark.Client，调用 /open-apis/bot/v3/info/ 获取 open_id
+// 成功返回 { ok: true, open_id, remote_name }
+// 失败返回 { ok: false, error: string }
+// 不建立长连接，不修改数据库
+// ─────────────────────────────────────────────────────
+export type TestBotConnectionResult =
+  | { ok: true; open_id: string; remote_name: string }
+  | { ok: false; error: string };
+
+export async function testBotConnection(
+  botId: string,
+): Promise<TestBotConnectionResult> {
+  const cfg = getBotFeishuConfig(botId);
+  if (!cfg || !cfg.appId || !cfg.appSecret) {
+    return { ok: false, error: 'no feishu credentials configured for this bot' };
+  }
+
+  try {
+    const client = new lark.Client({
+      appId: cfg.appId,
+      appSecret: cfg.appSecret,
+      appType: lark.AppType.SelfBuild,
+    });
+
+    const res = await client.request({
+      method: 'GET',
+      url: '/open-apis/bot/v3/info/',
+    });
+
+    // Handle both flat and data-wrapped response shapes
+    const info = res as {
+      bot?: { open_id?: string; app_name?: string };
+      data?: { bot?: { open_id?: string; app_name?: string } };
+    };
+    const bot = info?.bot ?? info?.data?.bot;
+    const openId = bot?.open_id;
+    const remoteName = bot?.app_name ?? '';
+
+    if (!openId) {
+      return { ok: false, error: 'feishu response did not include open_id' };
+    }
+
+    return { ok: true, open_id: openId, remote_name: remoteName };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return { ok: false, error: msg };
+  }
+}
 
 // Extend Variables with bot context set by authorizeBot middleware
 type BotsVariables = Variables & { bot: Bot };
@@ -383,4 +440,34 @@ botsRoutes.put('/:id/profile', authorizeBot, async (c) => {
   });
 
   return c.json({ success: true });
+});
+
+// ─────────────────────────────────────────────────────
+// POST /api/bots/:id/test-connection
+// 预演飞书连接：临时建立客户端、拉取 bot info、立即断开
+// 不持久化 open_id，不改变 Bot 数据库状态
+// ─────────────────────────────────────────────────────
+botsRoutes.post('/:id/test-connection', authorizeBot, async (c) => {
+  const bot = c.get('bot');
+  const user = c.get('user') as AuthUser;
+
+  const result = await testBotConnection(bot.id);
+
+  logAuthEvent({
+    event_type: 'bot_test_connection',
+    username: user.username,
+    actor_username: user.username,
+    details: {
+      bot_id: bot.id,
+      ok: result.ok,
+      ...(result.ok ? { open_id: result.open_id } : { error: result.error }),
+    },
+    ip_address: c.req.header('x-forwarded-for') ?? null,
+    user_agent: c.req.header('user-agent') ?? null,
+  });
+
+  if (result.ok) {
+    return c.json({ ok: true, open_id: result.open_id, remote_name: result.remote_name });
+  }
+  return c.json({ ok: false, error: result.error });
 });

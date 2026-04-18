@@ -7,6 +7,11 @@ import { killProcessTree } from './container-runner.js';
 import { getTaskById } from './db.js';
 import { getSystemSettings } from './runtime-config.js';
 import { logger } from './logger.js';
+import {
+  recordQueueEnqueue,
+  recordQueueDequeue,
+  recordQueueProcessed,
+} from './bot-metrics.js';
 export type SendMessageResult = 'sent' | 'no_active';
 
 interface QueuedTask {
@@ -328,6 +333,9 @@ export class GroupQueue {
   enqueueMessageCheck(groupJid: string): void {
     if (this.shuttingDown) return;
 
+    // Record enqueue metric before any early-return
+    recordQueueEnqueue(groupJid);
+
     const state = this.getGroup(groupJid);
 
     const activeRunner = this.findActiveRunnerFor(groupJid);
@@ -377,6 +385,9 @@ export class GroupQueue {
       logger.debug({ groupJid, taskId }, 'Task already queued, skipping');
       return;
     }
+
+    // Record enqueue metric (after dedup check so double-enqueue doesn't inflate counter)
+    recordQueueEnqueue(groupJid);
 
     const activeRunner = this.findActiveRunnerFor(groupJid);
     if (state.active || (activeRunner && activeRunner !== groupJid)) {
@@ -980,6 +991,8 @@ export class GroupQueue {
       logger.error({ groupJid, err }, 'Error processing messages for group');
       this.scheduleRetry(groupJid, state);
     } finally {
+      // Record message-processing completion (depth -1)
+      recordQueueDequeue(groupJid);
       // Clean up stale sentinel files before clearing groupFolder/agentId
       if (state.groupFolder) {
         try {
@@ -1076,6 +1089,8 @@ export class GroupQueue {
     } catch (err) {
       logger.error({ groupJid, taskId: task.id, err }, 'Error running task');
     } finally {
+      // Record task completion metric (depth -1, processed count +1)
+      recordQueueProcessed(groupJid, '');
       // Clean up stale sentinel files before clearing groupFolder/agentId
       if (state.groupFolder) {
         try {
