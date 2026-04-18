@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useChatStore } from '../../stores/chat';
 import { useAuthStore } from '../../stores/auth';
+import { useBotsStore } from '../../stores/bots';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
 import { FilePanel } from './FilePanel';
@@ -9,7 +10,7 @@ import { ContainerEnvPanel } from './ContainerEnvPanel';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { PromptDialog } from '@/components/common/PromptDialog';
-import { ArrowLeft, FolderOpen, Link, MessageSquare, Monitor, Moon, MoreHorizontal, PanelRightClose, PanelRightOpen, Puzzle, Server, Sun, Terminal, Users, Variable, X } from 'lucide-react';
+import { ArrowLeft, Bot, FolderOpen, Link, MessageSquare, Monitor, Moon, MoreHorizontal, PanelRightClose, PanelRightOpen, Puzzle, Server, Sun, Terminal, Users, Variable, X } from 'lucide-react';
 import { useDisplayMode } from '../../hooks/useDisplayMode';
 import { useTheme } from '../../hooks/useTheme';
 import { cn } from '@/lib/utils';
@@ -19,6 +20,7 @@ import { TerminalPanel } from './TerminalPanel';
 import { GroupMembersPanel } from './GroupMembersPanel';
 import { WorkspaceSkillsPanel } from './WorkspaceSkillsPanel';
 import { WorkspaceMcpPanel } from './WorkspaceMcpPanel';
+import { WorkspaceBotsPanel } from './WorkspaceBotsPanel';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { AgentTabBar } from './AgentTabBar';
 import { ImBindingDialog } from './ImBindingDialog';
@@ -34,6 +36,7 @@ const SIDEBAR_TABS = [
   { id: 'env' as const, icon: Variable, label: '环境变量' },
   { id: 'skills' as const, icon: Puzzle, label: '工作区 Skills' },
   { id: 'mcp' as const, icon: Server, label: '工作区 MCP' },
+  { id: 'bots' as const, icon: Bot, label: 'Bots' },
   { id: 'members' as const, icon: Users, label: '成员' },
 ];
 
@@ -45,7 +48,7 @@ const TERMINAL_MAX_RATIO = 0.7;
 // Stable empty references to avoid infinite re-render loops in Zustand selectors
 const EMPTY_AGENTS: import('../../types').AgentInfo[] = [];
 
-type SidebarTab = 'files' | 'env' | 'skills' | 'mcp' | 'members';
+type SidebarTab = 'files' | 'env' | 'skills' | 'mcp' | 'bots' | 'members';
 
 interface ChatViewProps {
   groupJid: string;
@@ -124,18 +127,24 @@ export function ChatView({ groupJid, onBack, headerLeft }: ChatViewProps) {
   const markChatRead = useChatStore(s => s.markChatRead);
 
   const currentUser = useAuthStore(s => s.user);
+  const enableMultiBot = useAuthStore(s => s.enableMultiBot);
   const canUseTerminal = group?.execution_mode !== 'host';
   const pollRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   // Sidebar: members tab visibility
   const isHome = !!group?.is_home;
   const showMembersTab = (!!group?.is_shared || group?.member_role === 'owner') && !isHome;
-  const visibleTabs = SIDEBAR_TABS.filter(t => t.id !== 'members' || showMembersTab);
+  const visibleTabs = SIDEBAR_TABS.filter(t => {
+    if (t.id === 'members') return showMembersTab;
+    if (t.id === 'bots') return enableMultiBot;
+    return true;
+  });
 
   // Fallback: if current tab is hidden, reset to files
   useEffect(() => {
     if (sidebarTab === 'members' && !showMembersTab) setSidebarTab('files');
-  }, [sidebarTab, showMembersTab]);
+    if (sidebarTab === 'bots' && !enableMultiBot) setSidebarTab('files');
+  }, [sidebarTab, showMembersTab, enableMultiBot]);
 
   // Fetch IM connection status for home groups
   const isOwnHome =
@@ -774,6 +783,24 @@ export function ChatView({ groupJid, onBack, headerLeft }: ChatViewProps) {
               <WorkspaceSkillsPanel groupJid={groupJid} />
             ) : sidebarTab === 'mcp' ? (
               <WorkspaceMcpPanel groupJid={groupJid} />
+            ) : sidebarTab === 'bots' ? (
+              <WorkspaceBotsPanel
+                groupJid={groupJid}
+                fetchBindings={async (jid) => {
+                  const allBots = useBotsStore.getState().bots;
+                  if (allBots.length === 0) {
+                    await useBotsStore.getState().loadBots();
+                  }
+                  const results = await Promise.all(
+                    useBotsStore.getState().bots.map(async (bot) => {
+                      const bindings = await useBotsStore.getState().listBindings(bot.id);
+                      const bound = bindings.some((b) => b.group_jid === jid);
+                      return bound ? bot.id : null;
+                    }),
+                  );
+                  return results.filter((id): id is string => id !== null);
+                }}
+              />
             ) : (
               <GroupMembersPanel groupJid={groupJid} />
             )}
@@ -886,6 +913,36 @@ export function ChatView({ groupJid, onBack, headerLeft }: ChatViewProps) {
         </SheetContent>
       </Sheet>
 
+      {/* Mobile: bots sheet */}
+      {enableMultiBot && (
+        <Sheet open={mobilePanel === 'bots'} onOpenChange={(v) => !v && setMobilePanel(null)}>
+          <SheetContent side="bottom" className="h-[80dvh] p-0">
+            <SheetHeader className="px-4 pt-4 pb-2">
+              <SheetTitle>工作区 Bots</SheetTitle>
+            </SheetHeader>
+            <div className="flex-1 overflow-hidden h-[calc(80dvh-56px)]">
+              <WorkspaceBotsPanel
+                groupJid={groupJid}
+                fetchBindings={async (jid) => {
+                  const allBots = useBotsStore.getState().bots;
+                  if (allBots.length === 0) {
+                    await useBotsStore.getState().loadBots();
+                  }
+                  const results = await Promise.all(
+                    useBotsStore.getState().bots.map(async (bot) => {
+                      const bindings = await useBotsStore.getState().listBindings(bot.id);
+                      const bound = bindings.some((b) => b.group_jid === jid);
+                      return bound ? bot.id : null;
+                    }),
+                  );
+                  return results.filter((id): id is string => id !== null);
+                }}
+              />
+            </div>
+          </SheetContent>
+        </Sheet>
+      )}
+
       {/* Mobile: Terminal sheet */}
       <Sheet open={mobileTerminal} onOpenChange={(v) => !v && setMobileTerminal(false)}>
         <SheetContent side="bottom" className="h-[85dvh] p-0">
@@ -934,6 +991,14 @@ export function ChatView({ groupJid, onBack, headerLeft }: ChatViewProps) {
             >
               工作区 MCP
             </button>
+            {enableMultiBot && (
+              <button
+                onClick={() => { setMobileActionsOpen(false); setMobilePanel('bots'); }}
+                className="w-full text-left px-4 py-3 rounded-lg border border-border hover:bg-accent transition-colors cursor-pointer text-foreground text-sm"
+              >
+                工作区 Bots
+              </button>
+            )}
             {showMembersTab && (
               <button
                 onClick={() => { setMobileActionsOpen(false); setMobilePanel('members'); }}

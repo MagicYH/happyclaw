@@ -147,7 +147,11 @@ export function BotEditor({ bot, onDelete }: Props) {
 // Bindings sub-component
 interface BindingsListProps {
   botId: string;
-  store: ReturnType<typeof useBotsStore>;
+  store: {
+    listBindings: (id: string) => Promise<BotBinding[]>;
+    addBinding: (id: string, groupJid: string) => Promise<void>;
+    removeBinding: (id: string, groupJid: string) => Promise<void>;
+  };
 }
 
 function BindingsList({ botId, store }: BindingsListProps) {
