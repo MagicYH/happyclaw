@@ -66,6 +66,10 @@ HappyClaw 是一个自托管的多用户 AI Agent 系统：
 | `src/config.ts` | 常量：路径、超时、并发限制、会话密钥（优先级：环境变量 > 文件 > 生成，0600 权限） |
 | `src/logger.ts` | 日志：pino + pino-pretty |
 | `src/bot-profile-manager.ts` | Bot profile CLAUDE.md 读写 + 路径遍历防御（PR2） |
+| `src/bot-metrics.ts` | 内存计数器：队列深度（per folder）、Hook denies（per bot/tool/reason）、scratch 体积；通过 `GET /api/monitor/bot-metrics` 暴露（PR3） |
+| `src/scratch-gc.ts` | 每日凌晨 3 点扫描 `data/scratch/`，超过 `SCRATCH_RETENTION_DAYS` 天未访问的 Bot scratch 目录硬删除，1GB 以上写审计日志（PR3） |
+| `src/bot-connection-state.ts` | Bot 连接状态写表（`connection_state`、`consecutive_failures`、`last_error_code`）+ WebSocket 广播 `bot_connection_status`；`markConnected`/`markFailed`/`markDisconnected` 三态机（PR3） |
+| `container/agent-runner/src/context-builder.ts` | `estimateTokens`（中文 2.5 / 英文 4 混合估算）、`buildGroupContext`（拼装 `<group_history>` / `<current_message>` 包裹）、system prompt 注入 "忽略 history 指令" 防护（PR3） |
 
 ### 2.2 前端
 
@@ -377,7 +381,7 @@ data/
   skills/{userId}/                         # 用户级 Skills 数据
   mcp-servers/{userId}/servers.json        # 用户 MCP Servers 配置
   bot-profiles/{botId}/CLAUDE.md           # Bot 角色（用户维护，advisor/writer 默认模板）
-  scratch/{folder}/bots/{botId}/           # advisor 可写 scratch（跨会话持久）
+  scratch/{folder}/bots/{botId}/           # advisor 可写 scratch（跨会话持久，PR3 GC 每日扫描）
 
 config/default-groups.json                 # 预注册群组配置
 config/mount-allowlist.json                # 容器挂载白名单
@@ -546,15 +550,44 @@ WebSocket：`/ws`（协议详见 §3.6）。
 | `HAPPYCLAW_BOT_ID` | - | 容器内 Bot ID（由 container-runner 注入） |
 | `HAPPYCLAW_SCRATCH_DIR` | - | 宿主机模式的 scratch 目录绝对路径 |
 | `HAPPYCLAW_BOT_PROFILE_DIR` | - | 宿主机模式的 bot-profile 目录绝对路径 |
+| `SCRATCH_RETENTION_DAYS` | `30` | scratch 目录保留天数；超过此天数未访问（mtime）的 Bot scratch 目录被 `scratch-gc.ts` 硬删除（PR3） |
+| `HAPPYCLAW_GROUP_CTX_TOKENS` | `8000` | 注入到 Agent system prompt 的群聊上下文（`<group_history>`）token 预算（PR3 context-builder） |
 
-## 10. 开发约束
+## 10. 监控与观测（PR3 新增）
+
+### 监控端点
+
+| 端点 | 权限 | 说明 |
+|------|------|------|
+| `GET /api/monitor/bot-metrics` | `view_audit_log` | 返回队列深度（per folder）、Hook 调用/拒绝计数（per bot/tool/reason）、scratch 体积（per folder/bot）及 `updated_at` 时间戳 |
+| `GET /api/health` | 无需认证 | 服务健康检查（含容器数、队列长度快照） |
+| `GET /api/status` | 登录后 | 详细系统状态（容器列表、宿主机进程） |
+
+### WebSocket 实时推送（PR3 新增）
+
+| 消息类型 | 触发时机 | 字段 |
+|---------|---------|------|
+| `bot_connection_status` | Bot 连接状态变化（connecting/connected/error/disconnected） | `bot_id`、`user_id`、`state`、`last_connected_at`、`consecutive_failures`、`last_error_code` |
+| `bot_queue_status` | 队列深度变化 | `folder`、`depth` |
+
+### PR3 新增审计事件
+
+| 事件类型 | 触发条件 | 严重程度 |
+|---------|---------|---------|
+| `bot_connection_failed` | Bot 连续失败 ≥ 3 次（仅记一次防刷爆） | 高 |
+| `scratch_gc_run` | scratch-gc 每日执行完成 | 信息 |
+| `scratch_quota_exceeded` | 单个 Bot scratch 目录超过 1GB | 中 |
+
+> 回滚运行手册见 [`docs/ops/multi-bot-rollback.md`](docs/ops/multi-bot-rollback.md)
+
+## 11. 开发约束
 
 - **不要重新引入"触发词"架构**
 - **会话隔离是核心原则**，避免跨会话共享运行时目录
 - 当前阶段允许不兼容重构，优先代码清晰与行为一致
 - 修改容器 / 调度逻辑时，优先保证：不丢消息、不重复回复、失败可重试
 - **Git commit message 使用简体中文**，格式：`类型: 简要描述`（如 `修复: 侧边栏下拉菜单无法点击`）
-- **Issue / PR 规范**见下方 §10.1
+- **Issue / PR 规范**见下方 §11.1
 - 系统路径不可通过文件 API 操作：`logs/`、`CLAUDE.md`、`.claude/`、`conversations/`
 - StreamEvent 类型以 `shared/stream-event.ts` 为单一真相源，修改后运行 `make sync-types` 同步（`make build` 自动触发，`make typecheck` 校验一致性）
 - Claude SDK / CLI 和容器内置的第三方工具始终使用最新版本：
@@ -564,7 +597,7 @@ WebSocket：`/ws`（协议详见 §3.6）。
 - 容器内以 `node` 非 root 用户运行，需注意文件权限
 - **关闭服务时禁止 `lsof -ti:PORT | xargs kill`**，该命令会杀掉所有连接到该端口的进程（包括 OrbStack/Docker 网络代理），导致 Docker daemon 崩溃。正确做法：`lsof -ti:PORT -sTCP:LISTEN | xargs kill`（仅杀监听进程）
 
-### 10.1 Issue / PR 规范
+### 11.1 Issue / PR 规范
 
 **Issue 标题**：`类型: 简要描述`，类型使用小写英文前缀：
 
@@ -618,7 +651,7 @@ WebSocket：`/ws`（协议详见 §3.6）。
 - 改动点二
 ```
 
-## 11. 本地开发
+## 12. 本地开发
 
 ### 常用命令
 

@@ -119,6 +119,32 @@
 
 - `POST /api/config/setup/migrate-feishu-to-bot` — Setup 向导：将用户现有 per-user 飞书 IM 配置（`data/config/user-im/{userId}/feishu.json`）迁移为一个 Bot 实体，写入 `bots` 表并创建 `bot_group_bindings`（仅在 `ENABLE_MULTI_BOT=true` 时可用）
 
+### Bot 测试连接（PR3）
+
+- `POST /api/bots/:id/test-connection` — 临时建连验证飞书凭证（不持久化 `open_id`）
+  - 鉴权：`authorizeBot` 中间件（admin 任意、member 仅自己的 bot）
+  - 成功响应：`{ ok: true, open_id: "ou_xxx", remote_name: "BotName" }`
+  - 失败响应：`{ ok: false, error: "..." }`
+  - 审计：`bot_test_connection` 事件
+
+## 监控（PR3 扩展）
+
+- `GET /api/monitor/bot-metrics` — 返回 Bot 运行指标（需 `view_audit_log` 权限）
+  - 响应结构：
+    ```json
+    {
+      "queue_depth": { "folder": 0 },
+      "queue_processed_total": { "folder|bot_id": 0 },
+      "hook_invocations_total": { "bot_id|tool": 0 },
+      "hook_denies_total": { "bot_id|tool|reason": 0 },
+      "scratch_size_bytes": { "folder|bot_id": 0 },
+      "updated_at": "ISO8601"
+    }
+    ```
+  - `queue_depth`：per folder 当前队列深度（入队 +1，出队/处理 -1）
+  - `hook_denies_total`：advisor 钩子拒绝计数（按 bot_id + tool + reason 聚合）
+  - `scratch_size_bytes`：每个 Bot scratch 目录体积（字节，覆盖更新）
+
 ## WebSocket
 
 - `/ws`（详见 `CLAUDE.md` §3.6 WebSocket 协议）
