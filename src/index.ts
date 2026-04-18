@@ -146,6 +146,7 @@ import type {
 } from './im-manager.js';
 import { GroupQueue } from './group-queue.js';
 import { startSchedulerLoop, triggerTaskNow } from './task-scheduler.js';
+import { runScratchGc, shouldRunNow as scratchGcShouldRunNow } from './scratch-gc.js';
 import {
   checkBillingAccessFresh,
   formatBillingAccessDeniedMessage,
@@ -8392,6 +8393,22 @@ async function main(): Promise<void> {
   setInterval(() => {
     void checkImBindingsHealth();
   }, IM_BINDING_HEALTH_CHECK_INTERVAL);
+
+  // Scratch GC: check every 30 minutes, run at 03:xx if not run in past 23h
+  let scratchGcLastRunAt: number | null = null;
+  const SCRATCH_GC_CHECK_INTERVAL = 30 * 60 * 1000; // 30 min
+  setInterval(async () => {
+    if (!scratchGcShouldRunNow(scratchGcLastRunAt)) return;
+    scratchGcLastRunAt = Date.now();
+    const retentionDays =
+      parseInt(process.env.SCRATCH_RETENTION_DAYS ?? '', 10) || 30;
+    try {
+      const report = await runScratchGc({ retentionDays });
+      logger.info(report, 'scratch-gc completed');
+    } catch (err) {
+      logger.error({ err }, 'scratch-gc failed');
+    }
+  }, SCRATCH_GC_CHECK_INTERVAL);
 }
 
 async function checkImBindingsHealth(): Promise<void> {
