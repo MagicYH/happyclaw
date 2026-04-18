@@ -24,6 +24,14 @@ export interface ContainerInput {
   images?: Array<{ data: string; mimeType?: string }>;
   agentId?: string;
   agentName?: string;
+  /**
+   * Optional group chat history for Multi-Agent multi-bot sessions.
+   * When present, context-builder wraps history + current prompt in
+   * `<group_history>` / `<current_message>` XML tags to prevent prompt injection.
+   */
+  groupContext?: Array<{ timestamp: string; sender: string; text: string }>;
+  /** Token budget for group context (default: 2000). */
+  groupContextBudgetTokens?: number;
 }
 
 export interface ContainerOutput {

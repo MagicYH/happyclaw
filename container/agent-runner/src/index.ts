@@ -21,6 +21,8 @@ import { createAdvisorGuardHook } from './advisor-guard.js';
 import { detectImageMimeTypeFromBase64Strict } from './image-detector.js';
 import { pruneProcessedHistoryImagesInTranscript as pruneProcessedHistoryImagesInTranscriptFile } from './history-image-prune.js';
 import { getChannelFromJid } from './channel-prefixes.js';
+import { buildGroupContext, wrapHistoryForPrompt, buildSystemPromptGuard } from './context-builder.js';
+import type { GroupMessage } from './context-builder.js';
 
 import type {
   ContainerInput,
@@ -1242,6 +1244,13 @@ async function runQuery(
     log(`failed to read bot-profile CLAUDE.md: ${err}`);
   }
 
+  // Group context injection (Multi-Agent multi-bot sessions).
+  // When groupContext is provided, inject a Prompt Injection guard into the system prompt.
+  const groupContextGuard =
+    containerInput.groupContext && containerInput.groupContext.length > 0
+      ? buildSystemPromptGuard()
+      : '';
+
   // SDK settingSources 只加载 ~/.claude/CLAUDE.md 本体，不递归加载 rules/；
   // 容器模式下 $HOME 指向会话目录，宿主机 CLAUDE.md 也读不到。因此 guidelines 必须 inline 注入。
   const systemPromptAppend = [
@@ -1253,6 +1262,7 @@ async function runQuery(
     heartbeatContent && `<recent-work>\n${heartbeatContent}\n</recent-work>`,
     GUIDELINES_BLOCK,
     channelGuidelines && `<channel-format>\n${channelGuidelines}\n</channel-format>`,
+    groupContextGuard && `<group-context-guard>\n${groupContextGuard}\n</group-context-guard>`,
     containerInput.agentId && CONVERSATION_AGENT_BLOCK,
   ].filter(Boolean).join('\n');
 
@@ -1722,6 +1732,19 @@ async function main(): Promise<void> {
     ];
     const scheduledTaskPrefix = scheduledTaskPrefixLines.join('\n');
     prompt = scheduledTaskPrefix + '\n\n' + prompt;
+  }
+
+  // Group context wrapping (Multi-Agent multi-bot sessions).
+  // When groupContext is provided, wrap history + current prompt with XML tags
+  // to prevent prompt injection from other bots' messages.
+  if (containerInput.groupContext && containerInput.groupContext.length > 0) {
+    const budgetTokens = containerInput.groupContextBudgetTokens ?? 2000;
+    const historyText = buildGroupContext(
+      containerInput.groupContext as GroupMessage[],
+      budgetTokens,
+    );
+    prompt = wrapHistoryForPrompt(historyText, prompt);
+    log(`Group context injected: ${containerInput.groupContext.length} messages, budget=${budgetTokens} tokens`);
   }
   const pendingDrain = drainIpcInput();
   if (pendingDrain.messages.length > 0) {
