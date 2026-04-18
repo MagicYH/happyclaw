@@ -58,7 +58,9 @@ export default function BillingPage() {
   }, [billingStatusLoaded, loadBillingStatus]);
 
   if (!billingStatusLoaded) {
-    return <div className="h-full p-6 text-sm text-zinc-500">加载账单状态中...</div>;
+    return (
+      <div className="h-full p-6 text-sm text-zinc-500">加载账单状态中...</div>
+    );
   }
 
   if (!billingEnabled) {
@@ -70,15 +72,16 @@ export default function BillingPage() {
     { key: 'pricing', label: '套餐对比', icon: Layers },
   ];
 
-  const adminTabs: { key: TabKey; label: string; icon: typeof CreditCard }[] = isAdmin
-    ? [
-        { key: 'dashboard', label: '仪表盘', icon: LayoutDashboard },
-        { key: 'plans', label: '套餐管理', icon: Package },
-        { key: 'users', label: '用户管理', icon: Users },
-        { key: 'redeem', label: '兑换码', icon: Gift },
-        { key: 'audit', label: '审计', icon: FileText },
-      ]
-    : [];
+  const adminTabs: { key: TabKey; label: string; icon: typeof CreditCard }[] =
+    isAdmin
+      ? [
+          { key: 'dashboard', label: '仪表盘', icon: LayoutDashboard },
+          { key: 'plans', label: '套餐管理', icon: Package },
+          { key: 'users', label: '用户管理', icon: Users },
+          { key: 'redeem', label: '兑换码', icon: Gift },
+          { key: 'audit', label: '审计', icon: FileText },
+        ]
+      : [];
 
   const allTabs = [...userTabs, ...adminTabs];
 

@@ -1,4 +1,10 @@
-import { BrowserRouter, HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+import {
+  BrowserRouter,
+  HashRouter,
+  Routes,
+  Route,
+  Navigate,
+} from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
@@ -15,11 +21,19 @@ import { AppLayout } from './components/layout/AppLayout';
 import { APP_BASE, shouldUseHashRouter } from './utils/url';
 import { Toaster } from '@/components/ui/sonner';
 
-const ChatPage = lazy(() => import('./pages/ChatPage').then(m => ({ default: m.ChatPage })));
-const TasksPage = lazy(() => import('./pages/TasksPage').then(m => ({ default: m.TasksPage })));
-const SettingsPage = lazy(() => import('./pages/SettingsPage').then(m => ({ default: m.SettingsPage })));
+const ChatPage = lazy(() =>
+  import('./pages/ChatPage').then((m) => ({ default: m.ChatPage })),
+);
+const TasksPage = lazy(() =>
+  import('./pages/TasksPage').then((m) => ({ default: m.TasksPage })),
+);
+const SettingsPage = lazy(() =>
+  import('./pages/SettingsPage').then((m) => ({ default: m.SettingsPage })),
+);
 const BillingPage = lazy(() => import('./pages/BillingPage'));
-const BotsPage = lazy(() => import('./pages/BotsPage').then(m => ({ default: m.BotsPage })));
+const BotsPage = lazy(() =>
+  import('./pages/BotsPage').then((m) => ({ default: m.BotsPage })),
+);
 
 export function App() {
   const Router = shouldUseHashRouter() ? HashRouter : BrowserRouter;
@@ -57,22 +71,72 @@ export function App() {
             </AuthGuard>
           }
         >
-          <Route path="/chat/:groupFolder?" element={<Suspense fallback={null}><ChatPage /></Suspense>} />
-          <Route path="/groups" element={<Navigate to="/settings?tab=groups" replace />} />
-          <Route path="/tasks" element={<Suspense fallback={null}><TasksPage /></Suspense>} />
-          <Route path="/monitor" element={<Navigate to="/settings?tab=monitor" replace />} />
-          <Route path="/usage" element={<Navigate to="/settings?tab=usage" replace />} />
-          <Route path="/billing" element={<Suspense fallback={null}><BillingPage /></Suspense>} />
+          <Route
+            path="/chat/:groupFolder?"
+            element={
+              <Suspense fallback={null}>
+                <ChatPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/groups"
+            element={<Navigate to="/settings?tab=groups" replace />}
+          />
+          <Route
+            path="/tasks"
+            element={
+              <Suspense fallback={null}>
+                <TasksPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/monitor"
+            element={<Navigate to="/settings?tab=monitor" replace />}
+          />
+          <Route
+            path="/usage"
+            element={<Navigate to="/settings?tab=usage" replace />}
+          />
+          <Route
+            path="/billing"
+            element={
+              <Suspense fallback={null}>
+                <BillingPage />
+              </Suspense>
+            }
+          />
           <Route path="/memory" element={<MemoryPage />} />
           <Route path="/skills" element={<SkillsPage />} />
           <Route path="/mcp-servers" element={<McpServersPage />} />
           <Route path="/agent-definitions" element={<AgentDefinitionsPage />} />
-          <Route path="/bots" element={<Suspense fallback={null}><BotsPage /></Suspense>} />
-          <Route path="/settings" element={<Suspense fallback={null}><SettingsPage /></Suspense>} />
+          <Route
+            path="/bots"
+            element={
+              <Suspense fallback={null}>
+                <BotsPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <Suspense fallback={null}>
+                <SettingsPage />
+              </Suspense>
+            }
+          />
           <Route
             path="/users"
             element={
-              <AuthGuard requiredAnyPermissions={['manage_users', 'manage_invites', 'view_audit_log']}>
+              <AuthGuard
+                requiredAnyPermissions={[
+                  'manage_users',
+                  'manage_invites',
+                  'view_audit_log',
+                ]}
+              >
                 <UsersPage />
               </AuthGuard>
             }

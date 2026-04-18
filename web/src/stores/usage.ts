@@ -91,7 +91,10 @@ export const useUsageStore = create<UsageState>((set, get) => ({
         error: null,
       });
     } catch (err) {
-      set({ loading: false, error: err instanceof Error ? err.message : String(err) });
+      set({
+        loading: false,
+        error: err instanceof Error ? err.message : String(err),
+      });
     }
   },
 

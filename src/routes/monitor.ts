@@ -5,7 +5,11 @@ import { promisify } from 'util';
 
 import { Hono } from 'hono';
 import type { Variables } from '../web-context.js';
-import { authMiddleware, auditViewMiddleware, systemConfigMiddleware } from '../middleware/auth.js';
+import {
+  authMiddleware,
+  auditViewMiddleware,
+  systemConfigMiddleware,
+} from '../middleware/auth.js';
 import type { AuthUser } from '../types.js';
 import { getMetrics } from '../bot-metrics.js';
 import {

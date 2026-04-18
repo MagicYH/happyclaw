@@ -3,10 +3,15 @@ import { useChatStore } from '../stores/chat';
 
 export function useClearWorkspace() {
   const clearHistory = useChatStore((s) => s.clearHistory);
-  const [clearState, setClearState] = useState({ open: false, jid: '', name: '' });
+  const [clearState, setClearState] = useState({
+    open: false,
+    jid: '',
+    name: '',
+  });
   const [clearLoading, setClearLoading] = useState(false);
 
-  const openClear = (jid: string, name: string) => setClearState({ open: true, jid, name });
+  const openClear = (jid: string, name: string) =>
+    setClearState({ open: true, jid, name });
   const closeClear = () => setClearState({ open: false, jid: '', name: '' });
 
   const handleClearConfirm = async () => {
@@ -23,5 +28,11 @@ export function useClearWorkspace() {
     }
   };
 
-  return { clearState, clearLoading, openClear, closeClear, handleClearConfirm };
+  return {
+    clearState,
+    clearLoading,
+    openClear,
+    closeClear,
+    handleClearConfirm,
+  };
 }

@@ -42,7 +42,8 @@ export function AuditLogTab({ setError }: AuditLogTabProps) {
     params.set('limit', String(limit));
     if (eventType !== 'all') params.set('event_type', eventType);
     if (username.trim()) params.set('username', username.trim());
-    if (actorUsername.trim()) params.set('actor_username', actorUsername.trim());
+    if (actorUsername.trim())
+      params.set('actor_username', actorUsername.trim());
     return withBasePath(`/api/admin/audit-log/export?${params.toString()}`);
   }, [actorUsername, eventType, limit, username]);
 
@@ -92,7 +93,9 @@ export function AuditLogTab({ setError }: AuditLogTabProps) {
 
       <Card className="divide-y divide-border overflow-hidden">
         {auditLogs.length === 0 ? (
-          <div className="p-6 text-center text-sm text-muted-foreground">暂无记录</div>
+          <div className="p-6 text-center text-sm text-muted-foreground">
+            暂无记录
+          </div>
         ) : (
           auditLogs.map((log) => (
             <div key={log.id} className="px-5 py-3">
@@ -100,7 +103,9 @@ export function AuditLogTab({ setError }: AuditLogTabProps) {
                 {log.event_type} · {log.username}
               </div>
               <div className="text-xs text-muted-foreground mt-1">
-                操作者: {log.actor_username || '-'} · IP: {log.ip_address || '-'} · 时间: {new Date(log.created_at).toLocaleString('zh-CN')}
+                操作者: {log.actor_username || '-'} · IP:{' '}
+                {log.ip_address || '-'} · 时间:{' '}
+                {new Date(log.created_at).toLocaleString('zh-CN')}
               </div>
               {log.details && (
                 <pre className="mt-2 text-[11px] text-muted-foreground bg-muted rounded p-2 overflow-x-auto">

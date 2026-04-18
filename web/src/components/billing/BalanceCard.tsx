@@ -13,7 +13,10 @@ export default function BalanceCard() {
   } = useBillingStore();
   const fmt = useCurrency();
   const [redeemInput, setRedeemInput] = useState('');
-  const [redeemMsg, setRedeemMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [redeemMsg, setRedeemMsg] = useState<{
+    ok: boolean;
+    text: string;
+  } | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const redeemCode = useBillingStore((s) => s.redeemCode);
 
@@ -73,10 +76,16 @@ export default function BalanceCard() {
         >
           <div className="flex items-center gap-2 font-medium">
             {!access.allowed && <AlertTriangle className="h-4 w-4 shrink-0" />}
-            <span>{access.allowed ? '当前可正常使用' : access.reason || '当前余额不足'}</span>
+            <span>
+              {access.allowed
+                ? '当前可正常使用'
+                : access.reason || '当前余额不足'}
+            </span>
           </div>
           <p className="mt-1 text-xs opacity-80">
-            钱包优先模式下，普通用户余额需至少达到 {fmt(access.minBalanceUsd || billingMinStartBalanceUsd)} 才能继续使用。
+            钱包优先模式下，普通用户余额需至少达到{' '}
+            {fmt(access.minBalanceUsd || billingMinStartBalanceUsd)}{' '}
+            才能继续使用。
           </p>
         </div>
       )}
@@ -105,7 +114,9 @@ export default function BalanceCard() {
       {redeemMsg && (
         <div
           className={`flex items-center gap-1.5 text-xs mt-2 ${
-            redeemMsg.ok ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'
+            redeemMsg.ok
+              ? 'text-green-600 dark:text-green-400'
+              : 'text-red-500 dark:text-red-400'
           }`}
         >
           {redeemMsg.ok && <CheckCircle2 className="w-3.5 h-3.5" />}

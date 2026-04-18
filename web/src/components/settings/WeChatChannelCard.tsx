@@ -31,7 +31,9 @@ export function WeChatChannelCard() {
   const loadConfig = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await api.get<UserWeChatConfig>('/api/config/user-im/wechat');
+      const data = await api.get<UserWeChatConfig>(
+        '/api/config/user-im/wechat',
+      );
       setConfig(data);
     } catch {
       setConfig(null);
@@ -47,7 +49,10 @@ export function WeChatChannelCard() {
   const handleToggle = async (newEnabled: boolean) => {
     setToggling(true);
     try {
-      const data = await api.put<UserWeChatConfig>('/api/config/user-im/wechat', { enabled: newEnabled });
+      const data = await api.put<UserWeChatConfig>(
+        '/api/config/user-im/wechat',
+        { enabled: newEnabled },
+      );
       setConfig(data);
       toast.success(`微信渠道已${newEnabled ? '启用' : '停用'}`);
     } catch (err) {
@@ -60,9 +65,14 @@ export function WeChatChannelCard() {
   const handleBypassProxyToggle = async (newBypass: boolean) => {
     setTogglingProxy(true);
     try {
-      const data = await api.put<UserWeChatConfig>('/api/config/user-im/wechat', { bypassProxy: newBypass });
+      const data = await api.put<UserWeChatConfig>(
+        '/api/config/user-im/wechat',
+        { bypassProxy: newBypass },
+      );
       setConfig(data);
-      toast.success(newBypass ? '已切换为直连模式（绕过代理）' : '已切换为代理模式');
+      toast.success(
+        newBypass ? '已切换为直连模式（绕过代理）' : '已切换为代理模式',
+      );
     } catch (err) {
       toast.error(getErrorMessage(err, '切换直连模式失败'));
     } finally {
@@ -96,16 +106,26 @@ export function WeChatChannelCard() {
       <div className="rounded-xl border border-border bg-card overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-muted/50">
           <div className="flex items-center gap-2">
-            <span className={`inline-block w-2 h-2 rounded-full ${config?.connected ? 'bg-emerald-500' : 'bg-muted-foreground/30'}`} />
+            <span
+              className={`inline-block w-2 h-2 rounded-full ${config?.connected ? 'bg-emerald-500' : 'bg-muted-foreground/30'}`}
+            />
             <div>
               <h3 className="text-sm font-semibold text-foreground">微信</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">通过微信 iLink Bot 接收和回复消息</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                通过微信 iLink Bot 接收和回复消息
+              </p>
             </div>
           </div>
-          <Switch checked={enabled} disabled={loading || toggling} onCheckedChange={handleToggle} />
+          <Switch
+            checked={enabled}
+            disabled={loading || toggling}
+            onCheckedChange={handleToggle}
+          />
         </div>
 
-        <div className={`px-5 py-4 space-y-4 transition-opacity ${!enabled ? 'opacity-50 pointer-events-none' : ''}`}>
+        <div
+          className={`px-5 py-4 space-y-4 transition-opacity ${!enabled ? 'opacity-50 pointer-events-none' : ''}`}
+        >
           {loading ? (
             <div className="text-sm text-muted-foreground">加载中...</div>
           ) : (
@@ -117,7 +137,9 @@ export function WeChatChannelCard() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Smartphone className="size-4 text-emerald-600 dark:text-emerald-400" />
-                        <span className="text-sm font-medium text-emerald-700 dark:text-emerald-300">已连接</span>
+                        <span className="text-sm font-medium text-emerald-700 dark:text-emerald-300">
+                          已连接
+                        </span>
                       </div>
                       <Button
                         variant="outline"
@@ -126,18 +148,26 @@ export function WeChatChannelCard() {
                         disabled={disconnecting}
                         className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/40 border-red-200 dark:border-red-800"
                       >
-                        {disconnecting ? <Loader2 className="size-3.5 animate-spin" /> : <LogOut className="size-3.5" />}
+                        {disconnecting ? (
+                          <Loader2 className="size-3.5 animate-spin" />
+                        ) : (
+                          <LogOut className="size-3.5" />
+                        )}
                         退出登录
                       </Button>
                     </div>
                     {config.ilinkBotId && (
                       <div className="text-xs text-emerald-600 dark:text-emerald-400">
-                        Bot ID: <span className="font-mono">{config.ilinkBotId}</span>
+                        Bot ID:{' '}
+                        <span className="font-mono">{config.ilinkBotId}</span>
                       </div>
                     )}
                     {config.botTokenMasked && (
                       <div className="text-xs text-emerald-600 dark:text-emerald-400">
-                        Token: <span className="font-mono">{config.botTokenMasked}</span>
+                        Token:{' '}
+                        <span className="font-mono">
+                          {config.botTokenMasked}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -147,7 +177,9 @@ export function WeChatChannelCard() {
                   {/* Expired session hint */}
                   {config?.hasBotToken && (
                     <div className="flex items-center justify-between rounded-lg bg-amber-50 dark:bg-amber-950/30 px-4 py-3">
-                      <div className="text-sm text-amber-700 dark:text-amber-300">Session 已过期，请重新扫码登录</div>
+                      <div className="text-sm text-amber-700 dark:text-amber-300">
+                        Session 已过期，请重新扫码登录
+                      </div>
                     </div>
                   )}
 
@@ -155,10 +187,17 @@ export function WeChatChannelCard() {
                   <div className="flex flex-col items-center gap-3 py-4 rounded-lg border border-dashed border-border bg-muted/50">
                     <QrCode className="size-10 text-muted-foreground" />
                     <div className="text-center">
-                      <p className="text-sm text-foreground font-medium">扫码绑定微信</p>
-                      <p className="text-xs text-muted-foreground mt-1">点击下方按钮获取二维码，使用微信扫码完成绑定</p>
+                      <p className="text-sm text-foreground font-medium">
+                        扫码绑定微信
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        点击下方按钮获取二维码，使用微信扫码完成绑定
+                      </p>
                     </div>
-                    <Button onClick={() => setQrDialogOpen(true)} className="mt-1">
+                    <Button
+                      onClick={() => setQrDialogOpen(true)}
+                      className="mt-1"
+                    >
                       <QrCode className="size-4" />
                       扫码登录
                     </Button>

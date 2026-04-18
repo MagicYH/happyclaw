@@ -146,7 +146,10 @@ import type {
 } from './im-manager.js';
 import { GroupQueue } from './group-queue.js';
 import { startSchedulerLoop, triggerTaskNow } from './task-scheduler.js';
-import { runScratchGc, shouldRunNow as scratchGcShouldRunNow } from './scratch-gc.js';
+import {
+  runScratchGc,
+  shouldRunNow as scratchGcShouldRunNow,
+} from './scratch-gc.js';
 import {
   checkBillingAccessFresh,
   formatBillingAccessDeniedMessage,

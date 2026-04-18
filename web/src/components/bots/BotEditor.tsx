@@ -57,7 +57,10 @@ export function BotEditor({ bot, onDelete }: Props) {
     }
   };
 
-  const loadProfile = useCallback((id: string) => store.getProfile(id), [store]);
+  const loadProfile = useCallback(
+    (id: string) => store.getProfile(id),
+    [store],
+  );
   const saveProfile = useCallback(
     async (content: string) => {
       await store.saveProfile(bot.id, content);
@@ -75,7 +78,11 @@ export function BotEditor({ bot, onDelete }: Props) {
           <BotConnectionBadge bot={bot} />
         </div>
         <div className="flex gap-2 flex-wrap">
-          <Button variant="outline" onClick={handleTestConnection} disabled={testing}>
+          <Button
+            variant="outline"
+            onClick={handleTestConnection}
+            disabled={testing}
+          >
             {testing ? '测试中...' : '测试连接'}
           </Button>
           <Button variant="outline" onClick={handleToggleStatus}>
@@ -125,14 +132,21 @@ export function BotEditor({ bot, onDelete }: Props) {
 
         {/* Credentials tab — BotCredentialsForm implemented in Task 10 */}
         <TabsContent value="credentials" className="pt-3">
-          <div data-testid="credentials-placeholder" className="text-sm text-muted-foreground py-4">
+          <div
+            data-testid="credentials-placeholder"
+            className="text-sm text-muted-foreground py-4"
+          >
             Credentials Form (Task 10)
           </div>
         </TabsContent>
 
         {/* Profile tab */}
         <TabsContent value="profile" className="pt-3">
-          <BotProfileEditor botId={bot.id} onLoad={loadProfile} onSave={saveProfile} />
+          <BotProfileEditor
+            botId={bot.id}
+            onLoad={loadProfile}
+            onSave={saveProfile}
+          />
         </TabsContent>
 
         {/* Bindings tab */}
@@ -221,7 +235,9 @@ function BindingsList({ botId, store }: BindingsListProps) {
               className="flex items-center justify-between gap-2 text-sm bg-muted/40 rounded px-3 py-2"
             >
               <span className="font-mono truncate">{b.group_jid}</span>
-              <span className="text-xs text-muted-foreground shrink-0">{b.folder}</span>
+              <span className="text-xs text-muted-foreground shrink-0">
+                {b.folder}
+              </span>
               <Button
                 variant="outline"
                 size="sm"

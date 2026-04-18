@@ -10,7 +10,10 @@ export function useKeyboardHeight() {
     const handleResize = () => {
       const height = Math.max(0, window.innerHeight - viewport.height);
       setKeyboardHeight(height);
-      document.documentElement.style.setProperty('--keyboard-height', `${height}px`);
+      document.documentElement.style.setProperty(
+        '--keyboard-height',
+        `${height}px`,
+      );
     };
 
     viewport.addEventListener('resize', handleResize);

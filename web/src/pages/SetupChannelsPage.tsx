@@ -1,5 +1,12 @@
 import { useEffect, useState } from 'react';
-import { ArrowRight, Bot, Loader2, MessageSquare, QrCode, SkipForward } from 'lucide-react';
+import {
+  ArrowRight,
+  Bot,
+  Loader2,
+  MessageSquare,
+  QrCode,
+  SkipForward,
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 import { Input } from '@/components/ui/input';
@@ -50,7 +57,8 @@ export function SetupChannelsPage() {
   // Check if user already has a legacy feishu user-im config
   useEffect(() => {
     if (!enableMultiBot) return;
-    api.get<{ appId?: string; enabled?: boolean }>('/api/config/user-im/feishu')
+    api
+      .get<{ appId?: string; enabled?: boolean }>('/api/config/user-im/feishu')
       .then((data) => {
         setHasLegacyFeishu(!!(data.appId && data.enabled !== false));
       })
@@ -150,30 +158,43 @@ export function SetupChannelsPage() {
           <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
             <MessageSquare className="w-6 h-6 text-primary" />
           </div>
-          <h1 className="text-2xl font-bold text-foreground mb-2">配置消息通道（可选）</h1>
+          <h1 className="text-2xl font-bold text-foreground mb-2">
+            配置消息通道（可选）
+          </h1>
           <p className="text-sm text-muted-foreground">
-            绑定飞书或 Telegram，即可通过 IM 与 AI 对话。跳过后也可在设置中随时配置。
+            绑定飞书或 Telegram，即可通过 IM 与 AI
+            对话。跳过后也可在设置中随时配置。
           </p>
         </div>
 
         {error && (
-          <div className="p-3 rounded-lg bg-error-bg border border-error/30 text-error text-sm">{error}</div>
+          <div className="p-3 rounded-lg bg-error-bg border border-error/30 text-error text-sm">
+            {error}
+          </div>
         )}
 
         {/* Feishu */}
         <Card className="shadow-sm">
           <CardContent>
-            <h2 className="text-base font-semibold text-foreground mb-3">飞书</h2>
+            <h2 className="text-base font-semibold text-foreground mb-3">
+              飞书
+            </h2>
 
             {/* Multi-Bot migration prompt */}
             {enableMultiBot && (
               <div className="mb-4 p-4 rounded-lg border border-teal-500/30 bg-teal-500/5">
                 <div className="flex items-start gap-3">
-                  <Bot size={20} className="text-teal-500 mt-0.5 flex-shrink-0" />
+                  <Bot
+                    size={20}
+                    className="text-teal-500 mt-0.5 flex-shrink-0"
+                  />
                   <div className="flex-1">
-                    <div className="font-medium text-sm text-foreground">推荐：使用 Bot 管理飞书连接</div>
+                    <div className="font-medium text-sm text-foreground">
+                      推荐：使用 Bot 管理飞书连接
+                    </div>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Bot 支持多 Agent 协作场景，可为每个 Bot 独立配置身份与角色。
+                      Bot 支持多 Agent 协作场景，可为每个 Bot
+                      独立配置身份与角色。
                     </p>
                     <div className="mt-2.5 flex flex-wrap gap-2">
                       <Button size="sm" onClick={() => navigate('/bots')}>
@@ -187,7 +208,9 @@ export function SetupChannelsPage() {
                           onClick={handleMigrateToBot}
                           disabled={migrating}
                         >
-                          {migrating && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                          {migrating && (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          )}
                           从当前飞书配置迁移
                         </Button>
                       )}
@@ -228,7 +251,9 @@ export function SetupChannelsPage() {
         {/* Telegram */}
         <Card className="shadow-sm">
           <CardContent>
-            <h2 className="text-base font-semibold text-foreground mb-3">Telegram</h2>
+            <h2 className="text-base font-semibold text-foreground mb-3">
+              Telegram
+            </h2>
             <p className="text-xs text-muted-foreground mb-3">
               填写 Telegram Bot Token，绑定后即可在 Telegram 中与 AI 对话。
             </p>
@@ -277,7 +302,9 @@ export function SetupChannelsPage() {
         {/* Discord */}
         <Card className="shadow-sm">
           <CardContent>
-            <h2 className="text-base font-semibold text-foreground mb-3">Discord</h2>
+            <h2 className="text-base font-semibold text-foreground mb-3">
+              Discord
+            </h2>
             <p className="text-xs text-muted-foreground mb-3">
               填写 Discord Bot Token，绑定后即可在 Discord 中与 AI 对话。
             </p>

@@ -18,14 +18,20 @@ export function McpServerDetail({ server, onDeleted }: McpServerDetailProps) {
 
   const [deleting, setDeleting] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [showEnvValues, setShowEnvValues] = useState<Record<string, boolean>>({});
+  const [showEnvValues, setShowEnvValues] = useState<Record<string, boolean>>(
+    {},
+  );
 
   // Edit form state
   const [editCommand, setEditCommand] = useState('');
   const [editArgs, setEditArgs] = useState<string[]>([]);
-  const [editEnv, setEditEnv] = useState<Array<{ key: string; value: string }>>([]);
+  const [editEnv, setEditEnv] = useState<Array<{ key: string; value: string }>>(
+    [],
+  );
   const [editUrl, setEditUrl] = useState('');
-  const [editHeaders, setEditHeaders] = useState<Array<{ key: string; value: string }>>([]);
+  const [editHeaders, setEditHeaders] = useState<
+    Array<{ key: string; value: string }>
+  >([]);
   const [editDescription, setEditDescription] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -33,7 +39,9 @@ export function McpServerDetail({ server, onDeleted }: McpServerDetailProps) {
     return (
       <Card>
         <CardContent className="flex items-center justify-center py-8">
-          <p className="text-muted-foreground text-center">选择一个 MCP 服务器查看详情</p>
+          <p className="text-muted-foreground text-center">
+            选择一个 MCP 服务器查看详情
+          </p>
         </CardContent>
       </Card>
     );
@@ -143,7 +151,9 @@ export function McpServerDetail({ server, onDeleted }: McpServerDetailProps) {
               </span>
             </div>
             {server.description && (
-              <p className="text-sm text-muted-foreground">{server.description}</p>
+              <p className="text-sm text-muted-foreground">
+                {server.description}
+              </p>
             )}
           </div>
 
@@ -213,7 +223,9 @@ export function McpServerDetail({ server, onDeleted }: McpServerDetailProps) {
                       />
                       <button
                         type="button"
-                        onClick={() => setEditHeaders(editHeaders.filter((_, j) => j !== i))}
+                        onClick={() =>
+                          setEditHeaders(editHeaders.filter((_, j) => j !== i))
+                        }
                         className="p-1.5 text-muted-foreground hover:text-error transition-colors"
                       >
                         <X size={16} />
@@ -224,7 +236,9 @@ export function McpServerDetail({ server, onDeleted }: McpServerDetailProps) {
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => setEditHeaders([...editHeaders, { key: '', value: '' }])}
+                    onClick={() =>
+                      setEditHeaders([...editHeaders, { key: '', value: '' }])
+                    }
                   >
                     添加 Header
                   </Button>
@@ -260,7 +274,9 @@ export function McpServerDetail({ server, onDeleted }: McpServerDetailProps) {
                       />
                       <button
                         type="button"
-                        onClick={() => setEditArgs(editArgs.filter((_, j) => j !== i))}
+                        onClick={() =>
+                          setEditArgs(editArgs.filter((_, j) => j !== i))
+                        }
                         className="p-1.5 text-muted-foreground hover:text-error transition-colors"
                       >
                         <X size={16} />
@@ -306,7 +322,9 @@ export function McpServerDetail({ server, onDeleted }: McpServerDetailProps) {
                       />
                       <button
                         type="button"
-                        onClick={() => setEditEnv(editEnv.filter((_, j) => j !== i))}
+                        onClick={() =>
+                          setEditEnv(editEnv.filter((_, j) => j !== i))
+                        }
                         className="p-1.5 text-muted-foreground hover:text-error transition-colors"
                       >
                         <X size={16} />
@@ -317,7 +335,9 @@ export function McpServerDetail({ server, onDeleted }: McpServerDetailProps) {
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => setEditEnv([...editEnv, { key: '', value: '' }])}
+                    onClick={() =>
+                      setEditEnv([...editEnv, { key: '', value: '' }])
+                    }
                   >
                     添加环境变量
                   </Button>
@@ -338,7 +358,12 @@ export function McpServerDetail({ server, onDeleted }: McpServerDetailProps) {
 
           {/* Actions */}
           <div className="flex items-center gap-3 pt-2">
-            <Button onClick={saveEdit} disabled={saving || (isHttpType ? !editUrl.trim() : !editCommand.trim())}>
+            <Button
+              onClick={saveEdit}
+              disabled={
+                saving || (isHttpType ? !editUrl.trim() : !editCommand.trim())
+              }
+            >
               <Save size={16} />
               {saving ? '保存中...' : '保存'}
             </Button>
@@ -372,14 +397,18 @@ export function McpServerDetail({ server, onDeleted }: McpServerDetailProps) {
                 {/* Headers */}
                 {headerEntries.length > 0 && (
                   <div>
-                    <span className="text-sm text-muted-foreground">Headers</span>
+                    <span className="text-sm text-muted-foreground">
+                      Headers
+                    </span>
                     <div className="space-y-1.5 mt-1">
                       {headerEntries.map(([key, value]) => (
                         <div
                           key={key}
                           className="flex items-center gap-2 bg-muted rounded px-3 py-2"
                         >
-                          <span className="font-mono text-xs text-foreground font-medium">{key}</span>
+                          <span className="font-mono text-xs text-foreground font-medium">
+                            {key}
+                          </span>
                           <span className="text-muted-foreground/50">:</span>
                           <span className="font-mono text-xs text-muted-foreground flex-1 truncate">
                             {showEnvValues[key] ? value : '••••••••'}
@@ -389,7 +418,11 @@ export function McpServerDetail({ server, onDeleted }: McpServerDetailProps) {
                             onClick={() => toggleEnvVisibility(key)}
                             className="p-1 text-muted-foreground hover:text-foreground transition-colors"
                           >
-                            {showEnvValues[key] ? <EyeOff size={14} /> : <Eye size={14} />}
+                            {showEnvValues[key] ? (
+                              <EyeOff size={14} />
+                            ) : (
+                              <Eye size={14} />
+                            )}
                           </button>
                         </div>
                       ))}
@@ -427,14 +460,18 @@ export function McpServerDetail({ server, onDeleted }: McpServerDetailProps) {
                 {/* Env */}
                 {envEntries.length > 0 && (
                   <div>
-                    <span className="text-sm text-muted-foreground">环境变量</span>
+                    <span className="text-sm text-muted-foreground">
+                      环境变量
+                    </span>
                     <div className="space-y-1.5 mt-1">
                       {envEntries.map(([key, value]) => (
                         <div
                           key={key}
                           className="flex items-center gap-2 bg-muted rounded px-3 py-2"
                         >
-                          <span className="font-mono text-xs text-foreground font-medium">{key}</span>
+                          <span className="font-mono text-xs text-foreground font-medium">
+                            {key}
+                          </span>
                           <span className="text-muted-foreground/50">=</span>
                           <span className="font-mono text-xs text-muted-foreground flex-1 truncate">
                             {showEnvValues[key] ? value : '••••••••'}
@@ -444,7 +481,11 @@ export function McpServerDetail({ server, onDeleted }: McpServerDetailProps) {
                             onClick={() => toggleEnvVisibility(key)}
                             className="p-1 text-muted-foreground hover:text-foreground transition-colors"
                           >
-                            {showEnvValues[key] ? <EyeOff size={14} /> : <Eye size={14} />}
+                            {showEnvValues[key] ? (
+                              <EyeOff size={14} />
+                            ) : (
+                              <Eye size={14} />
+                            )}
                           </button>
                         </div>
                       ))}

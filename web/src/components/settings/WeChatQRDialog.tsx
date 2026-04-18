@@ -12,7 +12,13 @@ import { Button } from '@/components/ui/button';
 import { api } from '../../api/client';
 import { getErrorMessage } from './types';
 
-type QRStatus = 'loading' | 'wait' | 'scaned' | 'confirmed' | 'expired' | 'error';
+type QRStatus =
+  | 'loading'
+  | 'wait'
+  | 'scaned'
+  | 'confirmed'
+  | 'expired'
+  | 'error';
 
 interface QRCodeResponse {
   qrcode: string;
@@ -29,7 +35,11 @@ interface WeChatQRDialogProps {
   onSuccess: () => void;
 }
 
-export function WeChatQRDialog({ isOpen, onClose, onSuccess }: WeChatQRDialogProps) {
+export function WeChatQRDialog({
+  isOpen,
+  onClose,
+  onSuccess,
+}: WeChatQRDialogProps) {
   const [status, setStatus] = useState<QRStatus>('loading');
   const [qrcodeUrl, setQrcodeUrl] = useState<string | null>(null);
   const [qrcode, setQrcode] = useState<string | null>(null);
@@ -52,7 +62,9 @@ export function WeChatQRDialog({ isOpen, onClose, onSuccess }: WeChatQRDialogPro
     clearPoll();
 
     try {
-      const data = await api.post<QRCodeResponse>('/api/config/user-im/wechat/qrcode');
+      const data = await api.post<QRCodeResponse>(
+        '/api/config/user-im/wechat/qrcode',
+      );
       setQrcodeUrl(data.qrcodeUrl);
       setQrcode(data.qrcode);
       setStatus('wait');
@@ -64,7 +76,13 @@ export function WeChatQRDialog({ isOpen, onClose, onSuccess }: WeChatQRDialogPro
 
   // Start polling when QR code is ready
   useEffect(() => {
-    if (!qrcode || status === 'confirmed' || status === 'expired' || status === 'error') return;
+    if (
+      !qrcode ||
+      status === 'confirmed' ||
+      status === 'expired' ||
+      status === 'error'
+    )
+      return;
 
     pollRef.current = setInterval(async () => {
       try {
@@ -120,13 +138,17 @@ export function WeChatQRDialog({ isOpen, onClose, onSuccess }: WeChatQRDialogPro
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>微信扫码登录</DialogTitle>
-          <DialogDescription>使用微信扫描下方二维码完成登录绑定</DialogDescription>
+          <DialogDescription>
+            使用微信扫描下方二维码完成登录绑定
+          </DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-col items-center gap-4 py-4">
           {/* QR Code Area */}
           <div className="w-64 h-64 rounded-xl border border-border bg-white flex items-center justify-center overflow-hidden">
-            {status === 'loading' && <Loader2 className="size-8 animate-spin text-muted-foreground" />}
+            {status === 'loading' && (
+              <Loader2 className="size-8 animate-spin text-muted-foreground" />
+            )}
             {status === 'error' && (
               <div className="text-center px-4">
                 <p className="text-sm text-destructive mb-2">{error}</p>
@@ -137,7 +159,11 @@ export function WeChatQRDialog({ isOpen, onClose, onSuccess }: WeChatQRDialogPro
               </div>
             )}
             {(status === 'wait' || status === 'scaned') && qrcodeUrl && (
-              <img src={qrcodeUrl} alt="微信登录二维码" className="w-full h-full object-contain p-2" />
+              <img
+                src={qrcodeUrl}
+                alt="微信登录二维码"
+                className="w-full h-full object-contain p-2"
+              />
             )}
             {status === 'confirmed' && (
               <div className="text-center">
@@ -147,7 +173,9 @@ export function WeChatQRDialog({ isOpen, onClose, onSuccess }: WeChatQRDialogPro
             )}
             {status === 'expired' && (
               <div className="text-center px-4">
-                <p className="text-sm text-muted-foreground mb-2">二维码已过期</p>
+                <p className="text-sm text-muted-foreground mb-2">
+                  二维码已过期
+                </p>
                 <Button variant="outline" size="sm" onClick={fetchQRCode}>
                   <RefreshCw className="size-3.5" />
                   重新获取
@@ -168,7 +196,9 @@ export function WeChatQRDialog({ isOpen, onClose, onSuccess }: WeChatQRDialogPro
                     : 'text-muted-foreground'
             }`}
           >
-            {status === 'scaned' && <Loader2 className="size-3.5 animate-spin inline-block mr-1.5 -mt-0.5" />}
+            {status === 'scaned' && (
+              <Loader2 className="size-3.5 animate-spin inline-block mr-1.5 -mt-0.5" />
+            )}
             {statusText[status]}
           </p>
         </div>

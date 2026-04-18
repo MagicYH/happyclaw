@@ -18,7 +18,12 @@ interface Props {
   onConfirmed?: () => Promise<void> | void;
 }
 
-export function BotDeleteConfirm({ bot, open, onOpenChange, onConfirmed }: Props) {
+export function BotDeleteConfirm({
+  bot,
+  open,
+  onOpenChange,
+  onConfirmed,
+}: Props) {
   const [deleting, setDeleting] = useState(false);
 
   const handleConfirm = async () => {
@@ -36,12 +41,14 @@ export function BotDeleteConfirm({ bot, open, onOpenChange, onConfirmed }: Props
         <AlertDialogHeader>
           <AlertDialogTitle>删除 Bot "{bot.name}"？</AlertDialogTitle>
           <AlertDialogDescription>
-            执行软删除：连接将断开，但文件和凭证保留 30 天可恢复。30 天后系统会自动硬删除。
-            如需立即彻底删除，请联系管理员。
+            执行软删除：连接将断开，但文件和凭证保留 30 天可恢复。30
+            天后系统会自动硬删除。 如需立即彻底删除，请联系管理员。
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={() => onOpenChange(false)}>取消</AlertDialogCancel>
+          <AlertDialogCancel onClick={() => onOpenChange(false)}>
+            取消
+          </AlertDialogCancel>
           <AlertDialogAction onClick={handleConfirm} disabled={deleting}>
             {deleting ? '删除中...' : '确认删除'}
           </AlertDialogAction>

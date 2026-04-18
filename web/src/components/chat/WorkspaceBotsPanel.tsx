@@ -7,8 +7,8 @@ import { BotConnectionBadge } from '../bots/BotConnectionBadge';
 import type { Bot as BotType } from '../../stores/bots';
 
 export interface BotQueueStatus {
-  running: string[];  // bot_id[]
-  waiting: string[];  // bot_id[]
+  running: string[]; // bot_id[]
+  waiting: string[]; // bot_id[]
 }
 
 interface WorkspaceBotsPanelProps {
@@ -63,7 +63,9 @@ export function WorkspaceBotsPanel({
   };
 
   const boundBots = bots.filter((b) => boundIds.includes(b.id));
-  const unboundBots = bots.filter((b) => !boundIds.includes(b.id) && b.status === 'active' && !b.deleted_at);
+  const unboundBots = bots.filter(
+    (b) => !boundIds.includes(b.id) && b.status === 'active' && !b.deleted_at,
+  );
 
   const isLoading = loading || fetching;
 
@@ -80,7 +82,9 @@ export function WorkspaceBotsPanel({
             disabled={isLoading}
             className="h-7 w-7 p-0"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+            <RefreshCw
+              className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`}
+            />
           </Button>
           <Button
             variant="ghost"
@@ -97,7 +101,9 @@ export function WorkspaceBotsPanel({
       {/* Bot selector dropdown */}
       {showSelector && (
         <div className="px-4 py-2 border-b border-border flex-shrink-0">
-          <p className="text-xs text-muted-foreground mb-1.5">选择要添加的 Bot</p>
+          <p className="text-xs text-muted-foreground mb-1.5">
+            选择要添加的 Bot
+          </p>
           {unboundBots.length === 0 ? (
             <p className="text-xs text-muted-foreground py-2 text-center">
               暂无可添加的 Bot（所有 Bot 已绑定或未激活）
@@ -136,7 +142,11 @@ export function WorkspaceBotsPanel({
             title="暂无绑定的 Bot"
             description="点击右上角 + 添加 Bot 到此工作区"
             action={
-              <Button variant="outline" size="sm" onClick={() => setShowSelector(true)}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowSelector(true)}
+              >
                 <Plus className="w-3.5 h-3.5 mr-1" />
                 添加 Bot
               </Button>
@@ -173,7 +183,9 @@ function BotRow({ bot, onRemove, queueStatus }: BotRowProps) {
     <div className="flex items-start gap-3 px-4 py-2.5 hover:bg-accent/50 transition-colors">
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-sm font-medium text-foreground truncate">{bot.name}</span>
+          <span className="text-sm font-medium text-foreground truncate">
+            {bot.name}
+          </span>
           <span className="text-[10px] uppercase px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
             {bot.concurrency_mode}
           </span>

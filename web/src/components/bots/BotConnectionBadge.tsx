@@ -9,12 +9,42 @@ interface StateMeta {
 }
 
 const STATE_META: Record<BotConnectionState, StateMeta> = {
-  connected:    { label: '已连接',   cls: 'text-emerald-500',       Icon: Circle,         animated: false },
-  connecting:   { label: '连接中',   cls: 'text-blue-500',          Icon: Loader2,        animated: true  },
-  reconnecting: { label: '重连中',   cls: 'text-blue-500',          Icon: Loader2,        animated: true  },
-  error:        { label: '连接失败', cls: 'text-red-500',           Icon: AlertTriangle,  animated: false },
-  disconnected: { label: '未连接',   cls: 'text-muted-foreground',  Icon: Circle,         animated: false },
-  disabled:     { label: '已停用',   cls: 'text-muted-foreground',  Icon: PowerOff,       animated: false },
+  connected: {
+    label: '已连接',
+    cls: 'text-emerald-500',
+    Icon: Circle,
+    animated: false,
+  },
+  connecting: {
+    label: '连接中',
+    cls: 'text-blue-500',
+    Icon: Loader2,
+    animated: true,
+  },
+  reconnecting: {
+    label: '重连中',
+    cls: 'text-blue-500',
+    Icon: Loader2,
+    animated: true,
+  },
+  error: {
+    label: '连接失败',
+    cls: 'text-red-500',
+    Icon: AlertTriangle,
+    animated: false,
+  },
+  disconnected: {
+    label: '未连接',
+    cls: 'text-muted-foreground',
+    Icon: Circle,
+    animated: false,
+  },
+  disabled: {
+    label: '已停用',
+    cls: 'text-muted-foreground',
+    Icon: PowerOff,
+    animated: false,
+  },
 };
 
 interface BotConnectionBadgeProps {

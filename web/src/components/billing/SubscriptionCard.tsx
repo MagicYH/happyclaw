@@ -20,7 +20,8 @@ export default function SubscriptionCard() {
   }, [loadMyAccess, loadMySubscription]);
 
   const isTrialing =
-    subscription?.trial_ends_at && new Date(subscription.trial_ends_at) > new Date();
+    subscription?.trial_ends_at &&
+    new Date(subscription.trial_ends_at) > new Date();
   const isCancelled = subscription?.status === 'cancelled';
   const isExpired = subscription?.status === 'expired';
   const isFallback = subscription?.id.startsWith('fallback_');
@@ -84,13 +85,17 @@ export default function SubscriptionCard() {
             {plan.monthly_cost_quota != null && (
               <div>
                 <span className="text-zinc-500">月度费用上限</span>
-                <div className="font-medium">{fmt(plan.monthly_cost_quota)}</div>
+                <div className="font-medium">
+                  {fmt(plan.monthly_cost_quota)}
+                </div>
               </div>
             )}
             {plan.monthly_token_quota != null && (
               <div>
                 <span className="text-zinc-500">月度 Token 上限</span>
-                <div className="font-medium">{formatTokens(plan.monthly_token_quota)}</div>
+                <div className="font-medium">
+                  {formatTokens(plan.monthly_token_quota)}
+                </div>
               </div>
             )}
             {plan.daily_cost_quota != null && (
@@ -124,17 +129,20 @@ export default function SubscriptionCard() {
             {isTrialing && subscription?.trial_ends_at && (
               <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
                 <Star className="w-3 h-3" />
-                试用截止: {new Date(subscription.trial_ends_at).toLocaleDateString()}
+                试用截止:{' '}
+                {new Date(subscription.trial_ends_at).toLocaleDateString()}
               </p>
             )}
             {subscription?.expires_at && (
               <p className="text-xs text-zinc-400">
-                到期时间: {new Date(subscription.expires_at).toLocaleDateString()}
+                到期时间:{' '}
+                {new Date(subscription.expires_at).toLocaleDateString()}
               </p>
             )}
             <div className="pt-2 border-t border-zinc-100 dark:border-zinc-700 mt-2 space-y-2">
               <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                钱包优先模式下，套餐决定费率和资源上限；是否可以继续使用，取决于当前余额是否达到 {fmt(access?.minBalanceUsd ?? billingMinStartBalanceUsd)}。
+                钱包优先模式下，套餐决定费率和资源上限；是否可以继续使用，取决于当前余额是否达到{' '}
+                {fmt(access?.minBalanceUsd ?? billingMinStartBalanceUsd)}。
               </p>
               {!access?.allowed && (
                 <p className="text-xs text-red-600 dark:text-red-400">

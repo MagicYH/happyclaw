@@ -177,8 +177,7 @@ export default function AdminRedeemCodesList() {
                     </span>
                     {code.expires_at && (
                       <span>
-                        过期{' '}
-                        {new Date(code.expires_at).toLocaleDateString()}
+                        过期 {new Date(code.expires_at).toLocaleDateString()}
                       </span>
                     )}
                     {code.batch_id && <span>批次: {code.batch_id}</span>}
@@ -232,10 +231,7 @@ export default function AdminRedeemCodesList() {
                   ) : (
                     <div className="space-y-1">
                       {usageDetail.map((d, i) => (
-                        <div
-                          key={i}
-                          className="flex justify-between text-xs"
-                        >
+                        <div key={i} className="flex justify-between text-xs">
                           <span>@{d.username}</span>
                           <span className="text-zinc-400">
                             {new Date(d.redeemed_at).toLocaleString()}
@@ -253,9 +249,7 @@ export default function AdminRedeemCodesList() {
 
       {filtered.length === 0 && (
         <p className="text-sm text-zinc-500 text-center py-8">
-          {search || typeFilter !== 'all'
-            ? '未找到匹配的兑换码'
-            : '暂无兑换码'}
+          {search || typeFilter !== 'all' ? '未找到匹配的兑换码' : '暂无兑换码'}
         </p>
       )}
 

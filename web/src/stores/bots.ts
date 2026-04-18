@@ -69,8 +69,20 @@ interface BotsState {
 
   loadBots: () => Promise<void>;
   createBot: (input: BotCreateInput) => Promise<Bot>;
-  updateBot: (id: string, patch: Partial<Pick<Bot, 'name' | 'default_folder' | 'activation_mode' | 'concurrency_mode'>>) => Promise<void>;
-  updateCredentials: (id: string, appId: string, appSecret: string) => Promise<void>;
+  updateBot: (
+    id: string,
+    patch: Partial<
+      Pick<
+        Bot,
+        'name' | 'default_folder' | 'activation_mode' | 'concurrency_mode'
+      >
+    >,
+  ) => Promise<void>;
+  updateCredentials: (
+    id: string,
+    appId: string,
+    appSecret: string,
+  ) => Promise<void>;
   enableBot: (id: string) => Promise<void>;
   disableBot: (id: string) => Promise<void>;
   deleteBot: (id: string) => Promise<void>;
@@ -100,7 +112,10 @@ export const useBotsStore = create<BotsState>((set, get) => ({
       const data = await api.get<{ bots: Bot[] }>('/api/bots');
       set({ bots: data.bots, loading: false, error: null });
     } catch (err) {
-      set({ loading: false, error: err instanceof Error ? err.message : String(err) });
+      set({
+        loading: false,
+        error: err instanceof Error ? err.message : String(err),
+      });
     }
   },
 
@@ -184,7 +199,9 @@ export const useBotsStore = create<BotsState>((set, get) => ({
   },
 
   addBinding: async (id, groupJid) => {
-    await api.post(`/api/bots/${encodeURIComponent(id)}/bindings`, { group_jid: groupJid });
+    await api.post(`/api/bots/${encodeURIComponent(id)}/bindings`, {
+      group_jid: groupJid,
+    });
   },
 
   removeBinding: async (id, groupJid) => {

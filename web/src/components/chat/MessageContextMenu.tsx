@@ -12,7 +12,14 @@ interface MessageContextMenuProps {
   onShareImage?: () => void;
 }
 
-export function MessageContextMenu({ content, position, onClose, chatJid, messageId, onShareImage }: MessageContextMenuProps) {
+export function MessageContextMenu({
+  content,
+  position,
+  onClose,
+  chatJid,
+  messageId,
+  onShareImage,
+}: MessageContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -46,7 +53,9 @@ export function MessageContextMenu({ content, position, onClose, chatJid, messag
 
   const handleCopyText = () => {
     const plain = content
-      .replace(/```[\s\S]*?```/g, (m) => m.replace(/```\w*\n?/, '').replace(/\n?```$/, ''))
+      .replace(/```[\s\S]*?```/g, (m) =>
+        m.replace(/```\w*\n?/, '').replace(/\n?```$/, ''),
+      )
       .replace(/`([^`]+)`/g, '$1')
       .replace(/\*\*([^*]+)\*\*/g, '$1')
       .replace(/\*([^*]+)\*/g, '$1')
@@ -99,7 +108,10 @@ export function MessageContextMenu({ content, position, onClose, chatJid, messag
           <>
             <div className="mx-3 my-0.5 border-t border-border" />
             <button
-              onClick={() => { onShareImage(); onClose(); }}
+              onClick={() => {
+                onShareImage();
+                onClose();
+              }}
               className="group/item w-full flex items-center gap-3 mx-1 px-3 py-2.5 text-sm text-foreground rounded-lg hover:bg-foreground/10 active:bg-foreground/15 transition-colors"
             >
               <ImageDown className="w-4 h-4 text-muted-foreground group-hover/item:text-primary transition-colors" />
@@ -118,13 +130,15 @@ export function MessageContextMenu({ content, position, onClose, chatJid, messag
                   : 'text-red-400 hover:bg-foreground/10 hover:text-red-500 active:bg-foreground/15'
               }`}
             >
-              <Trash2 className={`w-4 h-4 transition-colors ${confirmDelete ? '' : 'group-hover/item:text-red-500'}`} />
+              <Trash2
+                className={`w-4 h-4 transition-colors ${confirmDelete ? '' : 'group-hover/item:text-red-500'}`}
+              />
               {confirmDelete ? '确认删除' : '删除消息'}
             </button>
           </>
         )}
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }

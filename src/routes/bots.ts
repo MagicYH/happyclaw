@@ -66,7 +66,10 @@ export async function testBotConnection(
 ): Promise<TestBotConnectionResult> {
   const cfg = getBotFeishuConfig(botId);
   if (!cfg || !cfg.appId || !cfg.appSecret) {
-    return { ok: false, error: 'no feishu credentials configured for this bot' };
+    return {
+      ok: false,
+      error: 'no feishu credentials configured for this bot',
+    };
   }
 
   try {
@@ -467,7 +470,11 @@ botsRoutes.post('/:id/test-connection', authorizeBot, async (c) => {
   });
 
   if (result.ok) {
-    return c.json({ ok: true, open_id: result.open_id, remote_name: result.remote_name });
+    return c.json({
+      ok: true,
+      open_id: result.open_id,
+      remote_name: result.remote_name,
+    });
   }
   return c.json({ ok: false, error: result.error });
 });

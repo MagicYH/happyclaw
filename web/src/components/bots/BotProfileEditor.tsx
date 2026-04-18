@@ -18,7 +18,12 @@ interface BotProfileEditorProps {
   onClose?: () => void;
 }
 
-export function BotProfileEditor({ botId, onLoad, onSave, onClose }: BotProfileEditorProps) {
+export function BotProfileEditor({
+  botId,
+  onLoad,
+  onSave,
+  onClose,
+}: BotProfileEditorProps) {
   const [content, setContent] = useState('');
   const [original, setOriginal] = useState('');
   const [mode, setMode] = useState<BotConcurrencyMode>('writer');
@@ -90,7 +95,8 @@ export function BotProfileEditor({ botId, onLoad, onSave, onClose }: BotProfileE
     <div className="flex flex-col gap-3 h-full">
       {mode === 'advisor' && (
         <div className="text-xs px-3 py-2 rounded bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-400">
-          此 Bot 为 <strong>只读模式</strong>（advisor）。建议在角色描述中说明分析边界与 scratch 输出约定。
+          此 Bot 为 <strong>只读模式</strong>
+          （advisor）。建议在角色描述中说明分析边界与 scratch 输出约定。
         </div>
       )}
 
@@ -99,7 +105,11 @@ export function BotProfileEditor({ botId, onLoad, onSave, onClose }: BotProfileE
           value={content}
           onChange={(e) => setContent(e.target.value)}
           className="min-h-[60vh] font-mono text-sm resize-none"
-          placeholder={loading ? '加载中...' : '# 角色定义\n\n在此描述 Bot 的角色、能力和行为约定...'}
+          placeholder={
+            loading
+              ? '加载中...'
+              : '# 角色定义\n\n在此描述 Bot 的角色、能力和行为约定...'
+          }
           disabled={loading}
           aria-label="Bot profile 编辑器"
         />

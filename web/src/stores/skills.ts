@@ -75,7 +75,10 @@ export const useSkillsStore = create<SkillsState>((set, get) => ({
       const data = await api.get<{ skills: Skill[] }>('/api/skills');
       set({ skills: data.skills, loading: false, error: null });
     } catch (err) {
-      set({ loading: false, error: err instanceof Error ? err.message : String(err) });
+      set({
+        loading: false,
+        error: err instanceof Error ? err.message : String(err),
+      });
     }
   },
 
@@ -106,7 +109,11 @@ export const useSkillsStore = create<SkillsState>((set, get) => ({
       await api.post('/api/skills/install', { package: pkg }, 60_000);
       await get().loadSkills();
     } catch (err: any) {
-      set({ error: err?.message || (err instanceof Error ? err.message : '安装失败，请稍后重试') });
+      set({
+        error:
+          err?.message ||
+          (err instanceof Error ? err.message : '安装失败，请稍后重试'),
+      });
       throw err;
     } finally {
       set({ installing: false });
@@ -127,7 +134,9 @@ export const useSkillsStore = create<SkillsState>((set, get) => ({
   },
 
   deleteAllUserSkills: async () => {
-    const result = await api.delete<{ deleted: number }>('/api/skills/user-all');
+    const result = await api.delete<{ deleted: number }>(
+      '/api/skills/user-all',
+    );
     await get().loadSkills();
     return result.deleted;
   },
@@ -138,7 +147,12 @@ export const useSkillsStore = create<SkillsState>((set, get) => ({
   },
 
   searchSkills: async (query: string) => {
-    set({ searching: true, searchResults: [], searchDetails: {}, searchDetailLoading: {} });
+    set({
+      searching: true,
+      searchResults: [],
+      searchDetails: {},
+      searchDetailLoading: {},
+    });
     try {
       const data = await api.get<{ results: SearchResult[] }>(
         `/api/skills/search?q=${encodeURIComponent(query)}`,
@@ -157,11 +171,12 @@ export const useSkillsStore = create<SkillsState>((set, get) => ({
     set({ searchDetailLoading: { ...get().searchDetailLoading, [key]: true } });
     try {
       // Use source/skillId params if available (new API), fallback to url
-      const params = result.source && result.skillId
-        ? `source=${encodeURIComponent(result.source)}&skillId=${encodeURIComponent(result.skillId)}`
-        : result.url
-          ? `url=${encodeURIComponent(result.url)}`
-          : '';
+      const params =
+        result.source && result.skillId
+          ? `source=${encodeURIComponent(result.source)}&skillId=${encodeURIComponent(result.skillId)}`
+          : result.url
+            ? `url=${encodeURIComponent(result.url)}`
+            : '';
 
       if (!params) {
         set({

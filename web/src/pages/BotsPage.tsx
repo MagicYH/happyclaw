@@ -12,7 +12,8 @@ import type { Bot, BotCreateInput } from '../stores/bots';
 export function BotsPage() {
   const enableMultiBot = useAuthStore((s) => s.enableMultiBot);
 
-  const { bots, loading, error, loadBots, createBot, deleteBot } = useBotsStore();
+  const { bots, loading, error, loadBots, createBot, deleteBot } =
+    useBotsStore();
 
   const [createOpen, setCreateOpen] = useState(false);
   const [selectedBot, setSelectedBot] = useState<Bot | null>(null);
@@ -120,15 +121,14 @@ export function BotsPage() {
       {/* Right panel: editor */}
       <main className="flex-1 overflow-y-auto p-6">
         {selectedBot ? (
-          <BotEditor
-            bot={selectedBot}
-            onDelete={handleDeleteRequest}
-          />
+          <BotEditor bot={selectedBot} onDelete={handleDeleteRequest} />
         ) : (
           <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
             <BotIcon size={48} className="text-muted-foreground/20" />
             <p className="text-muted-foreground text-sm">
-              {bots.length > 0 ? '选择一个 Bot 进行配置' : '创建第一个 Bot 开始使用'}
+              {bots.length > 0
+                ? '选择一个 Bot 进行配置'
+                : '创建第一个 Bot 开始使用'}
             </p>
           </div>
         )}
@@ -146,7 +146,9 @@ export function BotsPage() {
         <BotDeleteConfirm
           bot={deleteTarget}
           open={true}
-          onOpenChange={(v) => { if (!v) setDeleteTarget(null); }}
+          onOpenChange={(v) => {
+            if (!v) setDeleteTarget(null);
+          }}
           onConfirmed={handleDeleteConfirmed}
         />
       )}

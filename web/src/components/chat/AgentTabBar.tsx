@@ -1,7 +1,20 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { Plus, X, Link, MessageSquare, Pencil, Trash2 } from 'lucide-react';
-import { DndContext, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
-import { SortableContext, horizontalListSortingStrategy, arrayMove, useSortable } from '@dnd-kit/sortable';
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  horizontalListSortingStrategy,
+  arrayMove,
+  useSortable,
+} from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { AgentInfo } from '../../types';
 
@@ -33,7 +46,12 @@ interface ContextMenuState {
   y: number;
 }
 
-function ContextMenuOverlay({ menu, onRename, onDelete, onClose }: {
+function ContextMenuOverlay({
+  menu,
+  onRename,
+  onDelete,
+  onClose,
+}: {
   menu: ContextMenuState;
   onRename?: () => void;
   onDelete: () => void;
@@ -83,7 +101,16 @@ function ContextMenuOverlay({ menu, onRename, onDelete, onClose }: {
   );
 }
 
-function SortableTab({ agent, isActive, onSelect, onContextMenu, onTouchStart, onTouchEnd, onBindIm, onDeleteAgent }: {
+function SortableTab({
+  agent,
+  isActive,
+  onSelect,
+  onContextMenu,
+  onTouchStart,
+  onTouchEnd,
+  onBindIm,
+  onDeleteAgent,
+}: {
   agent: AgentInfo;
   isActive: boolean;
   onSelect: () => void;
@@ -93,7 +120,14 @@ function SortableTab({ agent, isActive, onSelect, onContextMenu, onTouchStart, o
   onBindIm?: (agentId: string) => void;
   onDeleteAgent: (agentId: string) => void;
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: agent.id });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: agent.id });
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -131,14 +165,19 @@ function SortableTab({ agent, isActive, onSelect, onContextMenu, onTouchStart, o
         <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse flex-shrink-0" />
       )}
       {hasLinked && (
-        <span title={`已绑定: ${agent.linked_im_groups!.map(g => g.name).join(', ')}`}>
+        <span
+          title={`已绑定: ${agent.linked_im_groups!.map((g) => g.name).join(', ')}`}
+        >
           <MessageSquare className="w-3 h-3 text-teal-500 flex-shrink-0" />
         </span>
       )}
       <span className="truncate max-w-[120px]">{agent.name}</span>
       {onBindIm && (
         <button
-          onClick={(e) => { e.stopPropagation(); onBindIm(agent.id); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onBindIm(agent.id);
+          }}
           className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-accent transition-all cursor-pointer"
           title="绑定 IM 群组"
         >
@@ -146,7 +185,10 @@ function SortableTab({ agent, isActive, onSelect, onContextMenu, onTouchStart, o
         </button>
       )}
       <button
-        onClick={(e) => { e.stopPropagation(); onDeleteAgent(agent.id); }}
+        onClick={(e) => {
+          e.stopPropagation();
+          onDeleteAgent(agent.id);
+        }}
         className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-accent transition-all cursor-pointer"
         title="关闭对话"
       >
@@ -156,9 +198,22 @@ function SortableTab({ agent, isActive, onSelect, onContextMenu, onTouchStart, o
   );
 }
 
-export function AgentTabBar({ agents, activeTab, onSelectTab, onDeleteAgent, onRenameAgent, onCreateConversation, onBindIm, onBindMainIm, onReorder }: AgentTabBarProps) {
+export function AgentTabBar({
+  agents,
+  activeTab,
+  onSelectTab,
+  onDeleteAgent,
+  onRenameAgent,
+  onCreateConversation,
+  onBindIm,
+  onBindMainIm,
+  onReorder,
+}: AgentTabBarProps) {
   // Spawn agents are rendered inline in the main chat, not as separate tabs
-  const conversations = useMemo(() => agents.filter(a => a.kind === 'conversation'), [agents]);
+  const conversations = useMemo(
+    () => agents.filter((a) => a.kind === 'conversation'),
+    [agents],
+  );
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -171,10 +226,15 @@ export function AgentTabBar({ agents, activeTab, onSelectTab, onDeleteAgent, onR
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 200, tolerance: 5 },
+    }),
   );
 
-  const conversationIds = useMemo(() => conversations.map(a => a.id), [conversations]);
+  const conversationIds = useMemo(
+    () => conversations.map((a) => a.id),
+    [conversations],
+  );
 
   const handleDragStart = useCallback(() => {
     // Cancel long-press context menu timer when drag starts
@@ -184,20 +244,28 @@ export function AgentTabBar({ agents, activeTab, onSelectTab, onDeleteAgent, onR
     }
   }, []);
 
-  const handleDragEnd = useCallback((event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-    const oldIndex = conversations.findIndex(a => a.id === active.id);
-    const newIndex = conversations.findIndex(a => a.id === over.id);
-    if (oldIndex === -1 || newIndex === -1) return;
-    const reordered = arrayMove(conversations, oldIndex, newIndex);
-    onReorder?.(reordered.map(a => a.id));
-  }, [conversations, onReorder]);
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) return;
+      const oldIndex = conversations.findIndex((a) => a.id === active.id);
+      const newIndex = conversations.findIndex((a) => a.id === over.id);
+      if (oldIndex === -1 || newIndex === -1) return;
+      const reordered = arrayMove(conversations, oldIndex, newIndex);
+      onReorder?.(reordered.map((a) => a.id));
+    },
+    [conversations, onReorder],
+  );
 
   // Show bar if there are agents OR if creation is available
   if (conversations.length === 0 && !onCreateConversation) return null;
 
-  const openContextMenu = (agentId: string, agentName: string, x: number, y: number) => {
+  const openContextMenu = (
+    agentId: string,
+    agentName: string,
+    x: number,
+    y: number,
+  ) => {
     // Clamp position to viewport
     const menuWidth = 140;
     const menuHeight = 80;
@@ -240,7 +308,10 @@ export function AgentTabBar({ agents, activeTab, onSelectTab, onDeleteAgent, onR
           <span>主对话</span>
           {onBindMainIm && (
             <button
-              onClick={(e) => { e.stopPropagation(); onBindMainIm(); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onBindMainIm();
+              }}
               className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-accent transition-all cursor-pointer"
               title="绑定 IM 群组"
             >
@@ -250,8 +321,16 @@ export function AgentTabBar({ agents, activeTab, onSelectTab, onDeleteAgent, onR
         </div>
 
         {/* Conversation tabs — draggable, same visual level as main */}
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-          <SortableContext items={conversationIds} strategy={horizontalListSortingStrategy}>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={conversationIds}
+            strategy={horizontalListSortingStrategy}
+          >
             {conversations.map((agent) => (
               <SortableTab
                 key={agent.id}
@@ -278,17 +357,20 @@ export function AgentTabBar({ agents, activeTab, onSelectTab, onDeleteAgent, onR
             <Plus className="w-3.5 h-3.5" />
           </button>
         )}
-
       </div>
 
       {/* Context menu (right-click / long-press) */}
       {contextMenu && (
         <ContextMenuOverlay
           menu={contextMenu}
-          onRename={onRenameAgent ? () => {
-            onRenameAgent(contextMenu.agentId, contextMenu.agentName);
-            setContextMenu(null);
-          } : undefined}
+          onRename={
+            onRenameAgent
+              ? () => {
+                  onRenameAgent(contextMenu.agentId, contextMenu.agentName);
+                  setContextMenu(null);
+                }
+              : undefined
+          }
           onDelete={() => {
             onDeleteAgent(contextMenu.agentId);
             setContextMenu(null);

@@ -104,7 +104,9 @@ describe('BotDeleteConfirm', () => {
   test('confirm button shows loading state during deletion', async () => {
     let resolveDelete!: () => void;
     const onConfirmed = vi.fn().mockReturnValue(
-      new Promise<void>((r) => { resolveDelete = r; }),
+      new Promise<void>((r) => {
+        resolveDelete = r;
+      }),
     );
     render(
       <BotDeleteConfirm
@@ -118,7 +120,9 @@ describe('BotDeleteConfirm', () => {
     expect(screen.getByRole('button', { name: /删除中/ })).toBeInTheDocument();
     resolveDelete();
     await waitFor(() =>
-      expect(screen.queryByRole('button', { name: /删除中/ })).not.toBeInTheDocument(),
+      expect(
+        screen.queryByRole('button', { name: /删除中/ }),
+      ).not.toBeInTheDocument(),
     );
   });
 
@@ -131,6 +135,8 @@ describe('BotDeleteConfirm', () => {
         onConfirmed={() => {}}
       />,
     );
-    expect(screen.getByRole('heading', { name: /SpecialBot/ })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: /SpecialBot/ }),
+    ).toBeInTheDocument();
   });
 });

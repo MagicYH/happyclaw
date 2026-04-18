@@ -1,4 +1,10 @@
-import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react';
+import {
+  useState,
+  useRef,
+  useEffect,
+  useLayoutEffect,
+  useCallback,
+} from 'react';
 import { useKeyboardHeight } from '@/hooks/useKeyboardHeight';
 import { successTap } from '../../hooks/useHaptic';
 import {
@@ -33,7 +39,10 @@ interface PendingImage {
 const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
 
 interface MessageInputProps {
-  onSend: (content: string, attachments?: Array<{ data: string; mimeType: string }>) => void;
+  onSend: (
+    content: string,
+    attachments?: Array<{ data: string; mimeType: string }>,
+  ) => void;
   groupJid?: string;
   disabled?: boolean;
   onResetSession?: () => void;
@@ -57,7 +66,9 @@ export function MessageInput({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
-  const draftTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const draftTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
   const prevGroupJidRef = useRef<string | undefined>(groupJid);
 
   const { uploadFiles, uploading, uploadProgress } = useFileStore();
@@ -132,7 +143,8 @@ export function MessageInput({
     const maxHeight = lineHeight * 6;
     const newHeight = Math.max(lineHeight, Math.min(scrollHeight, maxHeight));
     textarea.style.height = `${newHeight}px`;
-    textarea.style.overflow = newHeight >= maxHeight ? 'auto' : prevOverflow || '';
+    textarea.style.overflow =
+      newHeight >= maxHeight ? 'auto' : prevOverflow || '';
   }, [content]);
 
   // IME composition state — prevent Enter from sending while composing (e.g. Chinese input)
@@ -172,7 +184,10 @@ export function MessageInput({
       }
 
       const attachments = hasImages
-        ? pendingImages.map((img) => ({ data: img.data, mimeType: img.mimeType }))
+        ? pendingImages.map((img) => ({
+            data: img.data,
+            mimeType: img.mimeType,
+          }))
         : undefined;
 
       onSend(message, attachments);
@@ -279,7 +294,11 @@ export function MessageInput({
 
   const readFileAsBase64 = (file: File): Promise<string> => {
     if (file.size > MAX_IMAGE_SIZE_BYTES) {
-      return Promise.reject(new Error(`图片 ${file.name} 超过 5MB 限制 (${(file.size / 1024 / 1024).toFixed(1)}MB)`));
+      return Promise.reject(
+        new Error(
+          `图片 ${file.name} 超过 5MB 限制 (${(file.size / 1024 / 1024).toFixed(1)}MB)`,
+        ),
+      );
     }
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -369,29 +388,42 @@ export function MessageInput({
   };
 
   const hasContent = content.trim().length > 0;
-  const canSend = (hasContent || pendingFiles.length > 0 || pendingImages.length > 0) && !sending;
+  const canSend =
+    (hasContent || pendingFiles.length > 0 || pendingImages.length > 0) &&
+    !sending;
 
   const progressPercent =
     uploadProgress && uploadProgress.totalBytes > 0
-      ? Math.round((uploadProgress.uploadedBytes / uploadProgress.totalBytes) * 100)
+      ? Math.round(
+          (uploadProgress.uploadedBytes / uploadProgress.totalBytes) * 100,
+        )
       : 0;
 
   return (
     <div
       className="pt-1 pb-3 bg-surface dark:bg-background max-lg:bg-background/60 max-lg:backdrop-blur-xl max-lg:saturate-[1.8] max-lg:border-t max-lg:border-border/40"
-      style={{ paddingBottom: `max(0.75rem, env(safe-area-inset-bottom, 0px), var(--keyboard-height, 0px))` }}
+      style={{
+        paddingBottom: `max(0.75rem, env(safe-area-inset-bottom, 0px), var(--keyboard-height, 0px))`,
+      }}
     >
       {/* lg:pl-[60px] = avatar w-8 (32px) + gap-3 (12px) + visual balance (16px), aligns input left edge with message card content */}
-      <div className={isCompact ? 'mx-auto px-4' : 'max-w-4xl mx-auto px-4 lg:pl-[60px]'}>
+      <div
+        className={
+          isCompact ? 'mx-auto px-4' : 'max-w-4xl mx-auto px-4 lg:pl-[60px]'
+        }
+      >
         {/* Upload progress bar */}
         {uploading && uploadProgress && (
-          <div className={`mb-2 px-4 py-2.5 ${isCompact ? 'bg-surface border border-border' : 'bg-surface rounded-xl border border-border shadow-sm'}`}>
+          <div
+            className={`mb-2 px-4 py-2.5 ${isCompact ? 'bg-surface border border-border' : 'bg-surface rounded-xl border border-border shadow-sm'}`}
+          >
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-xs text-foreground/70 truncate max-w-[65%]">
                 {uploadProgress.currentFile || '完成'}
               </span>
               <span className="text-xs text-muted-foreground">
-                {uploadProgress.completed}/{uploadProgress.total} · {progressPercent}%
+                {uploadProgress.completed}/{uploadProgress.total} ·{' '}
+                {progressPercent}%
               </span>
             </div>
             <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
@@ -404,10 +436,18 @@ export function MessageInput({
         )}
 
         {/* Main input card */}
-        <div className={isCompact ? 'bg-surface border border-border rounded-lg' : 'bg-surface rounded-2xl border border-border shadow-sm'}>
+        <div
+          className={
+            isCompact
+              ? 'bg-surface border border-border rounded-lg'
+              : 'bg-surface rounded-2xl border border-border shadow-sm'
+          }
+        >
           {/* Send error banner */}
           {sendError && (
-            <div className={`px-4 py-2 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 text-xs font-medium border-b border-red-100 dark:border-red-800 flex items-center gap-2 ${isCompact ? 'rounded-t-lg' : 'rounded-t-2xl'}`}>
+            <div
+              className={`px-4 py-2 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 text-xs font-medium border-b border-red-100 dark:border-red-800 flex items-center gap-2 ${isCompact ? 'rounded-t-lg' : 'rounded-t-2xl'}`}
+            >
               <span>{sendError}</span>
             </div>
           )}
@@ -522,8 +562,13 @@ export function MessageInput({
                 debouncedSaveDraft(e.target.value);
               }}
               onKeyDown={handleKeyDown}
-              onCompositionStart={() => { composingRef.current = true; }}
-              onCompositionEnd={() => { composingRef.current = false; compositionEndTimeRef.current = Date.now(); }}
+              onCompositionStart={() => {
+                composingRef.current = true;
+              }}
+              onCompositionEnd={() => {
+                composingRef.current = false;
+                compositionEndTimeRef.current = Date.now();
+              }}
               onPaste={handlePaste}
               placeholder="输入消息..."
               disabled={disabled}
@@ -589,7 +634,11 @@ export function MessageInput({
                   : 'bg-muted text-muted-foreground'
               }`}
             >
-              {sending ? <Loader2 className="w-4.5 h-4.5 animate-spin" /> : <ArrowUp className="w-4.5 h-4.5" />}
+              {sending ? (
+                <Loader2 className="w-4.5 h-4.5 animate-spin" />
+              ) : (
+                <ArrowUp className="w-4.5 h-4.5" />
+              )}
             </button>
           </div>
         </div>

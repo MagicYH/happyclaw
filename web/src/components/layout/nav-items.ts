@@ -9,7 +9,10 @@ export const baseNavItems = [
   { path: '/settings', icon: User, label: '设置' },
 ];
 
-export function filterNavItems(billingEnabled: boolean, enableMultiBot = false) {
+export function filterNavItems(
+  billingEnabled: boolean,
+  enableMultiBot = false,
+) {
   return baseNavItems.filter((item) => {
     if (item.requiresBilling && !billingEnabled) return false;
     if (item.requiresMultiBot && !enableMultiBot) return false;

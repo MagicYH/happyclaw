@@ -8,7 +8,11 @@ interface McpServerCardProps {
   onSelect: () => void;
 }
 
-export function McpServerCard({ server, selected, onSelect }: McpServerCardProps) {
+export function McpServerCard({
+  server,
+  selected,
+  onSelect,
+}: McpServerCardProps) {
   const toggleServer = useMcpServersStore((s) => s.toggleServer);
 
   const isHttpType = server.type === 'http' || server.type === 'sse';
@@ -28,7 +32,9 @@ export function McpServerCard({ server, selected, onSelect }: McpServerCardProps
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-medium text-foreground truncate">{server.id}</h3>
+            <h3 className="font-medium text-foreground truncate">
+              {server.id}
+            </h3>
             {isHttpType && (
               <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300">
                 {server.type?.toUpperCase()}
@@ -41,9 +47,13 @@ export function McpServerCard({ server, selected, onSelect }: McpServerCardProps
               </span>
             )}
           </div>
-          <p className="text-sm text-muted-foreground truncate font-mono">{preview}</p>
+          <p className="text-sm text-muted-foreground truncate font-mono">
+            {preview}
+          </p>
           {server.description && (
-            <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{server.description}</p>
+            <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
+              {server.description}
+            </p>
           )}
         </div>
 

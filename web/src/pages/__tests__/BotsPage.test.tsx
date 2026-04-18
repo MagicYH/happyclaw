@@ -79,7 +79,13 @@ vi.mock('../../stores/auth', () => ({
 // Mock child components (keep tests focused on BotsPage logic)
 // ──────────────────────────────────────────────
 vi.mock('../../components/bots/BotListItem', () => ({
-  BotListItem: ({ bot, onSelect }: { bot: { name: string; id: string }; onSelect: (id: string) => void }) => (
+  BotListItem: ({
+    bot,
+    onSelect,
+  }: {
+    bot: { name: string; id: string };
+    onSelect: (id: string) => void;
+  }) => (
     <button data-testid={`bot-item-${bot.id}`} onClick={() => onSelect(bot.id)}>
       {bot.name}
     </button>
@@ -98,14 +104,22 @@ vi.mock('../../components/bots/BotCreateDialog', () => ({
   }) =>
     open ? (
       <div data-testid="bot-create-dialog">
-        <button onClick={() => onCreate({ name: 'NewBot', channel: 'feishu' })}>确认创建</button>
+        <button onClick={() => onCreate({ name: 'NewBot', channel: 'feishu' })}>
+          确认创建
+        </button>
         <button onClick={onClose}>取消</button>
       </div>
     ) : null,
 }));
 
 vi.mock('../../components/bots/BotEditor', () => ({
-  BotEditor: ({ bot, onDelete }: { bot: { name: string }; onDelete: () => void }) => (
+  BotEditor: ({
+    bot,
+    onDelete,
+  }: {
+    bot: { name: string };
+    onDelete: () => void;
+  }) => (
     <div data-testid="bot-editor">
       编辑: {bot.name}
       <button onClick={onDelete}>删除Bot</button>
@@ -126,7 +140,13 @@ vi.mock('../../components/bots/BotDeleteConfirm', () => ({
   }) =>
     open ? (
       <div data-testid="bot-delete-confirm">
-        <button onClick={() => { void onConfirmed?.(); }}>确认删除</button>
+        <button
+          onClick={() => {
+            void onConfirmed?.();
+          }}
+        >
+          确认删除
+        </button>
         <button onClick={() => onOpenChange(false)}>取消</button>
       </div>
     ) : null,
@@ -227,8 +247,12 @@ describe('BotsPage', () => {
     await userEvent.click(botItem);
     await userEvent.click(screen.getByText('删除Bot'));
     await userEvent.click(screen.getByText('确认删除'));
-    await waitFor(() => expect(mockDeleteBot).toHaveBeenCalledWith('bot_test1'));
-    await waitFor(() => expect(screen.queryByTestId('bot-editor')).not.toBeInTheDocument());
+    await waitFor(() =>
+      expect(mockDeleteBot).toHaveBeenCalledWith('bot_test1'),
+    );
+    await waitFor(() =>
+      expect(screen.queryByTestId('bot-editor')).not.toBeInTheDocument(),
+    );
   });
 
   test('enableMultiBot=false: shows feature-disabled message instead of bot list', () => {

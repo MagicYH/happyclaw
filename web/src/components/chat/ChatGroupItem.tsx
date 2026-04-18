@@ -1,4 +1,12 @@
-import { MoreHorizontal, Pencil, Trash2, RotateCcw, Star, Pin, Timer } from 'lucide-react';
+import {
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+  RotateCcw,
+  Star,
+  Pin,
+  Timer,
+} from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,7 +61,8 @@ export function ChatGroupItem({
   const currentUser = useAuthStore((s) => s.user);
   const defaultHomeName = '我的工作区';
   // Use actual name if it's been renamed, otherwise fall back to default
-  const isDefaultName = !name || name === 'Main' || name === `${currentUser?.username} Home`;
+  const isDefaultName =
+    !name || name === 'Main' || name === `${currentUser?.username} Home`;
   const displayName = isHome && isDefaultName ? defaultHomeName : name;
   const truncatedMsg =
     lastMessage && lastMessage.length > 40
@@ -86,7 +95,9 @@ export function ChatGroupItem({
           <span
             className={cn(
               'text-sm truncate min-w-0',
-              isActive ? 'font-semibold text-foreground' : 'text-muted-foreground',
+              isActive
+                ? 'font-semibold text-foreground'
+                : 'text-muted-foreground',
             )}
           >
             {displayName}
@@ -109,7 +120,12 @@ export function ChatGroupItem({
           )}
         </div>
         {truncatedMsg && (
-          <p className={cn('text-xs text-muted-foreground/70 truncate mt-0.5', isHome && 'pl-5')}>
+          <p
+            className={cn(
+              'text-xs text-muted-foreground/70 truncate mt-0.5',
+              isHome && 'pl-5',
+            )}
+          >
             {truncatedMsg}
           </p>
         )}

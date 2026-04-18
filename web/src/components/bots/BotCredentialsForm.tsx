@@ -31,7 +31,8 @@ export function BotCredentialsForm({ onSave, onSaved }: Props) {
   return (
     <div className="space-y-3">
       <div className="text-xs text-muted-foreground">
-        凭证会使用 AES-256-GCM 加密存储。保存后不会回显，需要覆盖时请重新填入完整值。
+        凭证会使用 AES-256-GCM
+        加密存储。保存后不会回显，需要覆盖时请重新填入完整值。
       </div>
       <div>
         <Label htmlFor="credentials-appid">App ID</Label>
@@ -51,10 +52,7 @@ export function BotCredentialsForm({ onSave, onSaved }: Props) {
           onChange={(e) => setAppSecret(e.target.value)}
         />
       </div>
-      <Button
-        disabled={saving || !appId || !appSecret}
-        onClick={handleSubmit}
-      >
+      <Button disabled={saving || !appId || !appSecret} onClick={handleSubmit}>
         {saving ? '保存中...' : '保存凭证'}
       </Button>
       <p className="text-xs text-amber-600 dark:text-amber-400">

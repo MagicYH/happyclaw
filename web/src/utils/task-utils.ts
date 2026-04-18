@@ -35,7 +35,10 @@ export function decomposeInterval(ms: string): { num: string; unitMs: string } {
   if (isNaN(n) || n <= 0) return { num: '', unitMs: '60000' };
   for (let i = INTERVAL_UNITS.length - 1; i >= 0; i--) {
     if (n % INTERVAL_UNITS[i].ms === 0) {
-      return { num: String(n / INTERVAL_UNITS[i].ms), unitMs: String(INTERVAL_UNITS[i].ms) };
+      return {
+        num: String(n / INTERVAL_UNITS[i].ms),
+        unitMs: String(INTERVAL_UNITS[i].ms),
+      };
     }
   }
   return { num: String(n / 60_000), unitMs: '60000' };
@@ -59,7 +62,10 @@ export function toggleNotifyChannel(
   }
   const next = [...current, key];
   // If all connected channels selected, normalize back to null (= all)
-  if (connectedKeys.length > 0 && connectedKeys.every((c) => next.includes(c))) {
+  if (
+    connectedKeys.length > 0 &&
+    connectedKeys.every((c) => next.includes(c))
+  ) {
     return null;
   }
   return next;

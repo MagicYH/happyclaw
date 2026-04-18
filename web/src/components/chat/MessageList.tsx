@@ -1,11 +1,28 @@
-import { useEffect, useLayoutEffect, useRef, useState, useMemo, useCallback } from 'react';
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useMemo,
+  useCallback,
+} from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { Message, useChatStore } from '../../stores/chat';
 import { useAuthStore } from '../../stores/auth';
 import { MessageBubble } from './MessageBubble';
 import { StreamingDisplay } from './StreamingDisplay';
 import { EmojiAvatar } from '../common/EmojiAvatar';
-import { Loader2, ChevronUp, ChevronDown, AlertTriangle, Square, Code2, Zap, BookOpen, Wrench } from 'lucide-react';
+import {
+  Loader2,
+  ChevronUp,
+  ChevronDown,
+  AlertTriangle,
+  Square,
+  Code2,
+  Zap,
+  BookOpen,
+  Wrench,
+} from 'lucide-react';
 import { useDisplayMode } from '../../hooks/useDisplayMode';
 
 interface MessageListProps {
@@ -41,20 +58,36 @@ const quickPrompts = [
   { icon: Wrench, title: '调试问题', desc: '帮我定位和修复一个 Bug' },
 ];
 
-export function MessageList({ messages, loading, hasMore, onLoadMore, scrollTrigger, groupJid, isWaiting, onInterrupt, agentId, onSend }: MessageListProps) {
+export function MessageList({
+  messages,
+  loading,
+  hasMore,
+  onLoadMore,
+  scrollTrigger,
+  groupJid,
+  isWaiting,
+  onInterrupt,
+  agentId,
+  onSend,
+}: MessageListProps) {
   const { mode: displayMode } = useDisplayMode();
-  const thinkingCache = useChatStore(s => s.thinkingCache ?? {});
-  const isShared = useChatStore(s => !!s.groups[groupJid ?? '']?.is_shared);
+  const thinkingCache = useChatStore((s) => s.thinkingCache ?? {});
+  const isShared = useChatStore((s) => !!s.groups[groupJid ?? '']?.is_shared);
   // Spawn agents: selector returns stable reference (the agents array itself),
   // then useMemo filters for spawn kind. Direct .filter() in selector causes
   // infinite re-render because Zustand sees a new array reference every time.
-  const allAgentsForSpawn = useChatStore(s => groupJid ? s.agents[groupJid] : undefined);
+  const allAgentsForSpawn = useChatStore((s) =>
+    groupJid ? s.agents[groupJid] : undefined,
+  );
   const spawnAgents = useMemo(
-    () => (allAgentsForSpawn ?? []).filter(a => a.kind === 'spawn' && a.status === 'running'),
+    () =>
+      (allAgentsForSpawn ?? []).filter(
+        (a) => a.kind === 'spawn' && a.status === 'running',
+      ),
     [allAgentsForSpawn],
   );
-  const currentUser = useAuthStore(s => s.user);
-  const appearance = useAuthStore(s => s.appearance);
+  const currentUser = useAuthStore((s) => s.user);
+  const appearance = useAuthStore((s) => s.appearance);
   const aiName = currentUser?.ai_name || appearance?.aiName || 'AI 助手';
   const aiEmoji = currentUser?.ai_avatar_emoji || appearance?.aiAvatarEmoji;
   const aiColor = currentUser?.ai_avatar_color || appearance?.aiAvatarColor;
@@ -67,16 +100,19 @@ export function MessageList({ messages, loading, hasMore, onLoadMore, scrollTrig
 
   // Compute flatMessages (with date headers) before virtualizer
   const flatMessages = useMemo<FlatItem[]>(() => {
-    const grouped = messages.reduce((acc, msg) => {
-      const date = new Date(msg.timestamp).toLocaleDateString('zh-CN', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      });
-      if (!acc[date]) acc[date] = [];
-      acc[date].push(msg);
-      return acc;
-    }, {} as Record<string, Message[]>);
+    const grouped = messages.reduce(
+      (acc, msg) => {
+        const date = new Date(msg.timestamp).toLocaleDateString('zh-CN', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        });
+        if (!acc[date]) acc[date] = [];
+        acc[date].push(msg);
+        return acc;
+      },
+      {} as Record<string, Message[]>,
+    );
 
     const items: FlatItem[] = [];
     Object.entries(grouped).forEach(([date, msgs]) => {
@@ -88,15 +124,27 @@ export function MessageList({ messages, loading, hasMore, onLoadMore, scrollTrig
           } else if (msg.content === 'query_interrupted') {
             items.push({ type: 'divider', content: '已中断' });
           } else if (msg.content.startsWith('agent_error:')) {
-            items.push({ type: 'error', content: msg.content.slice('agent_error:'.length) });
+            items.push({
+              type: 'error',
+              content: msg.content.slice('agent_error:'.length),
+            });
           } else if (msg.content.startsWith('agent_max_retries:')) {
-            items.push({ type: 'error', content: msg.content.slice('agent_max_retries:'.length) });
+            items.push({
+              type: 'error',
+              content: msg.content.slice('agent_max_retries:'.length),
+            });
           } else if (msg.content.startsWith('system_info:')) {
-            items.push({ type: 'divider', content: msg.content.slice('system_info:'.length) });
+            items.push({
+              type: 'divider',
+              content: msg.content.slice('system_info:'.length),
+            });
           }
         } else if (!msg.is_from_me && /^\/(sw|spawn)\s+/i.test(msg.content)) {
           // /sw or /spawn commands render as compact spawn-task cards
-          items.push({ type: 'spawn', content: msg.content.replace(/^\/(sw|spawn)\s+/i, '') });
+          items.push({
+            type: 'spawn',
+            content: msg.content.replace(/^\/(sw|spawn)\s+/i, ''),
+          });
         } else {
           items.push({ type: 'message', content: msg });
         }
@@ -115,21 +163,28 @@ export function MessageList({ messages, loading, hasMore, onLoadMore, scrollTrig
       const item = flatMessages[index];
       if (!item) return index;
       switch (item.type) {
-        case 'date': return `date-${item.content}`;
-        case 'divider': return `div-${index}`;
-        case 'spawn': return `spawn-${index}`;
-        case 'error': return `err-${index}`;
-        case 'message': return item.content.id;
+        case 'date':
+          return `date-${item.content}`;
+        case 'divider':
+          return `div-${index}`;
+        case 'spawn':
+          return `spawn-${index}`;
+        case 'error':
+          return `err-${index}`;
+        case 'message':
+          return item.content.id;
       }
     },
     estimateSize: (index) => {
       const item = flatMessages[index];
       if (!item) return 100;
       switch (item.type) {
-        case 'date': return 48;
+        case 'date':
+          return 48;
         case 'divider':
         case 'spawn':
-        case 'error': return 56;
+        case 'error':
+          return 56;
         case 'message': {
           const len = item.content.content.length;
           if (item.content.is_from_me) {
@@ -141,7 +196,8 @@ export function MessageList({ messages, loading, hasMore, onLoadMore, scrollTrig
           }
           return Math.max(48, Math.min(200, Math.ceil(len / 80) * 24 + 40));
         }
-        default: return 100;
+        default:
+          return 100;
       }
     },
     overscan: window.innerWidth < 1024 ? 12 : 8,
@@ -180,7 +236,10 @@ export function MessageList({ messages, loading, hasMore, onLoadMore, scrollTrig
   useEffect(() => {
     if (autoScroll && messages.length > prevMessageCount.current) {
       requestAnimationFrame(() => {
-        parentRef.current?.scrollTo({ top: parentRef.current.scrollHeight, behavior: 'smooth' });
+        parentRef.current?.scrollTo({
+          top: parentRef.current.scrollHeight,
+          behavior: 'smooth',
+        });
       });
     }
     prevMessageCount.current = messages.length;
@@ -191,7 +250,10 @@ export function MessageList({ messages, loading, hasMore, onLoadMore, scrollTrig
     if (scrollTrigger && scrollTrigger > 0) {
       setAutoScroll(true);
       requestAnimationFrame(() => {
-        parentRef.current?.scrollTo({ top: parentRef.current.scrollHeight, behavior: 'smooth' });
+        parentRef.current?.scrollTo({
+          top: parentRef.current.scrollHeight,
+          behavior: 'smooth',
+        });
       });
     }
   }, [scrollTrigger]);
@@ -231,14 +293,16 @@ export function MessageList({ messages, loading, hasMore, onLoadMore, scrollTrig
     if (flatMessages.length === 0) return;
     const timers: number[] = [];
     for (const delay of [50, 150, 300, 500]) {
-      timers.push(window.setTimeout(() => {
-        const el = parentRef.current;
-        if (!el) return;
-        const gap = el.scrollHeight - el.scrollTop - el.clientHeight;
-        if (gap > 100) {
-          el.scrollTop = el.scrollHeight;
-        }
-      }, delay));
+      timers.push(
+        window.setTimeout(() => {
+          const el = parentRef.current;
+          if (!el) return;
+          const gap = el.scrollHeight - el.scrollTop - el.clientHeight;
+          if (gap > 100) {
+            el.scrollTop = el.scrollHeight;
+          }
+        }, delay),
+      );
     }
     return () => timers.forEach(clearTimeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -246,8 +310,8 @@ export function MessageList({ messages, loading, hasMore, onLoadMore, scrollTrig
 
   // Auto-scroll when streaming content is active — poll-based to avoid
   // re-rendering on every text_delta (the streaming object changes very frequently).
-  const hasStreaming = useChatStore(s =>
-    agentId ? !!s.agentStreaming[agentId] : !!s.streaming[groupJid ?? '']
+  const hasStreaming = useChatStore((s) =>
+    agentId ? !!s.agentStreaming[agentId] : !!s.streaming[groupJid ?? ''],
   );
   useEffect(() => {
     if (!autoScroll || !hasStreaming) return;
@@ -275,208 +339,246 @@ export function MessageList({ messages, loading, hasMore, onLoadMore, scrollTrig
         ref={parentRef}
         className="h-full overflow-y-auto overflow-x-hidden py-6"
       >
-        <div className={displayMode === 'compact' ? 'mx-auto px-4 min-w-0' : 'max-w-4xl mx-auto px-4 min-w-0'}>
-        {loading && hasMore && (
-          <div className="flex justify-center py-4">
-            <Loader2 className="animate-spin text-primary" size={24} />
-          </div>
-        )}
-
         <div
-          style={{
-            height: `${virtualizer.getTotalSize()}px`,
-            width: '100%',
-            position: 'relative',
-          }}
+          className={
+            displayMode === 'compact'
+              ? 'mx-auto px-4 min-w-0'
+              : 'max-w-4xl mx-auto px-4 min-w-0'
+          }
         >
-          {virtualizer.getVirtualItems().map((virtualItem) => {
-            const item = flatMessages[virtualItem.index];
-            if (!item) return null;
-
-            if (item.type === 'date') {
-              return (
-                <div
-                  key={virtualItem.key}
-                  ref={virtualizer.measureElement}
-                  data-index={virtualItem.index}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    transform: `translateY(${virtualItem.start}px)`,
-                  }}
-                >
-                  <div className="flex justify-center my-6">
-                    <span className="bg-surface px-4 py-1 rounded-full text-xs text-muted-foreground border border-border">
-                      {item.content}
-                    </span>
-                  </div>
-                </div>
-              );
-            }
-
-            if (item.type === 'divider') {
-              return (
-                <div
-                  key={virtualItem.key}
-                  ref={virtualizer.measureElement}
-                  data-index={virtualItem.index}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    transform: `translateY(${virtualItem.start}px)`,
-                  }}
-                >
-                  <div className="flex items-center gap-3 my-6 px-4">
-                    <div className="flex-1 border-t border-amber-300" />
-                    <span className="text-xs text-amber-600 whitespace-pre-wrap">
-                      {item.content}
-                    </span>
-                    <div className="flex-1 border-t border-amber-300" />
-                  </div>
-                </div>
-              );
-            }
-
-            if (item.type === 'spawn') {
-              return (
-                <div
-                  key={virtualItem.key}
-                  ref={virtualizer.measureElement}
-                  data-index={virtualItem.index}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    transform: `translateY(${virtualItem.start}px)`,
-                  }}
-                >
-                  <div className="flex items-center gap-2 my-4 px-4">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-violet-50 dark:bg-violet-950/40 text-xs text-violet-600 dark:text-violet-400 border border-violet-200 dark:border-violet-800">
-                      <span>⚡</span>
-                      <span className="font-medium">并行任务</span>
-                      <span className="text-violet-400 dark:text-violet-500">|</span>
-                      <span className="max-w-[400px] truncate">{item.content}</span>
-                    </span>
-                  </div>
-                </div>
-              );
-            }
-
-            if (item.type === 'error') {
-              return (
-                <div
-                  key={virtualItem.key}
-                  ref={virtualizer.measureElement}
-                  data-index={virtualItem.index}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    transform: `translateY(${virtualItem.start}px)`,
-                  }}
-                >
-                  <div className="flex items-center gap-3 my-6 px-4">
-                    <div className="flex-1 border-t border-red-300" />
-                    <span className="text-xs text-red-600 whitespace-pre-wrap flex items-center gap-1">
-                      <AlertTriangle size={14} />
-                      {item.content}
-                    </span>
-                    <div className="flex-1 border-t border-red-300" />
-                  </div>
-                </div>
-              );
-            }
-
-            const message = item.content;
-            const showTime = true;
-
-            return (
-              <div
-                key={virtualItem.key}
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  transform: `translateY(${virtualItem.start}px)`,
-                }}
-                ref={virtualizer.measureElement}
-                data-index={virtualItem.index}
-              >
-                <MessageBubble message={message} showTime={showTime} thinkingContent={thinkingCache[message.id]} isShared={isShared} />
-              </div>
-            );
-          })}
-        </div>
-
-        {messages.length === 0 && !loading && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center px-6">
-            <div className="max-w-lg w-full space-y-8">
-              {/* Welcome header */}
-              <div className="flex flex-col items-center text-center space-y-4">
-                <div className="relative w-16 h-16">
-                  {/* Breathing glow ring */}
-                  <div className="absolute inset-0 rounded-full bg-brand-200/40 dark:bg-brand-500/20 animate-[breathe_3s_ease-in-out_infinite]" />
-                  {/* Orbiting dot */}
-                  <div className="absolute inset-[-6px] animate-[orbit_6s_linear_infinite]">
-                    <div className="w-2 h-2 rounded-full bg-brand-400" />
-                  </div>
-                  {/* Avatar */}
-                  <div className="relative w-16 h-16 animate-[float_4s_ease-in-out_infinite]">
-                    <EmojiAvatar
-                      imageUrl={aiImageUrl}
-                      emoji={aiEmoji}
-                      color={aiColor}
-                      fallbackChar={aiName[0]}
-                      size="lg"
-                      className="!w-16 !h-16 !text-2xl"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <h2 className="text-2xl font-semibold text-foreground">你好，有什么可以帮你？</h2>
-                  <p className="text-sm text-muted-foreground mt-2">我是 {aiName}，你的 AI 助手。选择下方话题快速开始，或直接输入你的问题。</p>
-                </div>
-              </div>
-
-              {/* Quick prompt cards — 2x2 grid */}
-              {onSend && (
-                <div className="grid grid-cols-2 gap-3">
-                  {quickPrompts.map((prompt) => (
-                    <button
-                      key={prompt.title}
-                      onClick={() => onSend(prompt.desc)}
-                      className="group text-left p-4 rounded-2xl border border-border/60 bg-muted/30 hover:bg-muted/60 hover:border-border transition-all active:scale-[0.98] cursor-pointer"
-                    >
-                      <prompt.icon className="w-5 h-5 mb-2 text-muted-foreground" strokeWidth={1.75} />
-                      <span className="text-sm font-medium text-foreground block">{prompt.title}</span>
-                      <span className="text-xs text-muted-foreground mt-0.5 block">{prompt.desc}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
+          {loading && hasMore && (
+            <div className="flex justify-center py-4">
+              <Loader2 className="animate-spin text-primary" size={24} />
             </div>
+          )}
+
+          <div
+            style={{
+              height: `${virtualizer.getTotalSize()}px`,
+              width: '100%',
+              position: 'relative',
+            }}
+          >
+            {virtualizer.getVirtualItems().map((virtualItem) => {
+              const item = flatMessages[virtualItem.index];
+              if (!item) return null;
+
+              if (item.type === 'date') {
+                return (
+                  <div
+                    key={virtualItem.key}
+                    ref={virtualizer.measureElement}
+                    data-index={virtualItem.index}
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      transform: `translateY(${virtualItem.start}px)`,
+                    }}
+                  >
+                    <div className="flex justify-center my-6">
+                      <span className="bg-surface px-4 py-1 rounded-full text-xs text-muted-foreground border border-border">
+                        {item.content}
+                      </span>
+                    </div>
+                  </div>
+                );
+              }
+
+              if (item.type === 'divider') {
+                return (
+                  <div
+                    key={virtualItem.key}
+                    ref={virtualizer.measureElement}
+                    data-index={virtualItem.index}
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      transform: `translateY(${virtualItem.start}px)`,
+                    }}
+                  >
+                    <div className="flex items-center gap-3 my-6 px-4">
+                      <div className="flex-1 border-t border-amber-300" />
+                      <span className="text-xs text-amber-600 whitespace-pre-wrap">
+                        {item.content}
+                      </span>
+                      <div className="flex-1 border-t border-amber-300" />
+                    </div>
+                  </div>
+                );
+              }
+
+              if (item.type === 'spawn') {
+                return (
+                  <div
+                    key={virtualItem.key}
+                    ref={virtualizer.measureElement}
+                    data-index={virtualItem.index}
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      transform: `translateY(${virtualItem.start}px)`,
+                    }}
+                  >
+                    <div className="flex items-center gap-2 my-4 px-4">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-violet-50 dark:bg-violet-950/40 text-xs text-violet-600 dark:text-violet-400 border border-violet-200 dark:border-violet-800">
+                        <span>⚡</span>
+                        <span className="font-medium">并行任务</span>
+                        <span className="text-violet-400 dark:text-violet-500">
+                          |
+                        </span>
+                        <span className="max-w-[400px] truncate">
+                          {item.content}
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+                );
+              }
+
+              if (item.type === 'error') {
+                return (
+                  <div
+                    key={virtualItem.key}
+                    ref={virtualizer.measureElement}
+                    data-index={virtualItem.index}
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      transform: `translateY(${virtualItem.start}px)`,
+                    }}
+                  >
+                    <div className="flex items-center gap-3 my-6 px-4">
+                      <div className="flex-1 border-t border-red-300" />
+                      <span className="text-xs text-red-600 whitespace-pre-wrap flex items-center gap-1">
+                        <AlertTriangle size={14} />
+                        {item.content}
+                      </span>
+                      <div className="flex-1 border-t border-red-300" />
+                    </div>
+                  </div>
+                );
+              }
+
+              const message = item.content;
+              const showTime = true;
+
+              return (
+                <div
+                  key={virtualItem.key}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    transform: `translateY(${virtualItem.start}px)`,
+                  }}
+                  ref={virtualizer.measureElement}
+                  data-index={virtualItem.index}
+                >
+                  <MessageBubble
+                    message={message}
+                    showTime={showTime}
+                    thinkingContent={thinkingCache[message.id]}
+                    isShared={isShared}
+                  />
+                </div>
+              );
+            })}
           </div>
-        )}
 
-        {groupJid && !agentId && (
-          <StreamingDisplay groupJid={groupJid} isWaiting={!!isWaiting} />
-        )}
-        {groupJid && agentId && (
-          <StreamingDisplay groupJid={groupJid} isWaiting={!!isWaiting} agentId={agentId} />
-        )}
+          {messages.length === 0 && !loading && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center px-6">
+              <div className="max-w-lg w-full space-y-8">
+                {/* Welcome header */}
+                <div className="flex flex-col items-center text-center space-y-4">
+                  <div className="relative w-16 h-16">
+                    {/* Breathing glow ring */}
+                    <div className="absolute inset-0 rounded-full bg-brand-200/40 dark:bg-brand-500/20 animate-[breathe_3s_ease-in-out_infinite]" />
+                    {/* Orbiting dot */}
+                    <div className="absolute inset-[-6px] animate-[orbit_6s_linear_infinite]">
+                      <div className="w-2 h-2 rounded-full bg-brand-400" />
+                    </div>
+                    {/* Avatar */}
+                    <div className="relative w-16 h-16 animate-[float_4s_ease-in-out_infinite]">
+                      <EmojiAvatar
+                        imageUrl={aiImageUrl}
+                        emoji={aiEmoji}
+                        color={aiColor}
+                        fallbackChar={aiName[0]}
+                        size="lg"
+                        className="!w-16 !h-16 !text-2xl"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-semibold text-foreground">
+                      你好，有什么可以帮你？
+                    </h2>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      我是 {aiName}，你的 AI
+                      助手。选择下方话题快速开始，或直接输入你的问题。
+                    </p>
+                  </div>
+                </div>
 
-        {/* Inline streaming for spawn agents — parallel tasks in same chat */}
-        {groupJid && !agentId && spawnAgents.map(a => (
-          <StreamingDisplay key={a.id} groupJid={groupJid} isWaiting={true} agentId={a.id} senderName={a.name} />
-        ))}
+                {/* Quick prompt cards — 2x2 grid */}
+                {onSend && (
+                  <div className="grid grid-cols-2 gap-3">
+                    {quickPrompts.map((prompt) => (
+                      <button
+                        key={prompt.title}
+                        onClick={() => onSend(prompt.desc)}
+                        className="group text-left p-4 rounded-2xl border border-border/60 bg-muted/30 hover:bg-muted/60 hover:border-border transition-all active:scale-[0.98] cursor-pointer"
+                      >
+                        <prompt.icon
+                          className="w-5 h-5 mb-2 text-muted-foreground"
+                          strokeWidth={1.75}
+                        />
+                        <span className="text-sm font-medium text-foreground block">
+                          {prompt.title}
+                        </span>
+                        <span className="text-xs text-muted-foreground mt-0.5 block">
+                          {prompt.desc}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
+          {groupJid && !agentId && (
+            <StreamingDisplay groupJid={groupJid} isWaiting={!!isWaiting} />
+          )}
+          {groupJid && agentId && (
+            <StreamingDisplay
+              groupJid={groupJid}
+              isWaiting={!!isWaiting}
+              agentId={agentId}
+            />
+          )}
+
+          {/* Inline streaming for spawn agents — parallel tasks in same chat */}
+          {groupJid &&
+            !agentId &&
+            spawnAgents.map((a) => (
+              <StreamingDisplay
+                key={a.id}
+                groupJid={groupJid}
+                isWaiting={true}
+                agentId={a.id}
+                senderName={a.name}
+              />
+            ))}
         </div>
       </div>
 

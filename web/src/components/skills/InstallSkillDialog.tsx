@@ -1,7 +1,19 @@
 import { useState } from 'react';
-import { Loader2, Search, ExternalLink, Download, ChevronDown, ChevronUp } from 'lucide-react';
+import {
+  Loader2,
+  Search,
+  ExternalLink,
+  Download,
+  ChevronDown,
+  ChevronUp,
+} from 'lucide-react';
 import { toast } from 'sonner';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useSkillsStore, type SearchResult } from '@/stores/skills';
@@ -35,7 +47,8 @@ function SearchResultItem({
   onInstall: (result: SearchResult) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const { searchDetails, searchDetailLoading, fetchSearchDetail } = useSkillsStore();
+  const { searchDetails, searchDetailLoading, fetchSearchDetail } =
+    useSkillsStore();
 
   const key = result.package;
   const detail = searchDetails[key];
@@ -58,9 +71,11 @@ function SearchResultItem({
           className="min-w-0 flex-1 text-left flex items-center gap-2"
           onClick={handleToggle}
         >
-          {expanded
-            ? <ChevronUp className="size-3.5 shrink-0 text-muted-foreground" />
-            : <ChevronDown className="size-3.5 shrink-0 text-muted-foreground" />}
+          {expanded ? (
+            <ChevronUp className="size-3.5 shrink-0 text-muted-foreground" />
+          ) : (
+            <ChevronDown className="size-3.5 shrink-0 text-muted-foreground" />
+          )}
           <div className="min-w-0 flex-1">
             <span className="text-sm font-medium text-foreground truncate block">
               {result.package}
@@ -100,7 +115,9 @@ function SearchResultItem({
           {!loading && detail && (
             <div className="space-y-2 pt-2">
               {detail.description && (
-                <p className="text-xs text-foreground/80 leading-relaxed">{detail.description}</p>
+                <p className="text-xs text-foreground/80 leading-relaxed">
+                  {detail.description}
+                </p>
               )}
 
               {detail.readme && (
@@ -109,16 +126,21 @@ function SearchResultItem({
                 </div>
               )}
 
-              {!detail.readme && detail.features && detail.features.length > 0 && (
-                <ul className="space-y-0.5">
-                  {detail.features.map((f, i) => (
-                    <li key={i} className="text-xs text-muted-foreground flex gap-1.5">
-                      <span className="text-primary/60 shrink-0">-</span>
-                      <span>{f}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              {!detail.readme &&
+                detail.features &&
+                detail.features.length > 0 && (
+                  <ul className="space-y-0.5">
+                    {detail.features.map((f, i) => (
+                      <li
+                        key={i}
+                        className="text-xs text-muted-foreground flex gap-1.5"
+                      >
+                        <span className="text-primary/60 shrink-0">-</span>
+                        <span>{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
             </div>
           )}
 
@@ -219,7 +241,9 @@ export function InstallSkillDialog({
                 ? 'border-primary text-primary'
                 : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
-            onClick={() => { setTab('search'); }}
+            onClick={() => {
+              setTab('search');
+            }}
             disabled={isInstalling}
           >
             <Search className="size-3.5 inline-block mr-1.5 -mt-0.5" />
@@ -232,7 +256,9 @@ export function InstallSkillDialog({
                 ? 'border-primary text-primary'
                 : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
-            onClick={() => { setTab('manual'); }}
+            onClick={() => {
+              setTab('manual');
+            }}
             disabled={isInstalling}
           >
             手动安装
@@ -256,7 +282,11 @@ export function InstallSkillDialog({
                 variant="outline"
                 disabled={searching || isInstalling || !searchQuery.trim()}
               >
-                {searching ? <Loader2 className="size-4 animate-spin" /> : <Search className="size-4" />}
+                {searching ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Search className="size-4" />
+                )}
               </Button>
             </form>
 
@@ -269,28 +299,33 @@ export function InstallSkillDialog({
                 </div>
               )}
 
-              {!searching && searchResults.length === 0 && searchQuery.trim() && (
-                <div className="text-center py-8 text-muted-foreground text-sm">
-                  未找到相关技能
-                </div>
-              )}
+              {!searching &&
+                searchResults.length === 0 &&
+                searchQuery.trim() && (
+                  <div className="text-center py-8 text-muted-foreground text-sm">
+                    未找到相关技能
+                  </div>
+                )}
 
-              {!searching && searchResults.map((result) => (
-                <SearchResultItem
-                  key={result.package}
-                  result={result}
-                  isInstalling={isInstalling}
-                  installingPkg={installingPkg}
-                  onInstall={handleInstallFromSearch}
-                />
-              ))}
+              {!searching &&
+                searchResults.map((result) => (
+                  <SearchResultItem
+                    key={result.package}
+                    result={result}
+                    isInstalling={isInstalling}
+                    installingPkg={installingPkg}
+                    onInstall={handleInstallFromSearch}
+                  />
+                ))}
             </div>
 
-            {!searching && searchResults.length === 0 && !searchQuery.trim() && (
-              <p className="text-xs text-muted-foreground text-center py-4">
-                在 skills.sh 市场中搜索可用的技能包
-              </p>
-            )}
+            {!searching &&
+              searchResults.length === 0 &&
+              !searchQuery.trim() && (
+                <p className="text-xs text-muted-foreground text-center py-4">
+                  在 skills.sh 市场中搜索可用的技能包
+                </p>
+              )}
           </div>
         )}
 
@@ -298,7 +333,10 @@ export function InstallSkillDialog({
         {tab === 'manual' && (
           <form onSubmit={handleManualSubmit} className="space-y-4">
             <div>
-              <label htmlFor="skill-pkg" className="block text-sm font-medium text-foreground mb-2">
+              <label
+                htmlFor="skill-pkg"
+                className="block text-sm font-medium text-foreground mb-2"
+              >
                 技能包名称
               </label>
               <Input
@@ -323,17 +361,13 @@ export function InstallSkillDialog({
               >
                 取消
               </Button>
-              <Button
-                type="submit"
-                disabled={isInstalling || !pkg.trim()}
-              >
+              <Button type="submit" disabled={isInstalling || !pkg.trim()}>
                 {isInstalling && <Loader2 className="size-4 animate-spin" />}
                 安装
               </Button>
             </div>
           </form>
         )}
-
       </DialogContent>
     </Dialog>
   );

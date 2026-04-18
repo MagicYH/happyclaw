@@ -19,7 +19,10 @@ function getContainer(): HTMLDivElement {
 }
 
 /** Create a toast element with shared styling and animation. Returns { el, dismiss }. */
-function createToastElement(extraCss = ''): { el: HTMLDivElement; dismiss: () => void } {
+function createToastElement(extraCss = ''): {
+  el: HTMLDivElement;
+  dismiss: () => void;
+} {
   const c = getContainer();
   while (c.childElementCount >= MAX_TOASTS && c.firstChild) {
     c.removeChild(c.firstChild);
@@ -30,7 +33,8 @@ function createToastElement(extraCss = ''): { el: HTMLDivElement; dismiss: () =>
     'pointer-events:auto;max-width:360px;padding:12px 16px;border-radius:8px;' +
     'background:#1a1a2e;color:#e0e0e0;box-shadow:0 4px 12px rgba(0,0,0,0.3);' +
     'font-size:14px;line-height:1.4;opacity:0;transform:translateX(40px);' +
-    'transition:opacity 0.3s,transform 0.3s;' + extraCss;
+    'transition:opacity 0.3s,transform 0.3s;' +
+    extraCss;
 
   c.appendChild(el);
   requestAnimationFrame(() => {
@@ -97,11 +101,16 @@ export function notifyIfHidden(title: string, body?: string): void {
 }
 
 function claimOwnershipIfVisible(): boolean {
-  if (typeof window === 'undefined' || typeof document === 'undefined') return true;
+  if (typeof window === 'undefined' || typeof document === 'undefined')
+    return true;
   if (document.visibilityState !== 'visible') return false;
-  if (typeof document.hasFocus === 'function' && !document.hasFocus()) return false;
+  if (typeof document.hasFocus === 'function' && !document.hasFocus())
+    return false;
   try {
-    window.localStorage.setItem(OWNER_KEY, JSON.stringify({ tabId: TAB_ID, at: Date.now() }));
+    window.localStorage.setItem(
+      OWNER_KEY,
+      JSON.stringify({ tabId: TAB_ID, at: Date.now() }),
+    );
   } catch {
     // Fall back to single-tab behavior if storage becomes unavailable mid-session.
   }
@@ -109,7 +118,12 @@ function claimOwnershipIfVisible(): boolean {
 }
 
 function bindOwnerTracking(): void {
-  if (ownerTrackingBound || typeof window === 'undefined' || typeof document === 'undefined') return;
+  if (
+    ownerTrackingBound ||
+    typeof window === 'undefined' ||
+    typeof document === 'undefined'
+  )
+    return;
   ownerTrackingBound = true;
 
   claimOwnershipIfVisible();
@@ -118,7 +132,8 @@ function bindOwnerTracking(): void {
 }
 
 function isNoticeOwner(): boolean {
-  if (typeof window === 'undefined' || typeof document === 'undefined') return true;
+  if (typeof window === 'undefined' || typeof document === 'undefined')
+    return true;
   bindOwnerTracking();
 
   let raw: string | null = null;
@@ -152,7 +167,9 @@ export function showNotificationPromptToast(): void {
   if (Notification.permission !== 'default') return;
   notificationPromptShown = true;
 
-  const { el, dismiss } = createToastElement('display:flex;align-items:center;gap:12px;');
+  const { el, dismiss } = createToastElement(
+    'display:flex;align-items:center;gap:12px;',
+  );
 
   const textEl = document.createElement('span');
   textEl.style.flex = '1';
@@ -176,9 +193,9 @@ export function showNotificationPromptToast(): void {
 export function shouldEmitBackgroundTaskNotice(taskId: string): boolean {
   const now = Date.now();
   if (
-    lastBackgroundTaskNotice
-    && lastBackgroundTaskNotice.taskId === taskId
-    && now - lastBackgroundTaskNotice.at < BACKGROUND_TASK_NOTICE_TTL_MS
+    lastBackgroundTaskNotice &&
+    lastBackgroundTaskNotice.taskId === taskId &&
+    now - lastBackgroundTaskNotice.at < BACKGROUND_TASK_NOTICE_TTL_MS
   ) {
     return false;
   }

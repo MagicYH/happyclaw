@@ -64,7 +64,12 @@ function makeBot(overrides: Partial<Bot> = {}): Bot {
 describe('useBotsStore', () => {
   beforeEach(() => {
     // 重置 store 状态
-    useBotsStore.setState({ bots: [], loading: false, error: null, saving: false });
+    useBotsStore.setState({
+      bots: [],
+      loading: false,
+      error: null,
+      saving: false,
+    });
     vi.clearAllMocks();
   });
 
@@ -100,7 +105,11 @@ describe('useBotsStore', () => {
 
     it('请求期间 loading 为 true', async () => {
       let resolve!: (v: unknown) => void;
-      vi.mocked(api.get).mockReturnValueOnce(new Promise((r) => { resolve = r; }));
+      vi.mocked(api.get).mockReturnValueOnce(
+        new Promise((r) => {
+          resolve = r;
+        }),
+      );
 
       const promise = useBotsStore.getState().loadBots();
       expect(useBotsStore.getState().loading).toBe(true);
@@ -148,7 +157,9 @@ describe('useBotsStore', () => {
       const bot = makeBot({ status: 'inactive' });
       useBotsStore.setState({ bots: [bot] });
       vi.mocked(api.post).mockResolvedValueOnce({});
-      vi.mocked(api.get).mockResolvedValueOnce({ bots: [{ ...bot, status: 'active' }] });
+      vi.mocked(api.get).mockResolvedValueOnce({
+        bots: [{ ...bot, status: 'active' }],
+      });
 
       await useBotsStore.getState().enableBot(bot.id);
 
@@ -159,7 +170,9 @@ describe('useBotsStore', () => {
       const bot = makeBot();
       useBotsStore.setState({ bots: [bot] });
       vi.mocked(api.post).mockResolvedValueOnce({});
-      vi.mocked(api.get).mockResolvedValueOnce({ bots: [{ ...bot, status: 'inactive' }] });
+      vi.mocked(api.get).mockResolvedValueOnce({
+        bots: [{ ...bot, status: 'inactive' }],
+      });
 
       await useBotsStore.getState().disableBot(bot.id);
 
@@ -190,12 +203,14 @@ describe('useBotsStore', () => {
       vi.mocked(api.put).mockResolvedValueOnce({});
       vi.mocked(api.get).mockResolvedValueOnce({ bots: [bot] });
 
-      await useBotsStore.getState().updateCredentials(bot.id, 'cli_xxx', 'sec_yyy');
+      await useBotsStore
+        .getState()
+        .updateCredentials(bot.id, 'cli_xxx', 'sec_yyy');
 
-      expect(api.put).toHaveBeenCalledWith(
-        `/api/bots/${bot.id}/credentials`,
-        { app_id: 'cli_xxx', app_secret: 'sec_yyy' },
-      );
+      expect(api.put).toHaveBeenCalledWith(`/api/bots/${bot.id}/credentials`, {
+        app_id: 'cli_xxx',
+        app_secret: 'sec_yyy',
+      });
     });
   });
 
@@ -205,7 +220,9 @@ describe('useBotsStore', () => {
     it('返回 ok=true 时透传结果', async () => {
       vi.mocked(api.post).mockResolvedValueOnce({ ok: true });
 
-      const result = await useBotsStore.getState().testConnection('bot_test0001');
+      const result = await useBotsStore
+        .getState()
+        .testConnection('bot_test0001');
 
       expect(result).toEqual({ ok: true });
       expect(api.post).toHaveBeenCalledWith(
@@ -216,9 +233,14 @@ describe('useBotsStore', () => {
     });
 
     it('返回 ok=false 时包含 error 字段', async () => {
-      vi.mocked(api.post).mockResolvedValueOnce({ ok: false, error: 'AUTH_FAILED' });
+      vi.mocked(api.post).mockResolvedValueOnce({
+        ok: false,
+        error: 'AUTH_FAILED',
+      });
 
-      const result = await useBotsStore.getState().testConnection('bot_test0001');
+      const result = await useBotsStore
+        .getState()
+        .testConnection('bot_test0001');
 
       expect(result.ok).toBe(false);
       expect(result.error).toBe('AUTH_FAILED');
@@ -229,7 +251,10 @@ describe('useBotsStore', () => {
 
   describe('getProfile / saveProfile', () => {
     it('getProfile 返回 content 和 mode', async () => {
-      vi.mocked(api.get).mockResolvedValueOnce({ content: '# Bot Profile', mode: 'writer' });
+      vi.mocked(api.get).mockResolvedValueOnce({
+        content: '# Bot Profile',
+        mode: 'writer',
+      });
 
       const profile = await useBotsStore.getState().getProfile('bot_test0001');
 
@@ -242,14 +267,16 @@ describe('useBotsStore', () => {
 
       await useBotsStore.getState().saveProfile('bot_test0001', '# Updated');
 
-      expect(api.put).toHaveBeenCalledWith(
-        '/api/bots/bot_test0001/profile',
-        { content: '# Updated' },
-      );
+      expect(api.put).toHaveBeenCalledWith('/api/bots/bot_test0001/profile', {
+        content: '# Updated',
+      });
     });
 
     it('readProfile 与 getProfile 等价', async () => {
-      vi.mocked(api.get).mockResolvedValueOnce({ content: '# Profile', mode: 'advisor' });
+      vi.mocked(api.get).mockResolvedValueOnce({
+        content: '# Profile',
+        mode: 'advisor',
+      });
 
       const profile = await useBotsStore.getState().readProfile('bot_test0001');
 
@@ -262,10 +289,9 @@ describe('useBotsStore', () => {
 
       await useBotsStore.getState().writeProfile('bot_test0001', '# New');
 
-      expect(api.put).toHaveBeenCalledWith(
-        '/api/bots/bot_test0001/profile',
-        { content: '# New' },
-      );
+      expect(api.put).toHaveBeenCalledWith('/api/bots/bot_test0001/profile', {
+        content: '# New',
+      });
     });
   });
 
@@ -284,18 +310,21 @@ describe('useBotsStore', () => {
     it('addBinding 调用 POST 端点', async () => {
       vi.mocked(api.post).mockResolvedValueOnce({});
 
-      await useBotsStore.getState().addBinding('bot_test0001', 'feishu:grp_001');
+      await useBotsStore
+        .getState()
+        .addBinding('bot_test0001', 'feishu:grp_001');
 
-      expect(api.post).toHaveBeenCalledWith(
-        '/api/bots/bot_test0001/bindings',
-        { group_jid: 'feishu:grp_001' },
-      );
+      expect(api.post).toHaveBeenCalledWith('/api/bots/bot_test0001/bindings', {
+        group_jid: 'feishu:grp_001',
+      });
     });
 
     it('removeBinding 调用 DELETE 端点', async () => {
       vi.mocked(api.delete).mockResolvedValueOnce({});
 
-      await useBotsStore.getState().removeBinding('bot_test0001', 'feishu:grp_001');
+      await useBotsStore
+        .getState()
+        .removeBinding('bot_test0001', 'feishu:grp_001');
 
       expect(api.delete).toHaveBeenCalledWith(
         `/api/bots/bot_test0001/bindings/${encodeURIComponent('feishu:grp_001')}`,
@@ -328,7 +357,10 @@ describe('useBotsStore', () => {
 
     it('不匹配的 bot_id 不修改其他 bot', () => {
       const bot = makeBot();
-      const otherBot = makeBot({ id: 'bot_other001', connection_state: 'disconnected' });
+      const otherBot = makeBot({
+        id: 'bot_other001',
+        connection_state: 'disconnected',
+      });
       useBotsStore.setState({ bots: [bot, otherBot] });
 
       useBotsStore.getState().applyConnectionStatus({
@@ -340,7 +372,9 @@ describe('useBotsStore', () => {
       });
 
       // otherBot 不受影响
-      expect(useBotsStore.getState().bots[1].connection_state).toBe('disconnected');
+      expect(useBotsStore.getState().bots[1].connection_state).toBe(
+        'disconnected',
+      );
     });
 
     it('错误状态时保存 last_error_code', () => {

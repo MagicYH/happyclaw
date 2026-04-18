@@ -9,7 +9,7 @@ interface SwipeBackOptions {
 export function useSwipeBack(
   containerRef: React.RefObject<HTMLElement | null>,
   onBack: () => void,
-  options: SwipeBackOptions = {}
+  options: SwipeBackOptions = {},
 ) {
   const { edgeWidth = 20, threshold = 0.4 } = options;
   const isMobile = useMediaQuery('(max-width: 1023px)');
@@ -49,46 +49,53 @@ export function useSwipeBack(
     }, 250);
   }, [containerRef, clearTimer, resetTransformNow]);
 
-  const handleTouchStart = useCallback((e: TouchEvent) => {
-    const target = e.target instanceof Element ? e.target : null;
-    if (target?.closest('[data-swipe-back-ignore="true"]')) return;
+  const handleTouchStart = useCallback(
+    (e: TouchEvent) => {
+      const target = e.target instanceof Element ? e.target : null;
+      if (target?.closest('[data-swipe-back-ignore="true"]')) return;
 
-    const touch = e.touches[0];
-    if (touch.clientX < edgeWidth) {
-      touchRef.current = {
-        startX: touch.clientX,
-        startY: touch.clientY,
-        active: true,
-        currentX: 0,
-        isHorizontal: null,
-      };
-    }
-  }, [edgeWidth]);
-
-  const handleTouchMove = useCallback((e: TouchEvent) => {
-    if (!touchRef.current.active) return;
-    const touch = e.touches[0];
-    const deltaX = touch.clientX - touchRef.current.startX;
-    const deltaY = touch.clientY - touchRef.current.startY;
-
-    // Direction detection after minimal movement.
-    if (touchRef.current.isHorizontal === null) {
-      if (Math.abs(deltaX) < 8 && Math.abs(deltaY) < 8) return;
-      touchRef.current.isHorizontal = Math.abs(deltaX) > Math.abs(deltaY) * 1.2;
-      if (!touchRef.current.isHorizontal) {
-        touchRef.current.active = false;
-        resetTransformNow();
-        return;
+      const touch = e.touches[0];
+      if (touch.clientX < edgeWidth) {
+        touchRef.current = {
+          startX: touch.clientX,
+          startY: touch.clientY,
+          active: true,
+          currentX: 0,
+          isHorizontal: null,
+        };
       }
-    }
+    },
+    [edgeWidth],
+  );
 
-    if (deltaX > 0 && containerRef.current) {
-      touchRef.current.currentX = deltaX;
-      containerRef.current.style.transition = 'none';
-      containerRef.current.style.transform = `translateX(${deltaX}px)`;
-      containerRef.current.style.willChange = 'transform';
-    }
-  }, [containerRef, resetTransformNow]);
+  const handleTouchMove = useCallback(
+    (e: TouchEvent) => {
+      if (!touchRef.current.active) return;
+      const touch = e.touches[0];
+      const deltaX = touch.clientX - touchRef.current.startX;
+      const deltaY = touch.clientY - touchRef.current.startY;
+
+      // Direction detection after minimal movement.
+      if (touchRef.current.isHorizontal === null) {
+        if (Math.abs(deltaX) < 8 && Math.abs(deltaY) < 8) return;
+        touchRef.current.isHorizontal =
+          Math.abs(deltaX) > Math.abs(deltaY) * 1.2;
+        if (!touchRef.current.isHorizontal) {
+          touchRef.current.active = false;
+          resetTransformNow();
+          return;
+        }
+      }
+
+      if (deltaX > 0 && containerRef.current) {
+        touchRef.current.currentX = deltaX;
+        containerRef.current.style.transition = 'none';
+        containerRef.current.style.transform = `translateX(${deltaX}px)`;
+        containerRef.current.style.willChange = 'transform';
+      }
+    },
+    [containerRef, resetTransformNow],
+  );
 
   const handleTouchEnd = useCallback(() => {
     if (!touchRef.current.active) return;
@@ -118,7 +125,14 @@ export function useSwipeBack(
     } else {
       snapBack();
     }
-  }, [containerRef, threshold, onBack, clearTimer, resetTransformNow, snapBack]);
+  }, [
+    containerRef,
+    threshold,
+    onBack,
+    clearTimer,
+    resetTransformNow,
+    snapBack,
+  ]);
 
   const handleTouchCancel = useCallback(() => {
     if (!touchRef.current.active && touchRef.current.currentX <= 0) return;
@@ -145,5 +159,15 @@ export function useSwipeBack(
       clearTimer();
       resetTransformNow();
     };
-  }, [containerRef, isMobile, isStandalone, handleTouchStart, handleTouchMove, handleTouchEnd, handleTouchCancel, clearTimer, resetTransformNow]);
+  }, [
+    containerRef,
+    isMobile,
+    isStandalone,
+    handleTouchStart,
+    handleTouchMove,
+    handleTouchEnd,
+    handleTouchCancel,
+    clearTimer,
+    resetTransformNow,
+  ]);
 }

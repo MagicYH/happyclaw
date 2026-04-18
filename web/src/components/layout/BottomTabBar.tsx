@@ -35,7 +35,11 @@ export function BottomTabBar() {
                 onClick={() => lightTap()}
               >
                 <Icon className="w-5 h-5" />
-                <span className={`text-[10px] leading-tight mt-0.5 transition-all duration-200 ${isActive ? 'text-primary' : ''} ${isCompact ? 'max-h-0 opacity-0 overflow-hidden' : 'max-h-4 opacity-100'}`}>{label}</span>
+                <span
+                  className={`text-[10px] leading-tight mt-0.5 transition-all duration-200 ${isActive ? 'text-primary' : ''} ${isCompact ? 'max-h-0 opacity-0 overflow-hidden' : 'max-h-4 opacity-100'}`}
+                >
+                  {label}
+                </span>
               </NavLink>
             );
           })}

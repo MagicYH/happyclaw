@@ -1,7 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  RefreshCw, Zap, ArrowUpRight, ArrowDownRight, DollarSign,
-  MessageSquare, Database, Filter, Info,
+  RefreshCw,
+  Zap,
+  ArrowUpRight,
+  ArrowDownRight,
+  DollarSign,
+  MessageSquare,
+  Database,
+  Filter,
+  Info,
 } from 'lucide-react';
 import { useUsageStore } from '../stores/usage';
 import { useAuthStore } from '../stores/auth';
@@ -11,8 +18,16 @@ import { SkeletonStatCards } from '@/components/common/Skeletons';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
-  BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip,
-  ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+  PieChart,
+  Pie,
+  Cell,
 } from 'recharts';
 
 const PERIOD_OPTIONS = [
@@ -22,15 +37,29 @@ const PERIOD_OPTIONS = [
   { label: '90 天', value: 90 },
 ];
 
-const TOKEN_FILTER_LABELS: Record<string, string> = { total: '合计', input: '输入', output: '输出', cached: '缓存' };
+const TOKEN_FILTER_LABELS: Record<string, string> = {
+  total: '合计',
+  input: '输入',
+  output: '输出',
+  cached: '缓存',
+};
 
 /** 计算一行用量数据的总输入 token（含 cache） */
-function calcTotalInput(row: { input_tokens: number; cache_read_tokens: number; cache_creation_tokens: number }): number {
+function calcTotalInput(row: {
+  input_tokens: number;
+  cache_read_tokens: number;
+  cache_creation_tokens: number;
+}): number {
   return row.input_tokens + row.cache_creation_tokens + row.cache_read_tokens;
 }
 
 /** 计算一行用量数据的全部 token */
-function calcTotalTokens(row: { input_tokens: number; output_tokens: number; cache_read_tokens: number; cache_creation_tokens: number }): number {
+function calcTotalTokens(row: {
+  input_tokens: number;
+  output_tokens: number;
+  cache_read_tokens: number;
+  cache_creation_tokens: number;
+}): number {
   return calcTotalInput(row) + row.output_tokens;
 }
 
@@ -54,10 +83,21 @@ function formatCost(usd: number): string {
 
 export function UsagePage() {
   const {
-    summary, breakdown, dataRange, days, loading, error,
-    loadStats, setDays, loadFilters,
-    selectedUserId, selectedModel, availableModels, availableUsers,
-    setSelectedUserId, setSelectedModel,
+    summary,
+    breakdown,
+    dataRange,
+    days,
+    loading,
+    error,
+    loadStats,
+    setDays,
+    loadFilters,
+    selectedUserId,
+    selectedModel,
+    availableModels,
+    availableUsers,
+    setSelectedUserId,
+    setSelectedModel,
   } = useUsageStore();
   const user = useAuthStore((s) => s.user);
   const isAdmin = user?.role === 'admin';
@@ -81,12 +121,25 @@ export function UsagePage() {
   }, [dataRange, days]);
 
   // Token chart filter
-  const [tokenFilter, setTokenFilter] = useState<'total' | 'input' | 'output' | 'cached'>('total');
+  const [tokenFilter, setTokenFilter] = useState<
+    'total' | 'input' | 'output' | 'cached'
+  >('total');
 
   // Aggregate daily data for chart — fill all dates in the selected period
   const dailyData = useMemo(() => {
     // Aggregate breakdown by date, keeping all token categories
-    const byDate = new Map<string, { date: string; total: number; input: number; output: number; cached: number; cost: number; messages: number }>();
+    const byDate = new Map<
+      string,
+      {
+        date: string;
+        total: number;
+        input: number;
+        output: number;
+        cached: number;
+        cost: number;
+        messages: number;
+      }
+    >();
     for (const row of breakdown) {
       const cached = row.cache_read_tokens;
       const input = calcTotalInput(row);
@@ -103,7 +156,10 @@ export function UsagePage() {
       } else {
         byDate.set(row.date, {
           date: row.date,
-          total, input, output, cached,
+          total,
+          input,
+          output,
+          cached,
           cost: row.cost_usd,
           messages: row.request_count,
         });
@@ -120,19 +176,27 @@ export function UsagePage() {
       const mm = String(d.getMonth() + 1).padStart(2, '0');
       const dd = String(d.getDate()).padStart(2, '0');
       const dateStr = `${yyyy}-${mm}-${dd}`;
-      result.push(byDate.get(dateStr) || {
-        date: dateStr,
-        total: 0, input: 0, output: 0, cached: 0,
-        cost: 0,
-        messages: 0,
-      });
+      result.push(
+        byDate.get(dateStr) || {
+          date: dateStr,
+          total: 0,
+          input: 0,
+          output: 0,
+          cached: 0,
+          cost: 0,
+          messages: 0,
+        },
+      );
     }
     return result;
   }, [breakdown, days]);
 
   // Model breakdown for pie chart
   const modelData = useMemo(() => {
-    const byModel = new Map<string, { model: string; cost: number; tokens: number }>();
+    const byModel = new Map<
+      string,
+      { model: string; cost: number; tokens: number }
+    >();
     for (const row of breakdown) {
       const existing = byModel.get(row.model);
       if (existing) {
@@ -156,7 +220,7 @@ export function UsagePage() {
     if (!summary) return null;
     const totalInput = summary.totalInputTokens + summary.totalCacheReadTokens;
     if (totalInput === 0) return null;
-    return (summary.totalCacheReadTokens / totalInput * 100).toFixed(1);
+    return ((summary.totalCacheReadTokens / totalInput) * 100).toFixed(1);
   }, [summary]);
 
   return (
@@ -177,7 +241,9 @@ export function UsagePage() {
                 >
                   <option value="">全部用户</option>
                   {availableUsers.map((u) => (
-                    <option key={u.id} value={u.id}>{u.username}</option>
+                    <option key={u.id} value={u.id}>
+                      {u.username}
+                    </option>
                   ))}
                 </select>
               )}
@@ -189,7 +255,9 @@ export function UsagePage() {
                 >
                   <option value="">全部模型</option>
                   {availableModels.map((m) => (
-                    <option key={m} value={m}>{m}</option>
+                    <option key={m} value={m}>
+                      {m}
+                    </option>
                   ))}
                 </select>
               )}
@@ -208,8 +276,14 @@ export function UsagePage() {
                   </button>
                 ))}
               </div>
-              <Button variant="outline" onClick={() => loadStats()} disabled={loading}>
-                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              <Button
+                variant="outline"
+                onClick={() => loadStats()}
+                disabled={loading}
+              >
+                <RefreshCw
+                  className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`}
+                />
               </Button>
             </div>
           }
@@ -237,7 +311,11 @@ export function UsagePage() {
               <StatCard
                 icon={<ArrowDownRight className="w-5 h-5" />}
                 label="输入 Token"
-                value={formatTokens(summary.totalInputTokens + summary.totalCacheReadTokens + summary.totalCacheCreationTokens)}
+                value={formatTokens(
+                  summary.totalInputTokens +
+                    summary.totalCacheReadTokens +
+                    summary.totalCacheCreationTokens,
+                )}
                 color="text-blue-600 dark:text-blue-400"
                 bgColor="bg-blue-50 dark:bg-blue-950"
               />
@@ -265,7 +343,8 @@ export function UsagePage() {
             </div>
 
             {/* Cache Stats */}
-            {(summary.totalCacheReadTokens > 0 || summary.totalCacheCreationTokens > 0) && (
+            {(summary.totalCacheReadTokens > 0 ||
+              summary.totalCacheCreationTokens > 0) && (
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
                 <StatCard
                   icon={<Database className="w-5 h-5" />}
@@ -298,10 +377,14 @@ export function UsagePage() {
               <Card>
                 <CardContent>
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-semibold text-foreground">每日 Token 用量</h2>
+                    <h2 className="text-lg font-semibold text-foreground">
+                      每日 Token 用量
+                    </h2>
                     <select
                       value={tokenFilter}
-                      onChange={(e) => setTokenFilter(e.target.value as typeof tokenFilter)}
+                      onChange={(e) =>
+                        setTokenFilter(e.target.value as typeof tokenFilter)
+                      }
                       className="h-8 px-2 rounded-lg border border-border bg-card text-sm text-foreground"
                     >
                       <option value="total">合计</option>
@@ -312,15 +395,27 @@ export function UsagePage() {
                   </div>
                   <div className="h-64 lg:h-80">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={dailyData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                      <BarChart
+                        data={dailyData}
+                        margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+                      >
+                        <CartesianGrid
+                          strokeDasharray="3 3"
+                          stroke="var(--border)"
+                        />
                         <XAxis
                           dataKey="date"
-                          tick={{ fontSize: 12, fill: 'var(--muted-foreground)' }}
+                          tick={{
+                            fontSize: 12,
+                            fill: 'var(--muted-foreground)',
+                          }}
                           tickFormatter={(v: string) => v.slice(5)}
                         />
                         <YAxis
-                          tick={{ fontSize: 12, fill: 'var(--muted-foreground)' }}
+                          tick={{
+                            fontSize: 12,
+                            fill: 'var(--muted-foreground)',
+                          }}
                           tickFormatter={formatTokens}
                         />
                         <RechartsTooltip
@@ -331,10 +426,17 @@ export function UsagePage() {
                             color: 'var(--foreground)',
                           }}
                           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                          formatter={(value: any) => [formatTokens(Number(value) || 0), TOKEN_FILTER_LABELS[tokenFilter]]}
+                          formatter={(value: any) => [
+                            formatTokens(Number(value) || 0),
+                            TOKEN_FILTER_LABELS[tokenFilter],
+                          ]}
                           labelFormatter={(label) => `日期: ${label}`}
                         />
-                        <Bar dataKey={tokenFilter} fill="var(--color-primary)" radius={[4, 4, 0, 0]} />
+                        <Bar
+                          dataKey={tokenFilter}
+                          fill="var(--color-primary)"
+                          radius={[4, 4, 0, 0]}
+                        />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -346,34 +448,56 @@ export function UsagePage() {
             {dailyData.length > 0 && (
               <Card>
                 <CardContent>
-                  <h2 className="text-lg font-semibold text-foreground mb-4">每日费用</h2>
-                <div className="h-64 lg:h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={dailyData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                      <XAxis
-                        dataKey="date"
-                        tick={{ fontSize: 12, fill: 'var(--muted-foreground)' }}
-                        tickFormatter={(v: string) => v.slice(5)}
-                      />
-                      <YAxis
-                        tick={{ fontSize: 12, fill: 'var(--muted-foreground)' }}
-                        tickFormatter={(v) => formatCost(Number(v))}
-                      />
-                      <RechartsTooltip
-                        contentStyle={{
-                          backgroundColor: 'var(--card)',
-                          border: '1px solid var(--border)',
-                          borderRadius: '8px',
-                          color: 'var(--foreground)',
-                        }}
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                          formatter={(value: any) => [formatCost(Number(value) || 0), '费用']}
-                        labelFormatter={(label) => `日期: ${label}`}
-                      />
-                      <Bar dataKey="cost" name="费用 (USD)" fill="#ef4444" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  <h2 className="text-lg font-semibold text-foreground mb-4">
+                    每日费用
+                  </h2>
+                  <div className="h-64 lg:h-80">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={dailyData}
+                        margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+                      >
+                        <CartesianGrid
+                          strokeDasharray="3 3"
+                          stroke="var(--border)"
+                        />
+                        <XAxis
+                          dataKey="date"
+                          tick={{
+                            fontSize: 12,
+                            fill: 'var(--muted-foreground)',
+                          }}
+                          tickFormatter={(v: string) => v.slice(5)}
+                        />
+                        <YAxis
+                          tick={{
+                            fontSize: 12,
+                            fill: 'var(--muted-foreground)',
+                          }}
+                          tickFormatter={(v) => formatCost(Number(v))}
+                        />
+                        <RechartsTooltip
+                          contentStyle={{
+                            backgroundColor: 'var(--card)',
+                            border: '1px solid var(--border)',
+                            borderRadius: '8px',
+                            color: 'var(--foreground)',
+                          }}
+                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                          formatter={(value: any) => [
+                            formatCost(Number(value) || 0),
+                            '费用',
+                          ]}
+                          labelFormatter={(label) => `日期: ${label}`}
+                        />
+                        <Bar
+                          dataKey="cost"
+                          name="费用 (USD)"
+                          fill="#ef4444"
+                          radius={[4, 4, 0, 0]}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
                   </div>
                 </CardContent>
               </Card>
@@ -383,65 +507,89 @@ export function UsagePage() {
             {modelData.length > 0 && (
               <Card>
                 <CardContent>
-                  <h2 className="text-lg font-semibold text-foreground mb-4">模型用量分布</h2>
-                <div className="flex flex-col lg:flex-row gap-6">
-                  {/* Pie Chart */}
-                  <div className="h-64 w-full lg:w-1/2">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={modelData}
-                          dataKey="cost"
-                          nameKey="model"
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={90}
-                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                          label={(props: any) =>
-                            `${String(props.model ?? '').replace('claude-', '')} ${((Number(props.percent) || 0) * 100).toFixed(0)}%`
-                          }
-                        >
-                          {modelData.map((_, i) => (
-                            <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <RechartsTooltip
-                          contentStyle={{
-                            backgroundColor: 'var(--card)',
-                            border: '1px solid var(--border)',
-                            borderRadius: '8px',
-                            color: 'var(--foreground)',
-                          }}
-                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                          formatter={(value: any) => [formatCost(Number(value) || 0), '费用']}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                  {/* Table */}
-                  <div className="w-full lg:w-1/2">
-                    <table className="min-w-full divide-y divide-border">
-                      <thead>
-                        <tr>
-                          <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase">模型</th>
-                          <th className="px-3 py-2 text-right text-xs font-medium text-muted-foreground uppercase">Token</th>
-                          <th className="px-3 py-2 text-right text-xs font-medium text-muted-foreground uppercase">费用</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-border">
-                        {modelData.map((row, i) => (
-                          <tr key={row.model} className="hover:bg-muted/50">
-                            <td className="px-3 py-2 text-sm text-foreground">
-                              <span className="inline-block w-3 h-3 rounded-full mr-2" style={{ backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }} />
-                              {row.model}
-                            </td>
-                            <td className="px-3 py-2 text-sm text-right text-muted-foreground">{formatTokens(row.tokens)}</td>
-                            <td className="px-3 py-2 text-sm text-right text-foreground font-medium">{formatCost(row.cost)}</td>
+                  <h2 className="text-lg font-semibold text-foreground mb-4">
+                    模型用量分布
+                  </h2>
+                  <div className="flex flex-col lg:flex-row gap-6">
+                    {/* Pie Chart */}
+                    <div className="h-64 w-full lg:w-1/2">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={modelData}
+                            dataKey="cost"
+                            nameKey="model"
+                            cx="50%"
+                            cy="50%"
+                            outerRadius={90}
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            label={(props: any) =>
+                              `${String(props.model ?? '').replace('claude-', '')} ${((Number(props.percent) || 0) * 100).toFixed(0)}%`
+                            }
+                          >
+                            {modelData.map((_, i) => (
+                              <Cell
+                                key={i}
+                                fill={CHART_COLORS[i % CHART_COLORS.length]}
+                              />
+                            ))}
+                          </Pie>
+                          <RechartsTooltip
+                            contentStyle={{
+                              backgroundColor: 'var(--card)',
+                              border: '1px solid var(--border)',
+                              borderRadius: '8px',
+                              color: 'var(--foreground)',
+                            }}
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            formatter={(value: any) => [
+                              formatCost(Number(value) || 0),
+                              '费用',
+                            ]}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                    {/* Table */}
+                    <div className="w-full lg:w-1/2">
+                      <table className="min-w-full divide-y divide-border">
+                        <thead>
+                          <tr>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase">
+                              模型
+                            </th>
+                            <th className="px-3 py-2 text-right text-xs font-medium text-muted-foreground uppercase">
+                              Token
+                            </th>
+                            <th className="px-3 py-2 text-right text-xs font-medium text-muted-foreground uppercase">
+                              费用
+                            </th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                        </thead>
+                        <tbody className="divide-y divide-border">
+                          {modelData.map((row, i) => (
+                            <tr key={row.model} className="hover:bg-muted/50">
+                              <td className="px-3 py-2 text-sm text-foreground">
+                                <span
+                                  className="inline-block w-3 h-3 rounded-full mr-2"
+                                  style={{
+                                    backgroundColor:
+                                      CHART_COLORS[i % CHART_COLORS.length],
+                                  }}
+                                />
+                                {row.model}
+                              </td>
+                              <td className="px-3 py-2 text-sm text-right text-muted-foreground">
+                                {formatTokens(row.tokens)}
+                              </td>
+                              <td className="px-3 py-2 text-sm text-right text-foreground font-medium">
+                                {formatCost(row.cost)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -451,11 +599,13 @@ export function UsagePage() {
             {summary.totalMessages === 0 && !loading && (
               <Card>
                 <CardContent className="text-center py-8">
-                <Zap className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-foreground mb-2">暂无用量数据</h3>
-                <p className="text-muted-foreground">
-                  与 AI 对话后，用量数据将自动记录在这里
-                </p>
+                  <Zap className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-foreground mb-2">
+                    暂无用量数据
+                  </h3>
+                  <p className="text-muted-foreground">
+                    与 AI 对话后，用量数据将自动记录在这里
+                  </p>
                 </CardContent>
               </Card>
             )}
@@ -483,10 +633,12 @@ function StatCard({
     <Card>
       <CardContent>
         <div className="flex items-center gap-3 mb-2">
-        <div className={`w-10 h-10 rounded-lg ${bgColor} flex items-center justify-center ${color}`}>
-          {icon}
+          <div
+            className={`w-10 h-10 rounded-lg ${bgColor} flex items-center justify-center ${color}`}
+          >
+            {icon}
+          </div>
         </div>
-      </div>
         <p className="text-2xl font-bold text-foreground">{value}</p>
         <p className="text-sm text-muted-foreground">{label}</p>
       </CardContent>

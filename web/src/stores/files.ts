@@ -28,12 +28,24 @@ interface FileState {
   error: string | null;
 
   loadFiles: (jid: string, path?: string) => Promise<void>;
-  uploadFiles: (jid: string, files: File[], basePath?: string) => Promise<boolean>;
+  uploadFiles: (
+    jid: string,
+    files: File[],
+    basePath?: string,
+  ) => Promise<boolean>;
   deleteFile: (jid: string, filePath: string) => Promise<boolean>;
-  createDirectory: (jid: string, parentPath: string, name: string) => Promise<void>;
+  createDirectory: (
+    jid: string,
+    parentPath: string,
+    name: string,
+  ) => Promise<void>;
   navigateTo: (jid: string, path: string) => void;
   getFileContent: (jid: string, filePath: string) => Promise<string | null>;
-  saveFileContent: (jid: string, filePath: string, content: string) => Promise<boolean>;
+  saveFileContent: (
+    jid: string,
+    filePath: string,
+    content: string,
+  ) => Promise<boolean>;
 }
 
 export function toBase64Url(str: string): string {
@@ -56,12 +68,13 @@ export const useFileStore = create<FileState>((set, get) => ({
   loadFiles: async (jid: string, path?: string) => {
     set({ loading: true, error: null });
     try {
-      const targetPath = path !== undefined ? path : (get().currentPath[jid] || '');
+      const targetPath =
+        path !== undefined ? path : get().currentPath[jid] || '';
       const params = new URLSearchParams();
       if (targetPath) params.set('path', targetPath);
 
       const data = await api.get<{ files: FileEntry[]; currentPath: string }>(
-        `/api/groups/${encodeURIComponent(jid)}/files?${params}`
+        `/api/groups/${encodeURIComponent(jid)}/files?${params}`,
       );
 
       set((s) => ({
@@ -83,10 +96,17 @@ export const useFileStore = create<FileState>((set, get) => ({
     const totalBytes = files.reduce((sum, f) => sum + f.size, 0);
     set({
       uploading: true,
-      uploadProgress: { total, completed: 0, currentFile: files[0].name, totalBytes, uploadedBytes: 0 },
+      uploadProgress: {
+        total,
+        completed: 0,
+        currentFile: files[0].name,
+        totalBytes,
+        uploadedBytes: 0,
+      },
     });
 
-    const targetBase = basePath !== undefined ? basePath : (get().currentPath[jid] || '');
+    const targetBase =
+      basePath !== undefined ? basePath : get().currentPath[jid] || '';
     const apiUrl = `/api/groups/${encodeURIComponent(jid)}/files`;
     let uploadedBytes = 0;
 
@@ -107,7 +127,13 @@ export const useFileStore = create<FileState>((set, get) => ({
         }
 
         set({
-          uploadProgress: { total, completed: i, currentFile: file.name, totalBytes, uploadedBytes },
+          uploadProgress: {
+            total,
+            completed: i,
+            currentFile: file.name,
+            totalBytes,
+            uploadedBytes,
+          },
         });
 
         const formData = new FormData();
@@ -123,7 +149,13 @@ export const useFileStore = create<FileState>((set, get) => ({
         uploadedBytes += file.size;
 
         set({
-          uploadProgress: { total, completed: i + 1, currentFile: i + 1 < total ? files[i + 1].name : '', totalBytes, uploadedBytes },
+          uploadProgress: {
+            total,
+            completed: i + 1,
+            currentFile: i + 1 < total ? files[i + 1].name : '',
+            totalBytes,
+            uploadedBytes,
+          },
         });
       }
 
@@ -143,7 +175,9 @@ export const useFileStore = create<FileState>((set, get) => ({
   deleteFile: async (jid: string, filePath: string) => {
     try {
       const encoded = toBase64Url(filePath);
-      await api.delete(`/api/groups/${encodeURIComponent(jid)}/files/${encoded}`);
+      await api.delete(
+        `/api/groups/${encodeURIComponent(jid)}/files/${encoded}`,
+      );
 
       const currentPath = get().currentPath[jid] || '';
       await get().loadFiles(jid, currentPath);
@@ -165,7 +199,8 @@ export const useFileStore = create<FileState>((set, get) => ({
 
       await get().loadFiles(jid, parentPath);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to create directory';
+      const msg =
+        err instanceof Error ? err.message : 'Failed to create directory';
       console.error('Failed to create directory:', err);
       set({ error: msg });
     }
@@ -183,7 +218,7 @@ export const useFileStore = create<FileState>((set, get) => ({
     try {
       const encoded = toBase64Url(filePath);
       const data = await api.get<{ content: string }>(
-        `/api/groups/${encodeURIComponent(jid)}/files/content/${encoded}`
+        `/api/groups/${encodeURIComponent(jid)}/files/content/${encoded}`,
       );
       return data.content;
     } catch (err) {
@@ -197,7 +232,10 @@ export const useFileStore = create<FileState>((set, get) => ({
   saveFileContent: async (jid: string, filePath: string, content: string) => {
     try {
       const encoded = toBase64Url(filePath);
-      await api.put(`/api/groups/${encodeURIComponent(jid)}/files/content/${encoded}`, { content });
+      await api.put(
+        `/api/groups/${encodeURIComponent(jid)}/files/content/${encoded}`,
+        { content },
+      );
       return true;
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to save file';

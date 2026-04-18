@@ -1,4 +1,10 @@
-import { Loader2, MessageSquare, Users, ArrowRightLeft, Unlink } from 'lucide-react';
+import {
+  Loader2,
+  MessageSquare,
+  Users,
+  ArrowRightLeft,
+  Unlink,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { AvailableImGroup } from '../../types';
 import { ChannelBadge } from './channel-meta';
@@ -12,12 +18,19 @@ interface ImBindingRowProps {
   onActivationModeChange: (jid: string, mode: string) => void;
 }
 
-export function ImBindingRow({ group, isActioning, onRebind, onUnbind, onActivationModeChange }: ImBindingRowProps) {
+export function ImBindingRow({
+  group,
+  isActioning,
+  onRebind,
+  onUnbind,
+  onActivationModeChange,
+}: ImBindingRowProps) {
   const hasBound = !!group.bound_agent_id || !!group.bound_main_jid;
 
   const bindingLabel = (): string => {
     if (group.bound_agent_id && group.bound_target_name) {
-      return group.bound_workspace_name && group.bound_workspace_name !== group.bound_target_name
+      return group.bound_workspace_name &&
+        group.bound_workspace_name !== group.bound_target_name
         ? `${group.bound_workspace_name} / ${group.bound_target_name}`
         : group.bound_target_name;
     }
@@ -28,11 +41,13 @@ export function ImBindingRow({ group, isActioning, onRebind, onUnbind, onActivat
   };
 
   return (
-    <div className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${
-      hasBound
-        ? 'border-brand-200 bg-brand-50/50 dark:border-brand-700/30 dark:bg-brand-700/10'
-        : 'border-border'
-    }`}>
+    <div
+      className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${
+        hasBound
+          ? 'border-brand-200 bg-brand-50/50 dark:border-brand-700/30 dark:bg-brand-700/10'
+          : 'border-border'
+      }`}
+    >
       {/* Avatar */}
       {group.avatar ? (
         <img
@@ -59,7 +74,13 @@ export function ImBindingRow({ group, isActioning, onRebind, onUnbind, onActivat
               {group.member_count}
             </span>
           )}
-          <span className={hasBound ? 'text-primary dark:text-brand-400' : 'text-muted-foreground'}>
+          <span
+            className={
+              hasBound
+                ? 'text-primary dark:text-brand-400'
+                : 'text-muted-foreground'
+            }
+          >
             → {bindingLabel()}
           </span>
         </div>
@@ -71,12 +92,16 @@ export function ImBindingRow({ group, isActioning, onRebind, onUnbind, onActivat
           <div className="flex items-center gap-1.5">
             <select
               value={group.activation_mode || 'auto'}
-              onChange={(e) => onActivationModeChange(group.jid, e.target.value)}
+              onChange={(e) =>
+                onActivationModeChange(group.jid, e.target.value)
+              }
               disabled={isActioning}
               className="text-xs px-1.5 py-1 rounded border border-border bg-background text-foreground disabled:opacity-50"
             >
               {ACTIVATION_MODE_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
               ))}
             </select>
           </div>

@@ -79,10 +79,7 @@ describe('WorkspaceBotsPanel', () => {
 
   test('empty state when no bindings', async () => {
     render(
-      <WorkspaceBotsPanel
-        groupJid="web:main"
-        fetchBindings={async () => []}
-      />,
+      <WorkspaceBotsPanel groupJid="web:main" fetchBindings={async () => []} />,
     );
     await waitFor(() =>
       expect(screen.getByText(/暂无绑定/)).toBeInTheDocument(),
@@ -104,10 +101,7 @@ describe('WorkspaceBotsPanel', () => {
 
   test('calls loadBots on mount', async () => {
     render(
-      <WorkspaceBotsPanel
-        groupJid="web:main"
-        fetchBindings={async () => []}
-      />,
+      <WorkspaceBotsPanel groupJid="web:main" fetchBindings={async () => []} />,
     );
     await waitFor(() => expect(mockLoadBots).toHaveBeenCalledTimes(1));
   });

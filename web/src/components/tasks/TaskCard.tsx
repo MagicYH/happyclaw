@@ -124,7 +124,8 @@ export function TaskCard({
               )}
               <span className="text-xs text-muted-foreground">
                 {task.schedule_type === 'cron' && task.schedule_value}
-                {task.schedule_type === 'interval' && `每 ${formatInterval(task.schedule_value)}`}
+                {task.schedule_type === 'interval' &&
+                  `每 ${formatInterval(task.schedule_value)}`}
                 {task.schedule_type === 'once' && '单次执行'}
               </span>
             </div>

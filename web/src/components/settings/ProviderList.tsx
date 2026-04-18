@@ -29,9 +29,21 @@ interface ProviderListProps {
 }
 
 /** 健康指示灯 */
-function HealthDot({ health, enabled }: { health: ProviderHealthStatus | null; enabled: boolean }) {
-  if (!enabled) return <div className="w-2 h-2 rounded-full shrink-0 bg-muted-foreground/50" />;
-  if (!health) return <div className="w-2 h-2 rounded-full shrink-0 bg-muted-foreground/50" />;
+function HealthDot({
+  health,
+  enabled,
+}: {
+  health: ProviderHealthStatus | null;
+  enabled: boolean;
+}) {
+  if (!enabled)
+    return (
+      <div className="w-2 h-2 rounded-full shrink-0 bg-muted-foreground/50" />
+    );
+  if (!health)
+    return (
+      <div className="w-2 h-2 rounded-full shrink-0 bg-muted-foreground/50" />
+    );
 
   const color = health.healthy
     ? 'bg-emerald-400'
@@ -46,11 +58,18 @@ function HealthDot({ health, enabled }: { health: ProviderHealthStatus | null; e
 function formatOAuthExpiry(expiresAt: number | null): string | null {
   if (expiresAt == null) return null;
   if (expiresAt <= Date.now()) return '已过期';
-  return '过期时间: ' + new Date(expiresAt).toLocaleString('zh-CN', {
-    year: 'numeric', month: '2-digit', day: '2-digit',
-    hour: '2-digit', minute: '2-digit', second: '2-digit',
-    hour12: false,
-  });
+  return (
+    '过期时间: ' +
+    new Date(expiresAt).toLocaleString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    })
+  );
 }
 
 /** 凭据标签：显示认证方式 + OAuth 过期时间 */
@@ -64,22 +83,38 @@ function CredentialBadges({ provider }: { provider: ProviderWithHealth }) {
     const expiry = formatOAuthExpiry(provider.claudeOAuthCredentialsExpiresAt);
     badges.push({
       label: 'OAuth',
-      color: expired ? 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800' : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
+      color: expired
+        ? 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800'
+        : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
       detail: expiry ?? undefined,
     });
   }
   if (provider.hasClaudeCodeOauthToken) {
-    badges.push({ label: 'Setup Token', color: 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800' });
+    badges.push({
+      label: 'Setup Token',
+      color:
+        'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800',
+    });
   }
   if (provider.hasAnthropicApiKey) {
-    badges.push({ label: 'API Key', color: 'bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300 border-violet-200 dark:border-violet-800' });
+    badges.push({
+      label: 'API Key',
+      color:
+        'bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300 border-violet-200 dark:border-violet-800',
+    });
   }
   if (provider.hasAnthropicAuthToken) {
-    badges.push({ label: 'Auth Token', color: 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800' });
+    badges.push({
+      label: 'Auth Token',
+      color:
+        'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800',
+    });
   }
 
   if (badges.length === 0) {
-    return <span className="text-xs text-muted-foreground italic">未配置凭据</span>;
+    return (
+      <span className="text-xs text-muted-foreground italic">未配置凭据</span>
+    );
   }
 
   return (
@@ -87,11 +122,15 @@ function CredentialBadges({ provider }: { provider: ProviderWithHealth }) {
       <Key className="w-3 h-3 text-muted-foreground shrink-0" />
       {badges.map((b) => (
         <span key={b.label} className="inline-flex items-center gap-1">
-          <span className={`text-[11px] px-1.5 py-0.5 rounded border ${b.color}`}>
+          <span
+            className={`text-[11px] px-1.5 py-0.5 rounded border ${b.color}`}
+          >
             {b.label}
           </span>
           {b.detail && (
-            <span className="text-[10px] text-muted-foreground">{b.detail}</span>
+            <span className="text-[10px] text-muted-foreground">
+              {b.detail}
+            </span>
           )}
         </span>
       ))}
@@ -116,8 +155,12 @@ export function ProviderList({
       <div className="rounded-xl border border-border overflow-hidden">
         <div className="px-4 py-3 border-b border-border bg-muted/50">
           <div className="flex items-center justify-between">
-            <div className="text-sm font-medium text-foreground">提供商列表</div>
-            <span className="text-xs text-muted-foreground">{providers.length} 个提供商</span>
+            <div className="text-sm font-medium text-foreground">
+              提供商列表
+            </div>
+            <span className="text-xs text-muted-foreground">
+              {providers.length} 个提供商
+            </span>
           </div>
         </div>
 
@@ -162,7 +205,9 @@ export function ProviderList({
                         checked={provider.enabled}
                         disabled={disabled || toggling || deleting}
                         onCheckedChange={() => onToggle(provider)}
-                        aria-label={provider.enabled ? '禁用提供商' : '启用提供商'}
+                        aria-label={
+                          provider.enabled ? '禁用提供商' : '启用提供商'
+                        }
                       />
                       {health && !health.healthy && provider.enabled && (
                         <Button
@@ -216,11 +261,15 @@ export function ProviderList({
 
                   {/* 第二行：关键信息摘要 */}
                   <div className="mt-1.5 ml-4 flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
-                    {provider.type === 'third_party' && provider.anthropicBaseUrl && (
-                      <span className="font-mono truncate max-w-[200px]" title={provider.anthropicBaseUrl}>
-                        {provider.anthropicBaseUrl}
-                      </span>
-                    )}
+                    {provider.type === 'third_party' &&
+                      provider.anthropicBaseUrl && (
+                        <span
+                          className="font-mono truncate max-w-[200px]"
+                          title={provider.anthropicBaseUrl}
+                        >
+                          {provider.anthropicBaseUrl}
+                        </span>
+                      )}
                     {provider.anthropicModel && (
                       <span className="font-mono text-muted-foreground">
                         {provider.anthropicModel}
@@ -230,35 +279,40 @@ export function ProviderList({
                   </div>
 
                   {/* 第三行：健康异常信息（仅异常时显示） */}
-                  {health && provider.enabled && (!health.healthy || health.consecutiveErrors > 0) && (
-                    <div className="mt-1.5 ml-4 flex items-center gap-3 text-xs flex-wrap">
-                      {health.activeSessionCount > 0 && (
-                        <span className="text-teal-600">
-                          <Activity className="w-3 h-3 inline mr-0.5" />
-                          {health.activeSessionCount} 活跃会话
-                        </span>
-                      )}
-                      {health.consecutiveErrors > 0 && (
-                        <span className="text-red-500">
-                          连续错误 {health.consecutiveErrors}
-                        </span>
-                      )}
-                      {!health.healthy && (
-                        <span className="text-red-500 font-medium">
-                          <Shield className="w-3 h-3 inline mr-0.5" />
-                          不健康
-                        </span>
-                      )}
-                    </div>
-                  )}
+                  {health &&
+                    provider.enabled &&
+                    (!health.healthy || health.consecutiveErrors > 0) && (
+                      <div className="mt-1.5 ml-4 flex items-center gap-3 text-xs flex-wrap">
+                        {health.activeSessionCount > 0 && (
+                          <span className="text-teal-600">
+                            <Activity className="w-3 h-3 inline mr-0.5" />
+                            {health.activeSessionCount} 活跃会话
+                          </span>
+                        )}
+                        {health.consecutiveErrors > 0 && (
+                          <span className="text-red-500">
+                            连续错误 {health.consecutiveErrors}
+                          </span>
+                        )}
+                        {!health.healthy && (
+                          <span className="text-red-500 font-medium">
+                            <Shield className="w-3 h-3 inline mr-0.5" />
+                            不健康
+                          </span>
+                        )}
+                      </div>
+                    )}
 
                   {/* 活跃会话（健康正常时） */}
-                  {health && provider.enabled && health.healthy && health.activeSessionCount > 0 && (
-                    <div className="mt-1 ml-4 text-xs text-teal-600">
-                      <Activity className="w-3 h-3 inline mr-0.5" />
-                      {health.activeSessionCount} 活跃会话
-                    </div>
-                  )}
+                  {health &&
+                    provider.enabled &&
+                    health.healthy &&
+                    health.activeSessionCount > 0 && (
+                      <div className="mt-1 ml-4 text-xs text-teal-600">
+                        <Activity className="w-3 h-3 inline mr-0.5" />
+                        {health.activeSessionCount} 活跃会话
+                      </div>
+                    )}
 
                   {/* OAuth 用量 */}
                   {provider.hasClaudeOAuthCredentials && (

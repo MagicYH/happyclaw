@@ -34,7 +34,9 @@ function WindowUsageBlock({
 
   return (
     <div className="space-y-2">
-      <h4 className="text-xs font-medium text-zinc-500 uppercase tracking-wider">{label}</h4>
+      <h4 className="text-xs font-medium text-zinc-500 uppercase tracking-wider">
+        {label}
+      </h4>
       {hasCostQuota && (
         <div>
           <div className="flex justify-between text-sm mb-1">
@@ -147,25 +149,30 @@ export default function UsageCard() {
       {access && !access.allowed && (
         <div className="flex items-center gap-2 text-sm mb-3 px-3 py-2 rounded-md bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400">
           <AlertTriangle className="w-4 h-4 shrink-0" />
-          <span>{access.reason || '当前不可用，请联系管理员处理余额或套餐限制。'}</span>
-        </div>
-      )}
-      {(!access || access.allowed || access.blockType !== 'insufficient_balance') && maxPercent >= 80 && (
-        <div
-          className={`flex items-center gap-2 text-sm mb-3 px-3 py-2 rounded-md ${
-            maxPercent >= 100
-              ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400'
-              : 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400'
-          }`}
-        >
-          <AlertTriangle className="w-4 h-4 shrink-0" />
           <span>
-            {maxPercent >= 100
-              ? '配额已用完，请联系管理员调整套餐或额度'
-              : `配额已使用 ${Math.round(maxPercent)}%，即将达到上限`}
+            {access.reason || '当前不可用，请联系管理员处理余额或套餐限制。'}
           </span>
         </div>
       )}
+      {(!access ||
+        access.allowed ||
+        access.blockType !== 'insufficient_balance') &&
+        maxPercent >= 80 && (
+          <div
+            className={`flex items-center gap-2 text-sm mb-3 px-3 py-2 rounded-md ${
+              maxPercent >= 100
+                ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400'
+                : 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400'
+            }`}
+          >
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            <span>
+              {maxPercent >= 100
+                ? '配额已用完，请联系管理员调整套餐或额度'
+                : `配额已使用 ${Math.round(maxPercent)}%，即将达到上限`}
+            </span>
+          </div>
+        )}
 
       {/* Active window content */}
       <div className="space-y-4">
@@ -175,7 +182,9 @@ export default function UsageCard() {
             costUsed={dailyUsage?.costUsed ?? 0}
             costQuota={dailyUsage?.costQuota ?? plan?.daily_cost_quota ?? null}
             tokenUsed={dailyUsage?.tokenUsed ?? 0}
-            tokenQuota={dailyUsage?.tokenQuota ?? plan?.daily_token_quota ?? null}
+            tokenQuota={
+              dailyUsage?.tokenQuota ?? plan?.daily_token_quota ?? null
+            }
             fmt={fmt}
           />
         )}
@@ -183,24 +192,35 @@ export default function UsageCard() {
           <WindowUsageBlock
             label={WINDOW_LABELS.weekly}
             costUsed={weeklyUsage?.costUsed ?? 0}
-            costQuota={weeklyUsage?.costQuota ?? plan?.weekly_cost_quota ?? null}
+            costQuota={
+              weeklyUsage?.costQuota ?? plan?.weekly_cost_quota ?? null
+            }
             tokenUsed={weeklyUsage?.tokenUsed ?? 0}
-            tokenQuota={weeklyUsage?.tokenQuota ?? plan?.weekly_token_quota ?? null}
+            tokenQuota={
+              weeklyUsage?.tokenQuota ?? plan?.weekly_token_quota ?? null
+            }
             fmt={fmt}
           />
         )}
         {activeWindow === 'monthly' && (
           <WindowUsageBlock
             label={WINDOW_LABELS.monthly}
-            costUsed={monthlyUsage?.costUsed ?? currentUsage?.total_cost_usd ?? 0}
-            costQuota={monthlyUsage?.costQuota ?? plan?.monthly_cost_quota ?? null}
+            costUsed={
+              monthlyUsage?.costUsed ?? currentUsage?.total_cost_usd ?? 0
+            }
+            costQuota={
+              monthlyUsage?.costQuota ?? plan?.monthly_cost_quota ?? null
+            }
             tokenUsed={
               monthlyUsage?.tokenUsed ??
               (currentUsage
-                ? currentUsage.total_input_tokens + currentUsage.total_output_tokens
+                ? currentUsage.total_input_tokens +
+                  currentUsage.total_output_tokens
                 : 0)
             }
-            tokenQuota={monthlyUsage?.tokenQuota ?? plan?.monthly_token_quota ?? null}
+            tokenQuota={
+              monthlyUsage?.tokenQuota ?? plan?.monthly_token_quota ?? null
+            }
             fmt={fmt}
           />
         )}

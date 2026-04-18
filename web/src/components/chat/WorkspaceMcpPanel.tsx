@@ -1,9 +1,20 @@
 import { useEffect, useState } from 'react';
-import { Loader2, Plus, Server, ToggleLeft, ToggleRight, Trash2, RefreshCw } from 'lucide-react';
+import {
+  Loader2,
+  Plus,
+  Server,
+  ToggleLeft,
+  ToggleRight,
+  Trash2,
+  RefreshCw,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { EmptyState } from '@/components/common/EmptyState';
-import { useWorkspaceConfigStore, type WorkspaceMcpServer } from '../../stores/workspace-config';
+import {
+  useWorkspaceConfigStore,
+  type WorkspaceMcpServer,
+} from '../../stores/workspace-config';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 
 interface WorkspaceMcpPanelProps {
@@ -11,7 +22,10 @@ interface WorkspaceMcpPanelProps {
   onClose?: () => void;
 }
 
-export function WorkspaceMcpPanel({ groupJid, onClose: _onClose }: WorkspaceMcpPanelProps) {
+export function WorkspaceMcpPanel({
+  groupJid,
+  onClose: _onClose,
+}: WorkspaceMcpPanelProps) {
   const {
     mcpServers,
     mcpLoading,
@@ -98,7 +112,9 @@ export function WorkspaceMcpPanel({ groupJid, onClose: _onClose }: WorkspaceMcpP
             disabled={mcpLoading}
             className="h-7 w-7 p-0"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${mcpLoading ? 'animate-spin' : ''}`} />
+            <RefreshCw
+              className={`w-3.5 h-3.5 ${mcpLoading ? 'animate-spin' : ''}`}
+            />
           </Button>
           <Button
             variant="ghost"
@@ -166,7 +182,11 @@ export function WorkspaceMcpPanel({ groupJid, onClose: _onClose }: WorkspaceMcpP
           <Button
             size="sm"
             onClick={handleAdd}
-            disabled={adding || !newId.trim() || (newType === 'stdio' ? !newCommand.trim() : !newUrl.trim())}
+            disabled={
+              adding ||
+              !newId.trim() ||
+              (newType === 'stdio' ? !newCommand.trim() : !newUrl.trim())
+            }
             className="w-full h-8"
           >
             {adding ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : '添加'}
@@ -193,7 +213,11 @@ export function WorkspaceMcpPanel({ groupJid, onClose: _onClose }: WorkspaceMcpP
             title="无工作区 MCP Servers"
             description="当前工作区 .claude/settings.json 中没有 MCP 配置"
             action={
-              <Button variant="outline" size="sm" onClick={() => setShowAdd(true)}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowAdd(true)}
+              >
                 <Plus className="w-3.5 h-3.5 mr-1" />
                 添加 MCP Server
               </Button>
@@ -205,7 +229,9 @@ export function WorkspaceMcpPanel({ groupJid, onClose: _onClose }: WorkspaceMcpP
               <McpRow
                 key={server.id}
                 server={server}
-                onToggle={(enabled) => toggleWorkspaceMcp(groupJid, server.id, enabled)}
+                onToggle={(enabled) =>
+                  toggleWorkspaceMcp(groupJid, server.id, enabled)
+                }
                 onDelete={() => setDeleteTarget(server.id)}
               />
             ))}

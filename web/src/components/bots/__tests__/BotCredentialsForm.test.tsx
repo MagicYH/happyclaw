@@ -63,14 +63,22 @@ describe('BotCredentialsForm', () => {
 
   test('shows saving state during submission', async () => {
     let resolveSave!: () => void;
-    const onSave = vi.fn().mockReturnValue(new Promise<void>((r) => { resolveSave = r; }));
+    const onSave = vi.fn().mockReturnValue(
+      new Promise<void>((r) => {
+        resolveSave = r;
+      }),
+    );
     render(<BotCredentialsForm botId="bot_abc12345" onSave={onSave} />);
     await userEvent.type(screen.getByLabelText(/App ID/), 'cli_xxx');
     await userEvent.type(screen.getByLabelText(/App Secret/), 'sec_yyy');
     await userEvent.click(screen.getByRole('button', { name: /保存凭证/ }));
     expect(screen.getByRole('button', { name: /保存中/ })).toBeInTheDocument();
     resolveSave();
-    await waitFor(() => expect(screen.getByRole('button', { name: /保存凭证/ })).toBeInTheDocument());
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: /保存凭证/ }),
+      ).toBeInTheDocument(),
+    );
   });
 
   test('shows warning text about AES encryption', () => {
@@ -86,7 +94,13 @@ describe('BotCredentialsForm', () => {
   test('calls onSaved callback after successful save', async () => {
     const onSave = vi.fn().mockResolvedValue(undefined);
     const onSaved = vi.fn();
-    render(<BotCredentialsForm botId="bot_abc12345" onSave={onSave} onSaved={onSaved} />);
+    render(
+      <BotCredentialsForm
+        botId="bot_abc12345"
+        onSave={onSave}
+        onSaved={onSaved}
+      />,
+    );
     await userEvent.type(screen.getByLabelText(/App ID/), 'cli_xxx');
     await userEvent.type(screen.getByLabelText(/App Secret/), 'sec_yyy');
     await userEvent.click(screen.getByRole('button', { name: /保存凭证/ }));

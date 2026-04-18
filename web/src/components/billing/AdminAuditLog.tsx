@@ -26,7 +26,8 @@ const EVENT_TYPE_LABELS: Record<string, string> = {
 const PAGE_SIZE = 20;
 
 export default function AdminAuditLog() {
-  const { auditLogs, auditLogsTotal, loadAuditLog, allUsers, loadAllUsers } = useBillingStore();
+  const { auditLogs, auditLogsTotal, loadAuditLog, allUsers, loadAllUsers } =
+    useBillingStore();
 
   const [eventType, setEventType] = useState('');
   const [userFilter, setUserFilter] = useState('');
@@ -68,8 +69,7 @@ export default function AdminAuditLog() {
 
   const filteredLogs = auditLogs;
 
-  const eventLabel = (type: string) =>
-    EVENT_TYPE_LABELS[type] ?? type;
+  const eventLabel = (type: string) => EVENT_TYPE_LABELS[type] ?? type;
 
   // Unique event types from known labels + actual data
   const allEventTypes = Array.from(
@@ -136,12 +136,14 @@ export default function AdminAuditLog() {
               <span className="text-sm text-zinc-600 dark:text-zinc-400 truncate flex-1">
                 {log.user_id && (
                   <span className="text-zinc-400">
-                    用户 {userNameMap.get(log.user_id) ?? log.user_id.slice(0, 8)}
+                    用户{' '}
+                    {userNameMap.get(log.user_id) ?? log.user_id.slice(0, 8)}
                   </span>
                 )}
                 {log.actor_id && log.actor_id !== log.user_id && (
                   <span className="text-zinc-400 ml-2">
-                    操作者 {userNameMap.get(log.actor_id) ?? log.actor_id.slice(0, 8)}
+                    操作者{' '}
+                    {userNameMap.get(log.actor_id) ?? log.actor_id.slice(0, 8)}
                   </span>
                 )}
               </span>

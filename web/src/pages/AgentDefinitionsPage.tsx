@@ -1,5 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, Bot, Loader2, Plus, RefreshCw, Save, Trash2 } from 'lucide-react';
+import {
+  ArrowLeft,
+  Bot,
+  Loader2,
+  Plus,
+  RefreshCw,
+  Save,
+  Trash2,
+} from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -12,8 +20,13 @@ import {
 } from '../stores/agent-definitions';
 
 export function AgentDefinitionsPage() {
-  const { agents, loading, error: listError, loadAgents, createAgent } =
-    useAgentDefinitionsStore();
+  const {
+    agents,
+    loading,
+    error: listError,
+    loadAgents,
+    createAgent,
+  } = useAgentDefinitionsStore();
   const getAgentDetail = useAgentDefinitionsStore((s) => s.getAgentDetail);
   const updateAgent = useAgentDefinitionsStore((s) => s.updateAgent);
   const deleteAgent = useAgentDefinitionsStore((s) => s.deleteAgent);
@@ -41,8 +54,14 @@ export function AgentDefinitionsPage() {
   const isMobile = useMediaQuery('(max-width: 1023px)');
   const [showContent, setShowContent] = useState(false);
 
-  const dirty = useMemo(() => content !== initialContent, [content, initialContent]);
-  const byteCount = useMemo(() => new TextEncoder().encode(content).length, [content]);
+  const dirty = useMemo(
+    () => content !== initialContent,
+    [content, initialContent],
+  );
+  const byteCount = useMemo(
+    () => new TextEncoder().encode(content).length,
+    [content],
+  );
 
   const filtered = useMemo(() => {
     const q = searchQuery.toLowerCase();
@@ -58,23 +77,26 @@ export function AgentDefinitionsPage() {
     loadAgents();
   }, [loadAgents]);
 
-  const loadDetail = useCallback(async (id: string) => {
-    setLoadingDetail(true);
-    setDetailError(null);
-    setNotice(null);
-    try {
-      const data = await getAgentDetail(id);
-      setDetail(data);
-      setContent(data.content);
-      setInitialContent(data.content);
-      setSelectedId(id);
-    } catch (err) {
-      setDetailError(err instanceof Error ? err.message : '加载失败');
-      setDetail(null);
-    } finally {
-      setLoadingDetail(false);
-    }
-  }, [getAgentDetail]);
+  const loadDetail = useCallback(
+    async (id: string) => {
+      setLoadingDetail(true);
+      setDetailError(null);
+      setNotice(null);
+      try {
+        const data = await getAgentDetail(id);
+        setDetail(data);
+        setContent(data.content);
+        setInitialContent(data.content);
+        setSelectedId(id);
+      } catch (err) {
+        setDetailError(err instanceof Error ? err.message : '加载失败');
+        setDetail(null);
+      } finally {
+        setLoadingDetail(false);
+      }
+    },
+    [getAgentDetail],
+  );
 
   const handleSelectAgent = async (id: string) => {
     if (id === selectedId && isMobile) {
@@ -127,7 +149,12 @@ export function AgentDefinitionsPage() {
     if (!createName.trim()) return;
     setCreating(true);
     try {
-      const slug = createName.trim().toLowerCase().replace(/[^a-z0-9\-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+      const slug = createName
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9\-]/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
       const defaultContent = `---
 name: ${slug}
 description:
@@ -168,24 +195,34 @@ tools:
                 <div className="p-2 bg-brand-100 rounded-lg">
                   <Bot className="w-5 h-5 text-primary" />
                 </div>
-              <div>
-                <h1 className="text-2xl font-bold text-foreground">Agent 管理</h1>
-                <p className="text-sm text-muted-foreground mt-0.5">
-                  管理 Agent 定义文件，通过 Task 工具的 subagent_type 调用。
-                </p>
+                <div>
+                  <h1 className="text-2xl font-bold text-foreground">
+                    Agent 管理
+                  </h1>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    管理 Agent 定义文件，通过 Task 工具的 subagent_type 调用。
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={loadAgents}
+                  disabled={loading}
+                >
+                  <RefreshCw
+                    size={16}
+                    className={loading ? 'animate-spin' : ''}
+                  />
+                  刷新
+                </Button>
+                <Button size="sm" onClick={() => setShowCreate(true)}>
+                  <Plus size={16} />
+                  新建
+                </Button>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={loadAgents} disabled={loading}>
-                <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-                刷新
-              </Button>
-              <Button size="sm" onClick={() => setShowCreate(true)}>
-                <Plus size={16} />
-                新建
-              </Button>
-            </div>
-          </div>
             <div className="text-xs text-muted-foreground">
               已加载 Agent: {agents.length}
             </div>
@@ -208,55 +245,60 @@ tools:
                 </div>
 
                 <div className="space-y-2 max-h-[calc(100dvh-280px)] lg:max-h-[560px] overflow-auto pr-1">
-                {loading && agents.length === 0 ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="animate-spin text-primary" size={24} />
-                  </div>
-                ) : listError ? (
-                  <div className="text-sm text-error py-4 text-center">{listError}</div>
-                ) : filtered.length === 0 ? (
-                  <div className="text-sm text-muted-foreground py-4 text-center">
-                    {searchQuery ? '没有匹配的 Agent' : '暂无 Agent 定义'}
-                  </div>
-                ) : (
-                  filtered.map((agent) => {
-                    const active = agent.id === selectedId;
-                    return (
-                      <button
-                        key={agent.id}
-                        onClick={() => handleSelectAgent(agent.id)}
-                        className={`w-full text-left rounded-lg border px-3 py-2 transition-colors ${
-                          active
-                            ? 'border-primary bg-brand-50'
-                            : 'border-border hover:bg-muted/50'
-                        }`}
-                      >
-                        <div className="text-sm font-medium text-foreground truncate">
-                          {agent.name}
-                        </div>
-                        <div className="text-[11px] text-muted-foreground line-clamp-2 mt-0.5">
-                          {agent.description || '无描述'}
-                        </div>
-                        {agent.tools.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-1.5">
-                            {agent.tools.slice(0, 4).map((tool) => (
-                              <span
-                                key={tool}
-                                className="px-1.5 py-0.5 bg-muted text-muted-foreground rounded text-[10px]"
-                              >
-                                {tool}
-                              </span>
-                            ))}
-                            {agent.tools.length > 4 && (
-                              <span className="px-1.5 py-0.5 text-muted-foreground text-[10px]">
-                                +{agent.tools.length - 4}
-                              </span>
-                            )}
+                  {loading && agents.length === 0 ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2
+                        className="animate-spin text-primary"
+                        size={24}
+                      />
+                    </div>
+                  ) : listError ? (
+                    <div className="text-sm text-error py-4 text-center">
+                      {listError}
+                    </div>
+                  ) : filtered.length === 0 ? (
+                    <div className="text-sm text-muted-foreground py-4 text-center">
+                      {searchQuery ? '没有匹配的 Agent' : '暂无 Agent 定义'}
+                    </div>
+                  ) : (
+                    filtered.map((agent) => {
+                      const active = agent.id === selectedId;
+                      return (
+                        <button
+                          key={agent.id}
+                          onClick={() => handleSelectAgent(agent.id)}
+                          className={`w-full text-left rounded-lg border px-3 py-2 transition-colors ${
+                            active
+                              ? 'border-primary bg-brand-50'
+                              : 'border-border hover:bg-muted/50'
+                          }`}
+                        >
+                          <div className="text-sm font-medium text-foreground truncate">
+                            {agent.name}
                           </div>
-                        )}
-                      </button>
-                    );
-                  })
+                          <div className="text-[11px] text-muted-foreground line-clamp-2 mt-0.5">
+                            {agent.description || '无描述'}
+                          </div>
+                          {agent.tools.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-1.5">
+                              {agent.tools.slice(0, 4).map((tool) => (
+                                <span
+                                  key={tool}
+                                  className="px-1.5 py-0.5 bg-muted text-muted-foreground rounded text-[10px]"
+                                >
+                                  {tool}
+                                </span>
+                              ))}
+                              {agent.tools.length > 4 && (
+                                <span className="px-1.5 py-0.5 text-muted-foreground text-[10px]">
+                                  +{agent.tools.length - 4}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })
                   )}
                 </div>
               </CardContent>
@@ -268,73 +310,92 @@ tools:
             <Card className="min-h-[calc(100dvh-280px)] lg:min-h-[560px]">
               <CardContent>
                 {selectedId && detail ? (
-                <>
-                  {isMobile && (
-                    <button
-                      onClick={() => setShowContent(false)}
-                      className="flex items-center gap-1 text-sm text-primary mb-3 hover:underline"
-                    >
-                      <ArrowLeft className="w-4 h-4" />
-                      返回列表
-                    </button>
-                  )}
+                  <>
+                    {isMobile && (
+                      <button
+                        onClick={() => setShowContent(false)}
+                        className="flex items-center gap-1 text-sm text-primary mb-3 hover:underline"
+                      >
+                        <ArrowLeft className="w-4 h-4" />
+                        返回列表
+                      </button>
+                    )}
 
-                  {/* Meta info */}
-                  <div className="mb-3">
-                    <div className="text-sm font-semibold text-foreground break-all">{detail.name}</div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      最近更新时间: {updatedText} · 字节数: {byteCount}
+                    {/* Meta info */}
+                    <div className="mb-3">
+                      <div className="text-sm font-semibold text-foreground break-all">
+                        {detail.name}
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        最近更新时间: {updatedText} · 字节数: {byteCount}
+                      </div>
                     </div>
-                  </div>
 
-                  <Textarea
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    className="min-h-[calc(100dvh-380px)] lg:min-h-[460px] resize-y p-4 font-mono text-sm leading-6"
-                    placeholder={loadingDetail ? '正在加载...' : '此 Agent 暂无内容'}
-                    disabled={loadingDetail || saving}
-                    spellCheck={false}
-                  />
-
-                  <div className="mt-4 flex flex-wrap items-center gap-3">
-                    <Button onClick={handleSave} disabled={loadingDetail || saving || !dirty}>
-                      {saving && <Loader2 className="size-4 animate-spin" />}
-                      <Save className="w-4 h-4" />
-                      保存
-                    </Button>
-
-                    <Button
-                      variant="outline"
-                      onClick={() => loadDetail(selectedId)}
+                    <Textarea
+                      value={content}
+                      onChange={(e) => setContent(e.target.value)}
+                      className="min-h-[calc(100dvh-380px)] lg:min-h-[460px] resize-y p-4 font-mono text-sm leading-6"
+                      placeholder={
+                        loadingDetail ? '正在加载...' : '此 Agent 暂无内容'
+                      }
                       disabled={loadingDetail || saving}
-                    >
-                      <RefreshCw className="w-4 h-4" />
-                      重新加载
-                    </Button>
+                      spellCheck={false}
+                    />
 
-                    <Button
-                      variant="outline"
-                      onClick={handleDelete}
-                      disabled={deleting || saving}
-                      className="text-error hover:text-error hover:bg-error-bg"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      {deleting ? '删除中...' : '删除'}
-                    </Button>
+                    <div className="mt-4 flex flex-wrap items-center gap-3">
+                      <Button
+                        onClick={handleSave}
+                        disabled={loadingDetail || saving || !dirty}
+                      >
+                        {saving && <Loader2 className="size-4 animate-spin" />}
+                        <Save className="w-4 h-4" />
+                        保存
+                      </Button>
 
-                    {dirty && <span className="text-sm text-warning">有未保存修改</span>}
-                    {notice && <span className="text-sm text-success">{notice}</span>}
-                    {detailError && <span className="text-sm text-error">{detailError}</span>}
+                      <Button
+                        variant="outline"
+                        onClick={() => loadDetail(selectedId)}
+                        disabled={loadingDetail || saving}
+                      >
+                        <RefreshCw className="w-4 h-4" />
+                        重新加载
+                      </Button>
+
+                      <Button
+                        variant="outline"
+                        onClick={handleDelete}
+                        disabled={deleting || saving}
+                        className="text-error hover:text-error hover:bg-error-bg"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        {deleting ? '删除中...' : '删除'}
+                      </Button>
+
+                      {dirty && (
+                        <span className="text-sm text-warning">
+                          有未保存修改
+                        </span>
+                      )}
+                      {notice && (
+                        <span className="text-sm text-success">{notice}</span>
+                      )}
+                      {detailError && (
+                        <span className="text-sm text-error">
+                          {detailError}
+                        </span>
+                      )}
+                    </div>
+                  </>
+                ) : loadingDetail ? (
+                  <div className="flex items-center justify-center h-full">
+                    <Loader2 className="animate-spin text-primary" size={32} />
                   </div>
-                </>
-              ) : loadingDetail ? (
-                <div className="flex items-center justify-center h-full">
-                  <Loader2 className="animate-spin text-primary" size={32} />
-                </div>
-              ) : (
-                <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
-                  {selectedId ? (detailError || '加载失败') : '选择一个 Agent 查看详情'}
-                </div>
+                ) : (
+                  <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
+                    {selectedId
+                      ? detailError || '加载失败'
+                      : '选择一个 Agent 查看详情'}
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -347,32 +408,41 @@ tools:
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <Card className="w-full max-w-md mx-4">
             <CardContent>
-              <h2 className="text-lg font-semibold text-foreground mb-4">新建 Agent</h2>
+              <h2 className="text-lg font-semibold text-foreground mb-4">
+                新建 Agent
+              </h2>
               <div className="space-y-4">
                 <div>
-                  <Label className="mb-1">
-                    名称
-                  </Label>
-                <input
-                  type="text"
-                  value={createName}
-                  onChange={(e) => setCreateName(e.target.value)}
-                  placeholder="例如：code-reviewer"
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                  onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
-                  autoFocus
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  只允许小写字母、数字和连字符
-                </p>
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => { setShowCreate(false); setCreateName(''); }}>
-                  取消
-                </Button>
-                <Button onClick={handleCreate} disabled={!createName.trim() || creating}>
-                  {creating ? '创建中...' : '创建'}
-                </Button>
+                  <Label className="mb-1">名称</Label>
+                  <input
+                    type="text"
+                    value={createName}
+                    onChange={(e) => setCreateName(e.target.value)}
+                    placeholder="例如：code-reviewer"
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                    onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
+                    autoFocus
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    只允许小写字母、数字和连字符
+                  </p>
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowCreate(false);
+                      setCreateName('');
+                    }}
+                  >
+                    取消
+                  </Button>
+                  <Button
+                    onClick={handleCreate}
+                    disabled={!createName.trim() || creating}
+                  >
+                    {creating ? '创建中...' : '创建'}
+                  </Button>
                 </div>
               </div>
             </CardContent>

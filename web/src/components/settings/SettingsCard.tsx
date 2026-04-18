@@ -1,6 +1,11 @@
 import type { LucideIcon } from 'lucide-react';
 
-export function SettingsCard({ icon: Icon, title, desc, children }: {
+export function SettingsCard({
+  icon: Icon,
+  title,
+  desc,
+  children,
+}: {
   icon: LucideIcon;
   title: string;
   desc?: string;
@@ -14,7 +19,9 @@ export function SettingsCard({ icon: Icon, title, desc, children }: {
         </div>
         <div>
           <h3 className="text-sm font-semibold text-foreground">{title}</h3>
-          {desc && <p className="text-xs text-muted-foreground mt-0.5">{desc}</p>}
+          {desc && (
+            <p className="text-xs text-muted-foreground mt-0.5">{desc}</p>
+          )}
         </div>
       </div>
       <div className="px-5 py-4 space-y-4">{children}</div>

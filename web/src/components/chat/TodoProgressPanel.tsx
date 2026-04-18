@@ -11,7 +11,7 @@ interface TodoProgressPanelProps {
 }
 
 export function TodoProgressPanel({ todos }: TodoProgressPanelProps) {
-  const completed = todos.filter(t => t.status === 'completed').length;
+  const completed = todos.filter((t) => t.status === 'completed').length;
   const total = todos.length;
   const progress = total > 0 ? (completed / total) * 100 : 0;
 
@@ -48,13 +48,15 @@ export function TodoProgressPanel({ todos }: TodoProgressPanelProps) {
                 <Circle className="w-3.5 h-3.5 text-muted-foreground" />
               )}
             </span>
-            <span className={`break-words ${
-              todo.status === 'completed'
-                ? 'text-muted-foreground line-through'
-                : todo.status === 'in_progress'
-                  ? 'text-primary font-medium'
-                  : 'text-foreground'
-            }`}>
+            <span
+              className={`break-words ${
+                todo.status === 'completed'
+                  ? 'text-muted-foreground line-through'
+                  : todo.status === 'in_progress'
+                    ? 'text-primary font-medium'
+                    : 'text-foreground'
+              }`}
+            >
               {todo.content}
             </span>
           </div>

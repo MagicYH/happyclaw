@@ -10,7 +10,11 @@ interface BalancingSettingsProps {
   disabled: boolean;
 }
 
-export function BalancingSettings({ balancing, onChange, disabled }: BalancingSettingsProps) {
+export function BalancingSettings({
+  balancing,
+  onChange,
+  disabled,
+}: BalancingSettingsProps) {
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -51,7 +55,9 @@ export function BalancingSettings({ balancing, onChange, disabled }: BalancingSe
               value={balancing.strategy}
               disabled={disabled}
               onChange={(e) =>
-                onChange({ strategy: e.target.value as BalancingConfig['strategy'] })
+                onChange({
+                  strategy: e.target.value as BalancingConfig['strategy'],
+                })
               }
             >
               <option value="round-robin">轮询</option>
@@ -106,7 +112,10 @@ export function BalancingSettings({ balancing, onChange, disabled }: BalancingSe
                 onChange={(e) =>
                   onChange({
                     recoveryIntervalMs:
-                      Math.max(30, Math.min(3600, parseInt(e.target.value) || 300)) * 1000,
+                      Math.max(
+                        30,
+                        Math.min(3600, parseInt(e.target.value) || 300),
+                      ) * 1000,
                   })
                 }
                 className="h-8 text-sm"

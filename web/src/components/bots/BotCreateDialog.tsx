@@ -10,7 +10,11 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import type { BotCreateInput, BotConcurrencyMode, BotActivationMode } from '../../stores/bots';
+import type {
+  BotCreateInput,
+  BotConcurrencyMode,
+  BotActivationMode,
+} from '../../stores/bots';
 
 interface BotCreateDialogProps {
   open: boolean;
@@ -20,10 +24,15 @@ interface BotCreateDialogProps {
 
 const NAME_MAX = 50;
 
-export function BotCreateDialog({ open, onClose, onCreate }: BotCreateDialogProps) {
+export function BotCreateDialog({
+  open,
+  onClose,
+  onCreate,
+}: BotCreateDialogProps) {
   const [name, setName] = useState('');
   const [concurrency, setConcurrency] = useState<BotConcurrencyMode>('writer');
-  const [activation, setActivation] = useState<BotActivationMode>('when_mentioned');
+  const [activation, setActivation] =
+    useState<BotActivationMode>('when_mentioned');
   const [appId, setAppId] = useState('');
   const [appSecret, setAppSecret] = useState('');
   const [saving, setSaving] = useState(false);

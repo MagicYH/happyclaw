@@ -77,26 +77,42 @@ export function markFailed(
         event_type: 'bot_connection_failed',
         username: bot.user_id,
         actor_username: 'system',
-        details: { bot_id: botId, error_code: errorCode, consecutive: newCount },
+        details: {
+          bot_id: botId,
+          error_code: errorCode,
+          consecutive: newCount,
+        },
         ip_address: null,
         user_agent: null,
       });
-      logger.warn({ botId, errorCode, consecutive: newCount }, 'Bot consecutive failures reached threshold');
+      logger.warn(
+        { botId, errorCode, consecutive: newCount },
+        'Bot consecutive failures reached threshold',
+      );
     }
   }
 }
 
-export function markReconnecting(botId: string, deps: ConnectionStateDeps): void {
+export function markReconnecting(
+  botId: string,
+  deps: ConnectionStateDeps,
+): void {
   updateBotConnectionState(botId, { state: 'reconnecting' });
   broadcastCurrent(botId, deps);
 }
 
-export function markDisconnected(botId: string, deps: ConnectionStateDeps): void {
+export function markDisconnected(
+  botId: string,
+  deps: ConnectionStateDeps,
+): void {
   updateBotConnectionState(botId, { state: 'disconnected' });
   broadcastCurrent(botId, deps);
 }
 
 export function markDisabled(botId: string, deps: ConnectionStateDeps): void {
-  updateBotConnectionState(botId, { state: 'disabled', consecutiveFailures: 0 });
+  updateBotConnectionState(botId, {
+    state: 'disabled',
+    consecutiveFailures: 0,
+  });
   broadcastCurrent(botId, deps);
 }

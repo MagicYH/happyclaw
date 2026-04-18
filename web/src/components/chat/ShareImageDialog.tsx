@@ -57,7 +57,8 @@ export function ShareImageDialog({ onClose, message }: ShareImageDialogProps) {
   const currentUser = useAuthStore((s) => s.user);
   const appearance = useAuthStore((s) => s.appearance);
 
-  const senderName = currentUser?.ai_name || appearance?.aiName || message.sender_name || 'AI';
+  const senderName =
+    currentUser?.ai_name || appearance?.aiName || message.sender_name || 'AI';
   const aiEmoji = currentUser?.ai_avatar_emoji || appearance?.aiAvatarEmoji;
   const aiColor = currentUser?.ai_avatar_color || appearance?.aiAvatarColor;
   const aiImageUrl = currentUser?.ai_avatar_url;
@@ -133,7 +134,10 @@ export function ShareImageDialog({ onClose, message }: ShareImageDialogProps) {
     if (!dataUrl) return;
     downloadFromDataUrl(dataUrl, `share-${Date.now()}.png`).catch((err) => {
       console.error('Share image download failed:', err);
-      showToast('保存失败', err instanceof Error ? err.message : '图片保存出错，请重试');
+      showToast(
+        '保存失败',
+        err instanceof Error ? err.message : '图片保存出错，请重试',
+      );
     });
   };
 
@@ -165,7 +169,9 @@ export function ShareImageDialog({ onClose, message }: ShareImageDialogProps) {
       >
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-          <h2 className="text-base font-semibold text-foreground">生成分享图片</h2>
+          <h2 className="text-base font-semibold text-foreground">
+            生成分享图片
+          </h2>
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-foreground/10 transition-colors cursor-pointer"
@@ -179,7 +185,9 @@ export function ShareImageDialog({ onClose, message }: ShareImageDialogProps) {
           {state === 'generating' && (
             <div className="flex flex-col items-center justify-center py-16 gap-3">
               <RefreshCw className="w-6 h-6 text-primary animate-spin" />
-              <span className="text-sm text-muted-foreground">正在渲染图片...</span>
+              <span className="text-sm text-muted-foreground">
+                正在渲染图片...
+              </span>
             </div>
           )}
 
@@ -211,7 +219,11 @@ export function ShareImageDialog({ onClose, message }: ShareImageDialogProps) {
               onClick={handleCopy}
               className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium border border-border rounded-lg hover:bg-accent transition-colors cursor-pointer"
             >
-              {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+              {copied ? (
+                <Check className="w-4 h-4 text-emerald-500" />
+              ) : (
+                <Copy className="w-4 h-4" />
+              )}
               {copied ? '已复制' : '复制图片'}
             </button>
             <button
@@ -226,7 +238,15 @@ export function ShareImageDialog({ onClose, message }: ShareImageDialogProps) {
       </div>
 
       {/* Offscreen rendering area — NOT display:none so Mermaid SVGs get proper dimensions */}
-      <div style={{ position: 'fixed', left: -9999, top: 0, opacity: 0, pointerEvents: 'none' }}>
+      <div
+        style={{
+          position: 'fixed',
+          left: -9999,
+          top: 0,
+          opacity: 0,
+          pointerEvents: 'none',
+        }}
+      >
         <ShareCardRenderer
           ref={cardRef}
           content={message.content}

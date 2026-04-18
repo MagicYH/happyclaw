@@ -43,7 +43,12 @@ export function TerminalPanel({
       xtermRef.current.focus();
       if (connStateRef.current === 'connected') {
         const { cols, rows } = xtermRef.current;
-        wsManager.send({ type: 'terminal_resize', chatJid: groupJid, cols, rows });
+        wsManager.send({
+          type: 'terminal_resize',
+          chatJid: groupJid,
+          cols,
+          rows,
+        });
       }
     }, 300);
     return () => clearTimeout(timer);
@@ -56,7 +61,8 @@ export function TerminalPanel({
       cursorBlink: true,
       fontSize: 14,
       lineHeight: 1.15,
-      fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', Menlo, monospace",
+      fontFamily:
+        "'JetBrains Mono', 'Fira Code', 'Cascadia Code', Menlo, monospace",
       scrollback: 5000,
       convertEol: true,
       theme: {
@@ -128,12 +134,17 @@ export function TerminalPanel({
     const unsubStopped = wsManager.on('terminal_stopped', (data: any) => {
       if (data.chatJid === groupJid) {
         syncConnState('disconnected');
-        terminal.write(`\r\n\x1b[33m[${data.reason || '终端已断开'}]\x1b[0m\r\n`);
+        terminal.write(
+          `\r\n\x1b[33m[${data.reason || '终端已断开'}]\x1b[0m\r\n`,
+        );
         // Auto-reconnect after unexpected stop (not user-initiated)
         if (data.reason !== '用户关闭终端') {
           terminal.write('\x1b[33m[3 秒后自动重连...]\x1b[0m\r\n');
           setTimeout(() => {
-            if (connStateRef.current === 'disconnected' && wsManager.isConnected()) {
+            if (
+              connStateRef.current === 'disconnected' &&
+              wsManager.isConnected()
+            ) {
               requestStartTerminal();
             }
           }, 3000);
@@ -145,10 +156,18 @@ export function TerminalPanel({
       if (data.chatJid === groupJid) {
         syncConnState('disconnected');
         // 针对工作区未运行/启动中的错误，自动延迟重连
-        if (data.error?.includes('工作区未运行') || data.error?.includes('工作区启动中')) {
-          terminal.write(`\r\n\x1b[33m[工作区启动中，5 秒后自动重连...]\x1b[0m\r\n`);
+        if (
+          data.error?.includes('工作区未运行') ||
+          data.error?.includes('工作区启动中')
+        ) {
+          terminal.write(
+            `\r\n\x1b[33m[工作区启动中，5 秒后自动重连...]\x1b[0m\r\n`,
+          );
           setTimeout(() => {
-            if (connStateRef.current === 'disconnected' && wsManager.isConnected()) {
+            if (
+              connStateRef.current === 'disconnected' &&
+              wsManager.isConnected()
+            ) {
               requestStartTerminal();
             }
           }, 5000);
@@ -174,10 +193,14 @@ export function TerminalPanel({
     // xterm.js v6 内部已有 IME 处理，但 macOS 中文 IME 某些边界情况仍会泄漏
     let composing = false;
     const textarea = termRef.current?.querySelector('textarea');
-    const onCompositionStart = () => { composing = true; };
+    const onCompositionStart = () => {
+      composing = true;
+    };
     const onCompositionEnd = () => {
       // 延迟重置，确保 compositionend 后的 onData 事件能正确发送
-      setTimeout(() => { composing = false; }, 50);
+      setTimeout(() => {
+        composing = false;
+      }, 50);
     };
     if (textarea) {
       textarea.addEventListener('compositionstart', onCompositionStart);
@@ -203,7 +226,12 @@ export function TerminalPanel({
           fitAddonRef.current.fit();
           if (connStateRef.current === 'connected') {
             const { cols, rows } = xtermRef.current;
-            wsManager.send({ type: 'terminal_resize', chatJid: groupJid, cols, rows });
+            wsManager.send({
+              type: 'terminal_resize',
+              chatJid: groupJid,
+              cols,
+              rows,
+            });
           }
         }
       }, 150);
@@ -242,15 +270,23 @@ export function TerminalPanel({
       {/* Status bar */}
       <div className="flex items-center justify-between px-3 py-1.5 bg-[#1a1b26] border-b border-[#2a2b36] text-xs">
         <div className="flex items-center gap-2">
-          <span className={`inline-block w-2 h-2 rounded-full ${
-            connState === 'connected' ? 'bg-green-400' :
-            connState === 'connecting' ? 'bg-yellow-400 animate-pulse' :
-            'bg-neutral-500'
-          }`} />
+          <span
+            className={`inline-block w-2 h-2 rounded-full ${
+              connState === 'connected'
+                ? 'bg-green-400'
+                : connState === 'connecting'
+                  ? 'bg-yellow-400 animate-pulse'
+                  : 'bg-neutral-500'
+            }`}
+          />
           <span className="text-neutral-400">
-            {connState === 'connected' ? '已连接' :
-             connState === 'connecting' ? '连接中...' :
-             connState === 'disconnected' ? '已断开' : '空闲'}
+            {connState === 'connected'
+              ? '已连接'
+              : connState === 'connecting'
+                ? '连接中...'
+                : connState === 'disconnected'
+                  ? '已断开'
+                  : '空闲'}
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -299,7 +335,10 @@ export function TerminalPanel({
         </div>
       </div>
       {/* Terminal container */}
-      <div ref={termRef} className="flex-1 min-h-0 overflow-hidden bg-[#1a1b26]" />
+      <div
+        ref={termRef}
+        className="flex-1 min-h-0 overflow-hidden bg-[#1a1b26]"
+      />
     </div>
   );
 }

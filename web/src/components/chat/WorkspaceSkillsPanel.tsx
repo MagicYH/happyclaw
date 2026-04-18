@@ -1,9 +1,20 @@
 import { useEffect, useState } from 'react';
-import { Loader2, Plus, Puzzle, ToggleLeft, ToggleRight, Trash2, RefreshCw } from 'lucide-react';
+import {
+  Loader2,
+  Plus,
+  Puzzle,
+  ToggleLeft,
+  ToggleRight,
+  Trash2,
+  RefreshCw,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { EmptyState } from '@/components/common/EmptyState';
-import { useWorkspaceConfigStore, type WorkspaceSkill } from '../../stores/workspace-config';
+import {
+  useWorkspaceConfigStore,
+  type WorkspaceSkill,
+} from '../../stores/workspace-config';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 
 interface WorkspaceSkillsPanelProps {
@@ -11,7 +22,10 @@ interface WorkspaceSkillsPanelProps {
   onClose?: () => void;
 }
 
-export function WorkspaceSkillsPanel({ groupJid, onClose: _onClose }: WorkspaceSkillsPanelProps) {
+export function WorkspaceSkillsPanel({
+  groupJid,
+  onClose: _onClose,
+}: WorkspaceSkillsPanelProps) {
   const {
     skills,
     skillsLoading,
@@ -65,7 +79,9 @@ export function WorkspaceSkillsPanel({ groupJid, onClose: _onClose }: WorkspaceS
             disabled={skillsLoading}
             className="h-7 w-7 p-0"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${skillsLoading ? 'animate-spin' : ''}`} />
+            <RefreshCw
+              className={`w-3.5 h-3.5 ${skillsLoading ? 'animate-spin' : ''}`}
+            />
           </Button>
           <Button
             variant="ghost"
@@ -127,7 +143,11 @@ export function WorkspaceSkillsPanel({ groupJid, onClose: _onClose }: WorkspaceS
             title="无工作区 Skills"
             description="当前工作区 .claude/skills/ 下没有自定义技能"
             action={
-              <Button variant="outline" size="sm" onClick={() => setShowInstall(true)}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowInstall(true)}
+              >
                 <Plus className="w-3.5 h-3.5 mr-1" />
                 安装技能
               </Button>
@@ -139,7 +159,9 @@ export function WorkspaceSkillsPanel({ groupJid, onClose: _onClose }: WorkspaceS
               <SkillRow
                 key={skill.id}
                 skill={skill}
-                onToggle={(enabled) => toggleWorkspaceSkill(groupJid, skill.id, enabled)}
+                onToggle={(enabled) =>
+                  toggleWorkspaceSkill(groupJid, skill.id, enabled)
+                }
                 onDelete={() => setDeleteTarget(skill.id)}
               />
             ))}

@@ -46,24 +46,34 @@ describe('BotConnectionBadge', () => {
   });
 
   test('connecting → spinner + 连接中', () => {
-    render(<BotConnectionBadge bot={make({ connection_state: 'connecting' })} />);
+    render(
+      <BotConnectionBadge bot={make({ connection_state: 'connecting' })} />,
+    );
     expect(screen.getByLabelText(/连接中/)).toBeInTheDocument();
   });
 
   test('reconnecting → spinner + 重连中', () => {
-    render(<BotConnectionBadge bot={make({ connection_state: 'reconnecting' })} />);
+    render(
+      <BotConnectionBadge bot={make({ connection_state: 'reconnecting' })} />,
+    );
     expect(screen.getByLabelText(/重连中/)).toBeInTheDocument();
   });
 
   test('disconnected → muted color + 未连接', () => {
-    render(<BotConnectionBadge bot={make({ connection_state: 'disconnected' })} />);
+    render(
+      <BotConnectionBadge bot={make({ connection_state: 'disconnected' })} />,
+    );
     const el = screen.getByLabelText(/未连接/);
     expect(el).toBeInTheDocument();
     expect(el.className).toMatch(/text-muted/);
   });
 
   test('disabled → muted color + 已停用', () => {
-    render(<BotConnectionBadge bot={make({ connection_state: 'disabled', status: 'inactive' })} />);
+    render(
+      <BotConnectionBadge
+        bot={make({ connection_state: 'disabled', status: 'inactive' })}
+      />,
+    );
     const el = screen.getByLabelText(/已停用/);
     expect(el).toBeInTheDocument();
     expect(el.className).toMatch(/text-muted/);
@@ -72,7 +82,11 @@ describe('BotConnectionBadge', () => {
   test('error without error code → only label shown', () => {
     render(
       <BotConnectionBadge
-        bot={make({ connection_state: 'error', consecutive_failures: 1, last_error_code: null })}
+        bot={make({
+          connection_state: 'error',
+          consecutive_failures: 1,
+          last_error_code: null,
+        })}
       />,
     );
     const el = screen.getByLabelText(/连接失败/);
@@ -82,7 +96,11 @@ describe('BotConnectionBadge', () => {
   });
 
   test('connected shows last_connected_at in title tooltip', () => {
-    render(<BotConnectionBadge bot={make({ last_connected_at: '2026-04-17T10:00:00Z' })} />);
+    render(
+      <BotConnectionBadge
+        bot={make({ last_connected_at: '2026-04-17T10:00:00Z' })}
+      />,
+    );
     const el = screen.getByLabelText(/已连接/);
     expect(el.getAttribute('title')).toContain('2026-04-17');
   });

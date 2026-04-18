@@ -13,11 +13,11 @@
  */
 
 interface Metrics {
-  queue_depth: Record<string, number>;                   // folder → 当前深度
-  queue_processed_total: Record<string, number>;         // folder|bot_id → 累计
-  hook_invocations_total: Record<string, number>;        // bot_id|tool → 累计
-  hook_denies_total: Record<string, number>;             // bot_id|tool|reason → 累计
-  scratch_size_bytes: Record<string, number>;            // folder|bot_id → bytes
+  queue_depth: Record<string, number>; // folder → 当前深度
+  queue_processed_total: Record<string, number>; // folder|bot_id → 累计
+  hook_invocations_total: Record<string, number>; // bot_id|tool → 累计
+  hook_denies_total: Record<string, number>; // bot_id|tool|reason → 累计
+  scratch_size_bytes: Record<string, number>; // folder|bot_id → bytes
   updated_at: string;
 }
 
@@ -64,7 +64,8 @@ export function recordQueueProcessed(folder: string, botId: string): void {
   metrics.queue_depth[folder] = Math.max(0, cur - 1);
   // 累计
   const k = `${folder}|${botId}`;
-  metrics.queue_processed_total[k] = (metrics.queue_processed_total[k] ?? 0) + 1;
+  metrics.queue_processed_total[k] =
+    (metrics.queue_processed_total[k] ?? 0) + 1;
   touch();
 }
 
@@ -73,7 +74,8 @@ export function recordQueueProcessed(folder: string, botId: string): void {
  */
 export function recordHookInvocation(botId: string, tool: string): void {
   const k = `${botId}|${tool}`;
-  metrics.hook_invocations_total[k] = (metrics.hook_invocations_total[k] ?? 0) + 1;
+  metrics.hook_invocations_total[k] =
+    (metrics.hook_invocations_total[k] ?? 0) + 1;
   touch();
 }
 
@@ -81,7 +83,11 @@ export function recordHookInvocation(botId: string, tool: string): void {
  * Hook 拒绝：per (bot_id|tool|reason) 累计
  * 由主进程在解析 stream_event hook_deny 时调用。
  */
-export function recordHookDeny(botId: string, tool: string, reason: string): void {
+export function recordHookDeny(
+  botId: string,
+  tool: string,
+  reason: string,
+): void {
   const k = `${botId}|${tool}|${reason}`;
   metrics.hook_denies_total[k] = (metrics.hook_denies_total[k] ?? 0) + 1;
   touch();
@@ -90,7 +96,11 @@ export function recordHookDeny(botId: string, tool: string, reason: string): voi
 /**
  * Scratch 目录体积：per (folder|bot_id) 覆盖更新（单位：bytes）
  */
-export function recordScratchSize(folder: string, botId: string, bytes: number): void {
+export function recordScratchSize(
+  folder: string,
+  botId: string,
+  bytes: number,
+): void {
   metrics.scratch_size_bytes[`${folder}|${botId}`] = bytes;
   touch();
 }

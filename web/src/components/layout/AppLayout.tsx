@@ -50,7 +50,9 @@ export function AppLayout() {
         useBillingStore.getState().handleBillingUpdate(data.usage);
       }
     });
-    return () => { unsub(); };
+    return () => {
+      unsub();
+    };
   }, []);
 
   // 监听 runner_state 更新 sidebar 运行状态指示器
@@ -61,7 +63,9 @@ export function AppLayout() {
         useChatStore.getState().handleRunnerState(data.chatJid, data.state);
       }
     });
-    return () => { unsub(); };
+    return () => {
+      unsub();
+    };
   }, []);
 
   // 监听 group_created（定时任务工作区创建），刷新侧边栏和任务列表
@@ -69,13 +73,19 @@ export function AppLayout() {
     const unsub = wsManager.on('group_created', () => {
       useGroupsStore.getState().loadGroups();
       // Also refresh tasks — workspace_folder may have been populated
-      import('../../stores/tasks').then((m) => m.useTasksStore.getState().loadTasks());
+      import('../../stores/tasks').then((m) =>
+        m.useTasksStore.getState().loadTasks(),
+      );
     });
-    return () => { unsub(); };
+    return () => {
+      unsub();
+    };
   }, []);
 
   // 更新 document.title，显示未读回复数
-  const totalUnread = useChatStore((s) => Object.values(s.unreadReplies).reduce((sum, n) => sum + n, 0));
+  const totalUnread = useChatStore((s) =>
+    Object.values(s.unreadReplies).reduce((sum, n) => sum + n, 0),
+  );
   const appearance = useAuthStore((s) => s.appearance);
   useEffect(() => {
     const appName = appearance?.appName || 'HappyClaw';
@@ -86,13 +96,22 @@ export function AppLayout() {
   useEffect(() => {
     const unsub = wsManager.on('agent_status', (data: any) => {
       if (data.chatJid && data.agentId) {
-        useChatStore.getState().handleAgentStatus(
-          data.chatJid, data.agentId, data.status,
-          data.name, data.prompt, data.resultSummary, data.kind,
-        );
+        useChatStore
+          .getState()
+          .handleAgentStatus(
+            data.chatJid,
+            data.agentId,
+            data.status,
+            data.name,
+            data.prompt,
+            data.resultSummary,
+            data.kind,
+          );
       }
     });
-    return () => { unsub(); };
+    return () => {
+      unsub();
+    };
   }, []);
 
   return (

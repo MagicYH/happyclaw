@@ -18,7 +18,8 @@ function isNavigatorStandalone(): boolean {
 
 export function isStandaloneMode(): boolean {
   if (typeof window === 'undefined') return false;
-  const displayStandalone = window.matchMedia?.('(display-mode: standalone)').matches ?? false;
+  const displayStandalone =
+    window.matchMedia?.('(display-mode: standalone)').matches ?? false;
   return displayStandalone || isNavigatorStandalone();
 }
 
@@ -26,7 +27,8 @@ export function isIOSDevice(): boolean {
   if (typeof navigator === 'undefined') return false;
   const ua = navigator.userAgent || '';
   const iOS = /iPad|iPhone|iPod/i.test(ua);
-  const iPadOSDesktopUA = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+  const iPadOSDesktopUA =
+    navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
   return iOS || iPadOSDesktopUA;
 }
 

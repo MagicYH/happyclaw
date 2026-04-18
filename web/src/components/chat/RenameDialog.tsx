@@ -19,7 +19,12 @@ interface RenameDialogProps {
   onClose: () => void;
 }
 
-export function RenameDialog({ open, jid, currentName, onClose }: RenameDialogProps) {
+export function RenameDialog({
+  open,
+  jid,
+  currentName,
+  onClose,
+}: RenameDialogProps) {
   const [name, setName] = useState(currentName);
   const [loading, setLoading] = useState(false);
   const renameFlow = useChatStore((s) => s.renameFlow);
@@ -53,7 +58,9 @@ export function RenameDialog({ open, jid, currentName, onClose }: RenameDialogPr
           <Input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') handleConfirm(); }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleConfirm();
+            }}
             placeholder="输入新名称"
             autoFocus
           />

@@ -38,7 +38,8 @@ function rowToBot(row: Record<string, unknown>): Bot {
     created_at: String(row.created_at),
     updated_at: String(row.updated_at),
     // PR3: connection state fields
-    connection_state: (row.connection_state ?? 'disconnected') as BotConnectionState,
+    connection_state: (row.connection_state ??
+      'disconnected') as BotConnectionState,
     last_connected_at:
       row.last_connected_at == null ? null : String(row.last_connected_at),
     consecutive_failures: Number(row.consecutive_failures ?? 0),
@@ -319,8 +320,10 @@ export function getBotConnectionState(botId: string): {
   if (!row) return null;
   return {
     state: (row.state ?? 'disconnected') as BotConnectionState,
-    last_connected_at: row.last_connected_at == null ? null : String(row.last_connected_at),
+    last_connected_at:
+      row.last_connected_at == null ? null : String(row.last_connected_at),
     consecutive_failures: Number(row.consecutive_failures ?? 0),
-    last_error_code: row.last_error_code == null ? null : String(row.last_error_code),
+    last_error_code:
+      row.last_error_code == null ? null : String(row.last_error_code),
   };
 }

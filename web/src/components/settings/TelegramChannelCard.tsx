@@ -51,7 +51,9 @@ export function TelegramChannelCard() {
   const loadConfig = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await api.get<UserTelegramConfig>('/api/config/user-im/telegram');
+      const data = await api.get<UserTelegramConfig>(
+        '/api/config/user-im/telegram',
+      );
       setConfig(data);
       setBotToken('');
       setProxyUrl(data.proxyUrl || '');
@@ -70,7 +72,10 @@ export function TelegramChannelCard() {
   const handleToggle = async (newEnabled: boolean) => {
     setToggling(true);
     try {
-      const data = await api.put<UserTelegramConfig>('/api/config/user-im/telegram', { enabled: newEnabled });
+      const data = await api.put<UserTelegramConfig>(
+        '/api/config/user-im/telegram',
+        { enabled: newEnabled },
+      );
       setConfig(data);
       toast.success(`Telegram 渠道已${newEnabled ? '启用' : '停用'}`);
     } catch (err) {
@@ -96,7 +101,10 @@ export function TelegramChannelCard() {
       if (proxy) payload.proxyUrl = proxy;
       else if (!proxy && config?.proxyUrl) payload.clearProxyUrl = true;
 
-      const data = await api.put<UserTelegramConfig>('/api/config/user-im/telegram', payload);
+      const data = await api.put<UserTelegramConfig>(
+        '/api/config/user-im/telegram',
+        payload,
+      );
       setConfig(data);
       setBotToken('');
       setProxyUrl(data.proxyUrl || '');
@@ -111,9 +119,13 @@ export function TelegramChannelCard() {
   const handleTest = async () => {
     setTesting(true);
     try {
-      const result = await api.post<TelegramTestResult>('/api/config/user-im/telegram/test');
+      const result = await api.post<TelegramTestResult>(
+        '/api/config/user-im/telegram/test',
+      );
       if (result.success) {
-        toast.success(`Telegram 连接成功！Bot: @${result.bot_username} (${result.bot_name})`);
+        toast.success(
+          `Telegram 连接成功！Bot: @${result.bot_username} (${result.bot_name})`,
+        );
       } else {
         toast.error(result.error || 'Telegram 连接失败');
       }
@@ -135,16 +147,26 @@ export function TelegramChannelCard() {
     <div className="rounded-xl border border-border bg-card overflow-hidden">
       <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-muted/50">
         <div className="flex items-center gap-2">
-          <span className={`inline-block w-2 h-2 rounded-full ${config?.connected ? 'bg-success' : 'bg-muted-foreground/40'}`} />
+          <span
+            className={`inline-block w-2 h-2 rounded-full ${config?.connected ? 'bg-success' : 'bg-muted-foreground/40'}`}
+          />
           <div>
             <h3 className="text-sm font-semibold text-foreground">Telegram</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">通过 Telegram Bot 接收和回复消息</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              通过 Telegram Bot 接收和回复消息
+            </p>
           </div>
         </div>
-        <Switch checked={enabled} disabled={loading || toggling} onCheckedChange={handleToggle} />
+        <Switch
+          checked={enabled}
+          disabled={loading || toggling}
+          onCheckedChange={handleToggle}
+        />
       </div>
 
-      <div className={`px-5 py-4 space-y-4 transition-opacity ${!enabled ? 'opacity-50 pointer-events-none' : ''}`}>
+      <div
+        className={`px-5 py-4 space-y-4 transition-opacity ${!enabled ? 'opacity-50 pointer-events-none' : ''}`}
+      >
         {loading ? (
           <div className="text-sm text-muted-foreground">加载中...</div>
         ) : (
@@ -155,16 +177,22 @@ export function TelegramChannelCard() {
               </div>
             )}
             <div>
-              <Label className="text-xs text-muted-foreground mb-1">Bot Token</Label>
+              <Label className="text-xs text-muted-foreground mb-1">
+                Bot Token
+              </Label>
               <Input
                 type="password"
                 value={botToken}
                 onChange={(e) => setBotToken(e.target.value)}
-                placeholder={config?.hasBotToken ? '留空不修改' : '输入 Telegram Bot Token'}
+                placeholder={
+                  config?.hasBotToken ? '留空不修改' : '输入 Telegram Bot Token'
+                }
               />
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground mb-1">代理 URL（可选）</Label>
+              <Label className="text-xs text-muted-foreground mb-1">
+                代理 URL（可选）
+              </Label>
               <Input
                 type="text"
                 value={proxyUrl}
@@ -172,7 +200,9 @@ export function TelegramChannelCard() {
                 placeholder="例如 http://127.0.0.1:7897 或 socks5://127.0.0.1:7897"
               />
               {proxyHint && (
-                <p className="mt-1 text-xs text-muted-foreground">{proxyHint}</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {proxyHint}
+                </p>
               )}
             </div>
             <div className="flex flex-wrap items-center gap-3">
@@ -181,7 +211,11 @@ export function TelegramChannelCard() {
                 保存 Telegram 配置
               </Button>
               {config?.hasBotToken && (
-                <Button variant="outline" onClick={handleTest} disabled={testing}>
+                <Button
+                  variant="outline"
+                  onClick={handleTest}
+                  disabled={testing}
+                >
                   {testing && <Loader2 className="size-4 animate-spin" />}
                   测试连接
                 </Button>

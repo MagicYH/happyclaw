@@ -22,7 +22,8 @@ export default function AdminPlansList({
 
   const handleDelete = async (plan: BillingPlan) => {
     if (plan.is_default) return;
-    const sub = (plan as BillingPlan & { subscriber_count?: number }).subscriber_count;
+    const sub = (plan as BillingPlan & { subscriber_count?: number })
+      .subscriber_count;
     const msg = sub
       ? `套餐「${plan.name}」下还有 ${sub} 个订阅用户，确定删除？`
       : `确定删除套餐「${plan.name}」？`;

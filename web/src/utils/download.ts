@@ -32,7 +32,10 @@ function triggerBlobDownload(blob: Blob, filename: string): void {
  * Download a file from an API endpoint (or any same-origin URL).
  * Uses fetch with credentials so auth cookies are always included.
  */
-export async function downloadFromUrl(url: string, filename: string): Promise<void> {
+export async function downloadFromUrl(
+  url: string,
+  filename: string,
+): Promise<void> {
   const fullUrl = url.startsWith('http') ? url : withBasePath(url);
   const res = await fetch(fullUrl, { credentials: 'include' });
   if (!res.ok) {
@@ -46,7 +49,10 @@ export async function downloadFromUrl(url: string, filename: string): Promise<vo
  * Download a data-URL (e.g. from html-to-image / canvas) as a file.
  * Converts to Blob first to avoid browser data-URL size limits.
  */
-export async function downloadFromDataUrl(dataUrl: string, filename: string): Promise<void> {
+export async function downloadFromDataUrl(
+  dataUrl: string,
+  filename: string,
+): Promise<void> {
   const res = await fetch(dataUrl);
   const blob = await res.blob();
   triggerBlobDownload(blob, filename);

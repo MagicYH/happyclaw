@@ -27,9 +27,7 @@ export function GroupsPage() {
           className="mb-6"
         />
 
-        {loading && (
-          <SkeletonCardGrid />
-        )}
+        {loading && <SkeletonCardGrid />}
 
         {!loading && groupsArray.length === 0 && (
           <EmptyState

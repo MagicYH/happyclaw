@@ -78,27 +78,30 @@ export default function UserBillingDrawer({
   const [adjDesc, setAdjDesc] = useState('');
   const [adjusting, setAdjusting] = useState(false);
 
-  const loadDetail = useCallback(async (uid: string) => {
-    setLoading(true);
-    try {
-      const [d, tx] = await Promise.all([
-        api.get<UserDetail>(`/api/billing/admin/users/${uid}/detail`),
-        api.get<{ transactions: BalanceTransaction[] }>(
-          `/api/billing/admin/users/${uid}/transactions?limit=20`,
-        ),
-      ]);
-      setDetail(d);
-      setTransactions(tx.transactions);
-      const hist = await getUserSubscriptionHistory(uid);
-      setSubHistory(hist);
-    } catch {
-      setDetail(null);
-      setTransactions([]);
-      setSubHistory([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [getUserSubscriptionHistory]);
+  const loadDetail = useCallback(
+    async (uid: string) => {
+      setLoading(true);
+      try {
+        const [d, tx] = await Promise.all([
+          api.get<UserDetail>(`/api/billing/admin/users/${uid}/detail`),
+          api.get<{ transactions: BalanceTransaction[] }>(
+            `/api/billing/admin/users/${uid}/transactions?limit=20`,
+          ),
+        ]);
+        setDetail(d);
+        setTransactions(tx.transactions);
+        const hist = await getUserSubscriptionHistory(uid);
+        setSubHistory(hist);
+      } catch {
+        setDetail(null);
+        setTransactions([]);
+        setSubHistory([]);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [getUserSubscriptionHistory],
+  );
 
   useEffect(() => {
     if (userId) {
@@ -178,11 +181,12 @@ export default function UserBillingDrawer({
                   </span>
                 )}
               </div>
-              {detail.subscription_status && detail.subscription_status !== 'default' && (
-                <span className="text-xs text-zinc-400">
-                  状态: {detail.subscription_status}
-                </span>
-              )}
+              {detail.subscription_status &&
+                detail.subscription_status !== 'default' && (
+                  <span className="text-xs text-zinc-400">
+                    状态: {detail.subscription_status}
+                  </span>
+                )}
             </div>
 
             {/* Balance */}
@@ -207,7 +211,11 @@ export default function UserBillingDrawer({
                   ) : (
                     <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
                   )}
-                  <span>{detail.access_allowed ? '当前可用' : detail.access_reason || '当前被计费阻断'}</span>
+                  <span>
+                    {detail.access_allowed
+                      ? '当前可用'
+                      : detail.access_reason || '当前被计费阻断'}
+                  </span>
                 </div>
                 <p className="mt-1 opacity-80">
                   最低起用余额 {fmt(detail.min_balance_usd ?? 0)}
@@ -373,7 +381,9 @@ export default function UserBillingDrawer({
                       className="flex justify-between items-center py-1.5 border-b border-zinc-100 dark:border-zinc-700 last:border-0"
                     >
                       <div>
-                        <div className="text-xs">{tx.description || tx.type}</div>
+                        <div className="text-xs">
+                          {tx.description || tx.type}
+                        </div>
                         <div className="flex items-center gap-1.5 text-[10px] text-zinc-400">
                           {new Date(tx.created_at).toLocaleString()}
                           {(tx.source || tx.type) && (
@@ -385,9 +395,7 @@ export default function UserBillingDrawer({
                       </div>
                       <span
                         className={`text-xs font-medium ${
-                          tx.amount_usd > 0
-                            ? 'text-green-600'
-                            : 'text-red-500'
+                          tx.amount_usd > 0 ? 'text-green-600' : 'text-red-500'
                         }`}
                       >
                         {tx.amount_usd > 0 ? '+' : ''}

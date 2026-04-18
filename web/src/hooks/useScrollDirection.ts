@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 
-export function useScrollDirection(scrollRef?: React.RefObject<HTMLElement | null>): 'up' | 'down' | null {
+export function useScrollDirection(
+  scrollRef?: React.RefObject<HTMLElement | null>,
+): 'up' | 'down' | null {
   const [direction, setDirection] = useState<'up' | 'down' | null>(null);
   const lastScrollTop = useRef(0);
   const ticking = useRef(false);
@@ -8,7 +10,9 @@ export function useScrollDirection(scrollRef?: React.RefObject<HTMLElement | nul
   useEffect(() => {
     // If a specific scrollRef is provided, use that element.
     // Otherwise fall back to the app scroll root, then window scroll.
-    const appScrollRoot = document.querySelector<HTMLElement>('[data-app-scroll-root="true"]');
+    const appScrollRoot = document.querySelector<HTMLElement>(
+      '[data-app-scroll-root="true"]',
+    );
     const el = scrollRef?.current ?? appScrollRoot ?? null;
     const threshold = 20;
 

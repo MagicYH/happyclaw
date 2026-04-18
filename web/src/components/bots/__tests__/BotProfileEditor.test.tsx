@@ -5,9 +5,15 @@ import { BotProfileEditor } from '../BotProfileEditor';
 
 describe('BotProfileEditor', () => {
   test('loads content on mount', async () => {
-    const load = vi.fn().mockResolvedValue({ content: '# Role\n\nHello', mode: 'writer' });
-    render(<BotProfileEditor botId="bot_a" onLoad={load} onSave={async () => {}} />);
-    await waitFor(() => expect(screen.getByDisplayValue(/# Role/)).toBeInTheDocument());
+    const load = vi
+      .fn()
+      .mockResolvedValue({ content: '# Role\n\nHello', mode: 'writer' });
+    render(
+      <BotProfileEditor botId="bot_a" onLoad={load} onSave={async () => {}} />,
+    );
+    await waitFor(() =>
+      expect(screen.getByDisplayValue(/# Role/)).toBeInTheDocument(),
+    );
   });
 
   test('save calls onSave with edited content', async () => {
@@ -47,7 +53,9 @@ describe('BotProfileEditor', () => {
         onSave={async () => {}}
       />,
     );
-    await waitFor(() => expect(screen.getByText(/只读模式/)).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText(/只读模式/)).toBeInTheDocument(),
+    );
   });
 
   test('shows character count', async () => {
@@ -78,16 +86,26 @@ describe('BotProfileEditor', () => {
     render(
       <BotProfileEditor
         botId="bot_a"
-        onLoad={async () => { throw new Error('Network error'); }}
+        onLoad={async () => {
+          throw new Error('Network error');
+        }}
         onSave={async () => {}}
       />,
     );
-    await waitFor(() => expect(screen.getByText(/加载失败/)).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText(/加载失败/)).toBeInTheDocument(),
+    );
   });
 
   test('onLoad is called with botId', async () => {
     const load = vi.fn().mockResolvedValue({ content: '', mode: 'writer' });
-    render(<BotProfileEditor botId="bot_xyz" onLoad={load} onSave={async () => {}} />);
+    render(
+      <BotProfileEditor
+        botId="bot_xyz"
+        onLoad={load}
+        onSave={async () => {}}
+      />,
+    );
     await waitFor(() => expect(load).toHaveBeenCalledWith('bot_xyz'));
   });
 });

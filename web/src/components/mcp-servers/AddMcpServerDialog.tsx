@@ -1,7 +1,12 @@
 import { useState } from 'react';
 import { Loader2, Plus, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -25,14 +30,20 @@ const ID_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9_-]*$/;
 
 type ServerType = 'stdio' | 'http' | 'sse';
 
-export function AddMcpServerDialog({ open, onClose, onAdd }: AddMcpServerDialogProps) {
+export function AddMcpServerDialog({
+  open,
+  onClose,
+  onAdd,
+}: AddMcpServerDialogProps) {
   const [id, setId] = useState('');
   const [serverType, setServerType] = useState<ServerType>('stdio');
   const [command, setCommand] = useState('');
   const [args, setArgs] = useState<string[]>([]);
   const [env, setEnv] = useState<Array<{ key: string; value: string }>>([]);
   const [url, setUrl] = useState('');
-  const [headers, setHeaders] = useState<Array<{ key: string; value: string }>>([]);
+  const [headers, setHeaders] = useState<Array<{ key: string; value: string }>>(
+    [],
+  );
   const [description, setDescription] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -58,8 +69,10 @@ export function AddMcpServerDialog({ open, onClose, onAdd }: AddMcpServerDialogP
 
   const validate = (): string | null => {
     if (!id.trim()) return 'ID 不能为空';
-    if (!ID_PATTERN.test(id.trim())) return 'ID 只能包含字母、数字、短横线和下划线，且不能以符号开头';
-    if (id.trim().toLowerCase() === 'happyclaw') return 'ID 不能为 happyclaw（系统保留）';
+    if (!ID_PATTERN.test(id.trim()))
+      return 'ID 只能包含字母、数字、短横线和下划线，且不能以符号开头';
+    if (id.trim().toLowerCase() === 'happyclaw')
+      return 'ID 不能为 happyclaw（系统保留）';
     if (isHttpType) {
       if (!url.trim()) return 'URL 不能为空';
     } else {
@@ -209,7 +222,9 @@ export function AddMcpServerDialog({ open, onClose, onAdd }: AddMcpServerDialogP
                       />
                       <button
                         type="button"
-                        onClick={() => setHeaders(headers.filter((_, j) => j !== i))}
+                        onClick={() =>
+                          setHeaders(headers.filter((_, j) => j !== i))
+                        }
                         disabled={submitting}
                         className="p-1.5 text-muted-foreground hover:text-error transition-colors disabled:opacity-50"
                       >
@@ -221,7 +236,9 @@ export function AddMcpServerDialog({ open, onClose, onAdd }: AddMcpServerDialogP
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => setHeaders([...headers, { key: '', value: '' }])}
+                    onClick={() =>
+                      setHeaders([...headers, { key: '', value: '' }])
+                    }
                     disabled={submitting}
                   >
                     <Plus size={14} />
@@ -356,10 +373,22 @@ export function AddMcpServerDialog({ open, onClose, onAdd }: AddMcpServerDialogP
 
           {/* Actions */}
           <div className="flex items-center justify-end gap-3 pt-2">
-            <Button type="button" variant="ghost" onClick={handleClose} disabled={submitting}>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={handleClose}
+              disabled={submitting}
+            >
               取消
             </Button>
-            <Button type="submit" disabled={submitting || !id.trim() || (isHttpType ? !url.trim() : !command.trim())}>
+            <Button
+              type="submit"
+              disabled={
+                submitting ||
+                !id.trim() ||
+                (isHttpType ? !url.trim() : !command.trim())
+              }
+            >
               {submitting && <Loader2 className="size-4 animate-spin" />}
               添加
             </Button>

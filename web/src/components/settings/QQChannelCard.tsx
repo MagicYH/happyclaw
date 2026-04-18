@@ -61,7 +61,9 @@ export function QQChannelCard() {
   const handleToggle = async (newEnabled: boolean) => {
     setToggling(true);
     try {
-      const data = await api.put<UserQQConfig>('/api/config/user-im/qq', { enabled: newEnabled });
+      const data = await api.put<UserQQConfig>('/api/config/user-im/qq', {
+        enabled: newEnabled,
+      });
       setConfig(data);
       toast.success(`QQ 渠道已${newEnabled ? '启用' : '停用'}`);
     } catch (err) {
@@ -96,7 +98,10 @@ export function QQChannelCard() {
       const payload: Record<string, string | boolean> = { enabled: true };
       if (id) payload.appId = id;
       if (secret) payload.appSecret = secret;
-      const data = await api.put<UserQQConfig>('/api/config/user-im/qq', payload);
+      const data = await api.put<UserQQConfig>(
+        '/api/config/user-im/qq',
+        payload,
+      );
       setConfig(data);
       setAppSecret('');
       toast.success('QQ 配置已保存');
@@ -123,16 +128,26 @@ export function QQChannelCard() {
     <div className="rounded-xl border border-border bg-card overflow-hidden">
       <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-muted/50">
         <div className="flex items-center gap-2">
-          <span className={`inline-block w-2 h-2 rounded-full ${config?.connected ? 'bg-success' : 'bg-muted-foreground/40'}`} />
+          <span
+            className={`inline-block w-2 h-2 rounded-full ${config?.connected ? 'bg-success' : 'bg-muted-foreground/40'}`}
+          />
           <div>
             <h3 className="text-sm font-semibold text-foreground">QQ</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">通过 QQ Bot 接收和回复消息</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              通过 QQ Bot 接收和回复消息
+            </p>
           </div>
         </div>
-        <Switch checked={enabled} disabled={loading || toggling} onCheckedChange={handleToggle} />
+        <Switch
+          checked={enabled}
+          disabled={loading || toggling}
+          onCheckedChange={handleToggle}
+        />
       </div>
 
-      <div className={`px-5 py-4 space-y-4 transition-opacity ${!enabled ? 'opacity-50 pointer-events-none' : ''}`}>
+      <div
+        className={`px-5 py-4 space-y-4 transition-opacity ${!enabled ? 'opacity-50 pointer-events-none' : ''}`}
+      >
         {loading ? (
           <div className="text-sm text-muted-foreground">加载中...</div>
         ) : (
@@ -144,7 +159,9 @@ export function QQChannelCard() {
             )}
             <div className="grid md:grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs text-muted-foreground mb-1">App ID</Label>
+                <Label className="text-xs text-muted-foreground mb-1">
+                  App ID
+                </Label>
                 <Input
                   type="text"
                   value={appId}
@@ -153,12 +170,18 @@ export function QQChannelCard() {
                 />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground mb-1">App Secret</Label>
+                <Label className="text-xs text-muted-foreground mb-1">
+                  App Secret
+                </Label>
                 <Input
                   type="password"
                   value={appSecret}
                   onChange={(e) => setAppSecret(e.target.value)}
-                  placeholder={config?.hasAppSecret ? '留空不修改' : '输入 QQ Bot App Secret'}
+                  placeholder={
+                    config?.hasAppSecret
+                      ? '留空不修改'
+                      : '输入 QQ Bot App Secret'
+                  }
                 />
               </div>
             </div>
@@ -168,7 +191,11 @@ export function QQChannelCard() {
                 保存 QQ 配置
               </Button>
               {config?.hasAppSecret && (
-                <Button variant="outline" onClick={handleTest} disabled={testing}>
+                <Button
+                  variant="outline"
+                  onClick={handleTest}
+                  disabled={testing}
+                >
                   {testing && <Loader2 className="size-4 animate-spin" />}
                   测试连接
                 </Button>

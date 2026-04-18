@@ -145,7 +145,11 @@ export function DingTalkChannelCard() {
             </p>
           </div>
         </div>
-        <Switch checked={enabled} disabled={loading || toggling} onCheckedChange={handleToggle} />
+        <Switch
+          checked={enabled}
+          disabled={loading || toggling}
+          onCheckedChange={handleToggle}
+        />
       </div>
 
       <div
@@ -181,7 +185,9 @@ export function DingTalkChannelCard() {
                   value={clientSecret}
                   onChange={(e) => setClientSecret(e.target.value)}
                   placeholder={
-                    config?.hasClientSecret ? '留空不修改' : '输入钉钉机器人 AppSecret'
+                    config?.hasClientSecret
+                      ? '留空不修改'
+                      : '输入钉钉机器人 AppSecret'
                   }
                 />
               </div>
@@ -205,7 +211,9 @@ export function DingTalkChannelCard() {
 
             <div className="flex items-center justify-between py-2 border-t border-slate-100">
               <div>
-                <p className="text-sm font-medium text-slate-700">流式卡片模式</p>
+                <p className="text-sm font-medium text-slate-700">
+                  流式卡片模式
+                </p>
                 <p className="text-xs text-slate-500 mt-0.5">
                   {streamingMode === 'card'
                     ? 'AI 回复以打字机效果实时展示'
@@ -214,7 +222,9 @@ export function DingTalkChannelCard() {
               </div>
               <Switch
                 checked={streamingMode === 'card'}
-                onCheckedChange={(checked) => handleStreamingModeToggle(checked)}
+                onCheckedChange={(checked) =>
+                  handleStreamingModeToggle(checked)
+                }
               />
             </div>
 

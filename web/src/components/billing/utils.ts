@@ -3,7 +3,11 @@ import { useBillingStore } from '../../stores/billing';
 /**
  * Format a USD amount with optional currency conversion.
  */
-export function formatAmount(amount: number, currency?: string, rate?: number): string {
+export function formatAmount(
+  amount: number,
+  currency?: string,
+  rate?: number,
+): string {
   const converted = amount * (rate ?? 1);
   const symbol = currency && currency !== 'USD' ? currency : '$';
   if (symbol === '$') return `$${converted.toFixed(2)}`;

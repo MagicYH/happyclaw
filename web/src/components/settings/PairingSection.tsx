@@ -24,7 +24,11 @@ interface PairingSectionProps {
   };
 }
 
-export function PairingSection({ channelName, pairing, paired }: PairingSectionProps) {
+export function PairingSection({
+  channelName,
+  pairing,
+  paired,
+}: PairingSectionProps) {
   return (
     <div className="border-t border-border mt-4 pt-4">
       <div className="flex items-center gap-2 mb-3">
@@ -39,32 +43,56 @@ export function PairingSection({ channelName, pairing, paired }: PairingSectionP
               {pairing.code}
             </code>
             <div className="text-sm text-muted-foreground">
-              {Math.floor(pairing.countdown / 60)}:{String(pairing.countdown % 60).padStart(2, '0')} 后过期
+              {Math.floor(pairing.countdown / 60)}:
+              {String(pairing.countdown % 60).padStart(2, '0')} 后过期
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm" className="cursor-pointer" onClick={pairing.copyCommand}>
-              {pairing.copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+            <Button
+              variant="outline"
+              size="sm"
+              className="cursor-pointer"
+              onClick={pairing.copyCommand}
+            >
+              {pairing.copied ? (
+                <Check className="w-3.5 h-3.5 text-emerald-500" />
+              ) : (
+                <Copy className="w-3.5 h-3.5" />
+              )}
               {pairing.copied ? '已复制' : '复制配对命令'}
             </Button>
-            <Button variant="outline" size="sm" onClick={pairing.generate} disabled={pairing.generating}>
-              {pairing.generating && <Loader2 className="size-3.5 animate-spin" />}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={pairing.generate}
+              disabled={pairing.generating}
+            >
+              {pairing.generating && (
+                <Loader2 className="size-3.5 animate-spin" />
+              )}
               重新生成
             </Button>
           </div>
           <p className="text-xs text-muted-foreground">
-            在 {channelName} 中向 Bot 发送 <code className="bg-muted px-1 rounded">/pair {pairing.code}</code> 完成配对
+            在 {channelName} 中向 Bot 发送{' '}
+            <code className="bg-muted px-1 rounded">/pair {pairing.code}</code>{' '}
+            完成配对
           </p>
         </div>
       ) : (
         <div className="space-y-2">
-          <Button variant="outline" onClick={pairing.generate} disabled={pairing.generating}>
+          <Button
+            variant="outline"
+            onClick={pairing.generate}
+            disabled={pairing.generating}
+          >
             {pairing.generating && <Loader2 className="size-4 animate-spin" />}
             生成配对码
           </Button>
           <p className="text-xs text-muted-foreground">
             生成一次性配对码，在 {channelName} 聊天中发送{' '}
-            <code className="bg-muted px-1 rounded">/pair &lt;code&gt;</code> 将聊天绑定到此账号
+            <code className="bg-muted px-1 rounded">/pair &lt;code&gt;</code>{' '}
+            将聊天绑定到此账号
           </p>
         </div>
       )}
@@ -72,7 +100,9 @@ export function PairingSection({ channelName, pairing, paired }: PairingSectionP
       {/* Paired chats list */}
       <div className="mt-4">
         <div className="flex items-center justify-between mb-2">
-          <h5 className="text-xs font-medium text-muted-foreground">已配对的聊天</h5>
+          <h5 className="text-xs font-medium text-muted-foreground">
+            已配对的聊天
+          </h5>
           <button
             onClick={paired.load}
             disabled={paired.loading}
@@ -88,11 +118,7 @@ export function PairingSection({ channelName, pairing, paired }: PairingSectionP
         ) : (
           <div className="space-y-1.5">
             {paired.chats.map((chat) => (
-              <PairedChatRow
-                key={chat.jid}
-                chat={chat}
-                paired={paired}
-              />
+              <PairedChatRow key={chat.jid} chat={chat} paired={paired} />
             ))}
           </div>
         )}
@@ -145,12 +171,17 @@ function PairedChatRow({
         ) : (
           <div className="text-sm text-foreground truncate">{chat.name}</div>
         )}
-        <div className="text-xs text-muted-foreground">{new Date(chat.addedAt).toLocaleString('zh-CN')}</div>
+        <div className="text-xs text-muted-foreground">
+          {new Date(chat.addedAt).toLocaleString('zh-CN')}
+        </div>
       </div>
       <div className="flex items-center ml-2 gap-0.5">
         {paired.rename && !editing && (
           <button
-            onClick={() => { setDraft(chat.name); setEditing(true); }}
+            onClick={() => {
+              setDraft(chat.name);
+              setEditing(true);
+            }}
             disabled={paired.renamingJid === chat.jid}
             className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted-foreground/10 opacity-0 group-hover:opacity-100 transition-all disabled:opacity-50"
             title="重命名"

@@ -16,7 +16,9 @@ export function SecuritySection() {
   const loadSessions = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await api.get<{ sessions: SessionInfo[] }>('/api/auth/sessions');
+      const data = await api.get<{ sessions: SessionInfo[] }>(
+        '/api/auth/sessions',
+      );
       setSessions(data.sessions);
     } catch {
       // ignore
@@ -25,7 +27,9 @@ export function SecuritySection() {
     }
   }, []);
 
-  useEffect(() => { loadSessions(); }, [loadSessions]);
+  useEffect(() => {
+    loadSessions();
+  }, [loadSessions]);
 
   const handleRevoke = async (id: string) => {
     try {
@@ -54,17 +58,30 @@ export function SecuritySection() {
         </div>
         <div className="divide-y divide-border">
           {sessions.length === 0 ? (
-            <div className="py-4 text-sm text-muted-foreground text-center">暂无会话</div>
+            <div className="py-4 text-sm text-muted-foreground text-center">
+              暂无会话
+            </div>
           ) : (
             sessions.map((s) => (
-              <div key={s.id} className="flex items-center justify-between py-3">
+              <div
+                key={s.id}
+                className="flex items-center justify-between py-3"
+              >
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 text-sm">
-                    <span className="text-foreground truncate max-w-xs">{s.user_agent?.split(' ').slice(0, 3).join(' ') || '未知设备'}</span>
-                    {s.is_current && <span className="text-xs px-1.5 py-0.5 bg-success-bg text-success rounded">当前</span>}
+                    <span className="text-foreground truncate max-w-xs">
+                      {s.user_agent?.split(' ').slice(0, 3).join(' ') ||
+                        '未知设备'}
+                    </span>
+                    {s.is_current && (
+                      <span className="text-xs px-1.5 py-0.5 bg-success-bg text-success rounded">
+                        当前
+                      </span>
+                    )}
                   </div>
                   <div className="text-xs text-muted-foreground mt-0.5">
-                    IP: {s.ip_address || '未知'} · 最后活跃: {new Date(s.last_active_at).toLocaleString('zh-CN')}
+                    IP: {s.ip_address || '未知'} · 最后活跃:{' '}
+                    {new Date(s.last_active_at).toLocaleString('zh-CN')}
                   </div>
                 </div>
                 {!s.is_current && (
@@ -89,7 +106,9 @@ export function SecuritySection() {
       <div className="flex items-center justify-between">
         <div>
           <div className="text-sm font-medium text-foreground">退出登录</div>
-          <div className="text-xs text-muted-foreground mt-0.5">退出当前账户，返回登录页面</div>
+          <div className="text-xs text-muted-foreground mt-0.5">
+            退出当前账户，返回登录页面
+          </div>
         </div>
         <button
           onClick={handleLogout}

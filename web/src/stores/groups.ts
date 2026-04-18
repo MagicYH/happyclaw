@@ -30,17 +30,24 @@ export const useGroupsStore = create<GroupsState>((set, get) => ({
   loadGroups: async () => {
     set({ loading: true });
     try {
-      const data = await api.get<{ groups: Record<string, GroupInfo> }>('/api/groups');
+      const data = await api.get<{ groups: Record<string, GroupInfo> }>(
+        '/api/groups',
+      );
       set({ groups: data.groups, loading: false, error: null });
     } catch (err) {
-      set({ loading: false, error: err instanceof Error ? err.message : String(err) });
+      set({
+        loading: false,
+        error: err instanceof Error ? err.message : String(err),
+      });
     }
   },
 
   loadMembers: async (jid: string) => {
     set({ membersLoading: true });
     try {
-      const data = await api.get<{ members: GroupMember[] }>(`/api/groups/${encodeURIComponent(jid)}/members`);
+      const data = await api.get<{ members: GroupMember[] }>(
+        `/api/groups/${encodeURIComponent(jid)}/members`,
+      );
       set((state) => ({
         members: { ...state.members, [jid]: data.members },
         membersLoading: false,

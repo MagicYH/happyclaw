@@ -18,10 +18,10 @@ interface UserOption {
 
 export function GroupMembersPanel({ groupJid }: GroupMembersPanelProps) {
   const navigate = useNavigate();
-  const group = useChatStore(s => s.groups[groupJid]);
-  const currentUser = useAuthStore(s => s.user);
-  const members = useGroupsStore(s => s.members[groupJid]);
-  const membersLoading = useGroupsStore(s => s.membersLoading);
+  const group = useChatStore((s) => s.groups[groupJid]);
+  const currentUser = useAuthStore((s) => s.user);
+  const members = useGroupsStore((s) => s.members[groupJid]);
+  const membersLoading = useGroupsStore((s) => s.membersLoading);
   const membersList = members ?? [];
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -40,7 +40,10 @@ export function GroupMembersPanel({ groupJid }: GroupMembersPanelProps) {
   useEffect(() => {
     if (loadedRef.current === groupJid) return;
     loadedRef.current = groupJid;
-    useGroupsStore.getState().loadMembers(groupJid).catch(() => {});
+    useGroupsStore
+      .getState()
+      .loadMembers(groupJid)
+      .catch(() => {});
   }, [groupJid]);
 
   // Search users when typing
@@ -56,8 +59,8 @@ export function GroupMembersPanel({ groupJid }: GroupMembersPanelProps) {
           `/api/groups/${encodeURIComponent(groupJid)}/members/search?q=${encodeURIComponent(searchQuery.trim())}`,
         );
         // Filter out users already in the group
-        const memberIds = new Set(membersList.map(m => m.user_id));
-        setSearchResults(data.users.filter(u => !memberIds.has(u.id)));
+        const memberIds = new Set(membersList.map((m) => m.user_id));
+        setSearchResults(data.users.filter((u) => !memberIds.has(u.id)));
       } catch {
         setSearchResults([]);
       } finally {
@@ -96,7 +99,10 @@ export function GroupMembersPanel({ groupJid }: GroupMembersPanelProps) {
 
   const handleLeave = async () => {
     if (!currentUser) return;
-    if (!confirm('确定要退出该工作区吗？退出后将无法访问此工作区的消息和文件。')) return;
+    if (
+      !confirm('确定要退出该工作区吗？退出后将无法访问此工作区的消息和文件。')
+    )
+      return;
     setRemoving(currentUser.id);
     setError(null);
     try {
@@ -140,7 +146,9 @@ export function GroupMembersPanel({ groupJid }: GroupMembersPanelProps) {
                 autoFocus
               />
               {searching && (
-                <div className="text-xs text-muted-foreground px-1">搜索中...</div>
+                <div className="text-xs text-muted-foreground px-1">
+                  搜索中...
+                </div>
               )}
               {searchResults.length > 0 && (
                 <div className="max-h-40 overflow-y-auto border border-border rounded-lg divide-y divide-border">
@@ -156,7 +164,9 @@ export function GroupMembersPanel({ groupJid }: GroupMembersPanelProps) {
                           {user.display_name || user.username}
                         </div>
                         {user.display_name && (
-                          <div className="text-xs text-muted-foreground truncate">@{user.username}</div>
+                          <div className="text-xs text-muted-foreground truncate">
+                            @{user.username}
+                          </div>
                         )}
                       </div>
                       <UserPlus className="w-4 h-4 text-brand-500 flex-shrink-0" />
@@ -164,11 +174,19 @@ export function GroupMembersPanel({ groupJid }: GroupMembersPanelProps) {
                   ))}
                 </div>
               )}
-              {searchQuery.trim() && !searching && searchResults.length === 0 && (
-                <div className="text-xs text-muted-foreground px-1">未找到可添加的用户</div>
-              )}
+              {searchQuery.trim() &&
+                !searching &&
+                searchResults.length === 0 && (
+                  <div className="text-xs text-muted-foreground px-1">
+                    未找到可添加的用户
+                  </div>
+                )}
               <button
-                onClick={() => { setShowAddForm(false); setSearchQuery(''); setSearchResults([]); }}
+                onClick={() => {
+                  setShowAddForm(false);
+                  setSearchQuery('');
+                  setSearchResults([]);
+                }}
                 className="text-xs text-muted-foreground hover:text-foreground cursor-pointer"
               >
                 取消
@@ -204,7 +222,9 @@ export function GroupMembersPanel({ groupJid }: GroupMembersPanelProps) {
                 >
                   {/* Avatar placeholder */}
                   <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium text-muted-foreground flex-shrink-0">
-                    {(member.display_name || member.username).charAt(0).toUpperCase()}
+                    {(member.display_name || member.username)
+                      .charAt(0)
+                      .toUpperCase()}
                   </div>
                   {/* Info */}
                   <div className="flex-1 min-w-0">
@@ -213,7 +233,9 @@ export function GroupMembersPanel({ groupJid }: GroupMembersPanelProps) {
                         {member.display_name || member.username}
                       </span>
                       {isSelf && (
-                        <span className="text-[10px] text-muted-foreground">(我)</span>
+                        <span className="text-[10px] text-muted-foreground">
+                          (我)
+                        </span>
                       )}
                       {isMemberOwner && (
                         <Crown className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />

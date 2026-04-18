@@ -1,5 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Users, Search, Package, CheckSquare, Square, AlertTriangle } from 'lucide-react';
+import {
+  Users,
+  Search,
+  Package,
+  CheckSquare,
+  Square,
+  AlertTriangle,
+} from 'lucide-react';
 import { useBillingStore } from '../../stores/billing';
 import { useCurrency } from './utils';
 import { Input } from '@/components/ui/input';
@@ -17,7 +24,10 @@ export default function AdminUsersList({ onSelectUser }: AdminUsersListProps) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [batchPlanId, setBatchPlanId] = useState('');
   const [batching, setBatching] = useState(false);
-  const [batchResult, setBatchResult] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
+  const [batchResult, setBatchResult] = useState<{
+    type: 'success' | 'error';
+    msg: string;
+  } | null>(null);
 
   useEffect(() => {
     loadAllUsers();
@@ -58,13 +68,20 @@ export default function AdminUsersList({ onSelectUser }: AdminUsersListProps) {
     try {
       const count = selected.size;
       await batchAssignPlan(Array.from(selected), batchPlanId);
-      const planName = plans.find((p) => p.id === batchPlanId)?.name ?? batchPlanId;
-      setBatchResult({ type: 'success', msg: `已为 ${count} 位用户分配「${planName}」` });
+      const planName =
+        plans.find((p) => p.id === batchPlanId)?.name ?? batchPlanId;
+      setBatchResult({
+        type: 'success',
+        msg: `已为 ${count} 位用户分配「${planName}」`,
+      });
       setSelected(new Set());
       setBatchPlanId('');
       setTimeout(() => setBatchResult(null), 4000);
     } catch (err) {
-      setBatchResult({ type: 'error', msg: `批量分配失败: ${err instanceof Error ? err.message : String(err)}` });
+      setBatchResult({
+        type: 'error',
+        msg: `批量分配失败: ${err instanceof Error ? err.message : String(err)}`,
+      });
     } finally {
       setBatching(false);
     }
@@ -189,7 +206,9 @@ export default function AdminUsersList({ onSelectUser }: AdminUsersListProps) {
                 <>
                   {u.plan_name}
                   {u.is_fallback && (
-                    <span className="ml-1 text-[10px] text-zinc-400">(默认)</span>
+                    <span className="ml-1 text-[10px] text-zinc-400">
+                      (默认)
+                    </span>
                   )}
                 </>
               ) : (

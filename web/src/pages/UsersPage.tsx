@@ -16,11 +16,14 @@ export function UsersPage() {
   const currentUser = useAuthStore((s) => s.user);
 
   const canManageUsers =
-    currentUser?.role === 'admin' || !!currentUser?.permissions.includes('manage_users');
+    currentUser?.role === 'admin' ||
+    !!currentUser?.permissions.includes('manage_users');
   const canManageInvites =
-    currentUser?.role === 'admin' || !!currentUser?.permissions.includes('manage_invites');
+    currentUser?.role === 'admin' ||
+    !!currentUser?.permissions.includes('manage_invites');
   const canViewAudit =
-    currentUser?.role === 'admin' || !!currentUser?.permissions.includes('view_audit_log');
+    currentUser?.role === 'admin' ||
+    !!currentUser?.permissions.includes('view_audit_log');
 
   const tabs = useMemo(() => {
     const list: Array<{ key: Tab; label: string; visible: boolean }> = [
@@ -53,10 +56,7 @@ export function UsersPage() {
   return (
     <div className="min-h-full bg-background p-4 lg:p-8">
       <div className="max-w-5xl mx-auto space-y-6">
-        <PageHeader
-          title="用户管理"
-          subtitle="账户、邀请码与审计日志"
-        />
+        <PageHeader title="用户管理" subtitle="账户、邀请码与审计日志" />
 
         {(notice || error) && (
           <Card>
@@ -78,10 +78,18 @@ export function UsersPage() {
         </Tabs>
 
         {tab === 'users' && canManageUsers && (
-          <UserListTab currentUser={currentUser} setNotice={setNotice} setError={setError} />
+          <UserListTab
+            currentUser={currentUser}
+            setNotice={setNotice}
+            setError={setError}
+          />
         )}
         {tab === 'invites' && canManageInvites && (
-          <InviteCodesTab currentUser={currentUser} setNotice={setNotice} setError={setError} />
+          <InviteCodesTab
+            currentUser={currentUser}
+            setNotice={setNotice}
+            setError={setError}
+          />
         )}
         {tab === 'audit' && canViewAudit && <AuditLogTab setError={setError} />}
       </div>

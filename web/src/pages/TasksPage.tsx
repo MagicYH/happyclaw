@@ -11,7 +11,16 @@ import { EmptyState } from '@/components/common/EmptyState';
 import { Button } from '@/components/ui/button';
 
 export function TasksPage() {
-  const { tasks, loading, error, loadTasks, createTask, updateTaskStatus, deleteTask, runTaskNow } = useTasksStore();
+  const {
+    tasks,
+    loading,
+    error,
+    loadTasks,
+    createTask,
+    updateTaskStatus,
+    deleteTask,
+    runTaskNow,
+  } = useTasksStore();
   const { user } = useAuthStore();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const isAdmin = user?.role === 'admin';
@@ -62,7 +71,9 @@ export function TasksPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('确定要删除此任务吗？关联的工作区也会被删除，此操作不可撤销。')) {
+    if (
+      confirm('确定要删除此任务吗？关联的工作区也会被删除，此操作不可撤销。')
+    ) {
       await deleteTask(id);
       // Refresh sidebar — workspace was deleted along with the task
       useGroupsStore.getState().loadGroups();
@@ -71,7 +82,9 @@ export function TasksPage() {
 
   const activeTasks = tasks.filter((t) => t.status === 'active');
   const pausedTasks = tasks.filter((t) => t.status === 'paused');
-  const otherTasks = tasks.filter((t) => t.status !== 'active' && t.status !== 'paused');
+  const otherTasks = tasks.filter(
+    (t) => t.status !== 'active' && t.status !== 'paused',
+  );
 
   return (
     <div className="min-h-full bg-background">
@@ -83,7 +96,10 @@ export function TasksPage() {
           actions={
             <div className="flex items-center gap-3">
               <Button variant="outline" onClick={loadTasks} disabled={loading}>
-                <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+                <RefreshCw
+                  size={18}
+                  className={loading ? 'animate-spin' : ''}
+                />
                 刷新
               </Button>
               <Button onClick={() => setShowCreateForm(true)}>
@@ -123,7 +139,9 @@ export function TasksPage() {
           <div className="space-y-6">
             {activeTasks.length > 0 && (
               <div>
-                <h2 className="text-sm font-semibold text-foreground mb-3">运行中</h2>
+                <h2 className="text-sm font-semibold text-foreground mb-3">
+                  运行中
+                </h2>
                 <div className="space-y-3">
                   {activeTasks.map((task) => (
                     <TaskCard
@@ -141,7 +159,9 @@ export function TasksPage() {
 
             {pausedTasks.length > 0 && (
               <div>
-                <h2 className="text-sm font-semibold text-foreground mb-3">已暂停</h2>
+                <h2 className="text-sm font-semibold text-foreground mb-3">
+                  已暂停
+                </h2>
                 <div className="space-y-3">
                   {pausedTasks.map((task) => (
                     <TaskCard
@@ -159,7 +179,9 @@ export function TasksPage() {
 
             {otherTasks.length > 0 && (
               <div>
-                <h2 className="text-sm font-semibold text-foreground mb-3">其他</h2>
+                <h2 className="text-sm font-semibold text-foreground mb-3">
+                  其他
+                </h2>
                 <div className="space-y-3">
                   {otherTasks.map((task) => (
                     <TaskCard
@@ -181,7 +203,10 @@ export function TasksPage() {
       {showCreateForm && (
         <CreateTaskForm
           onSubmit={handleCreateTask}
-          onClose={() => { setShowCreateForm(false); loadTasks(); }}
+          onClose={() => {
+            setShowCreateForm(false);
+            loadTasks();
+          }}
           isAdmin={isAdmin}
         />
       )}

@@ -39,9 +39,7 @@ export function TopicSidebar({
       <div className="flex-1 overflow-y-auto p-2">
         {topicAgents.length === 0 ? (
           <div className="rounded-xl border border-dashed border-border bg-background/70 px-4 py-8 text-center text-sm text-muted-foreground">
-            {emptyCount === 0
-              ? '等待飞书话题进入该工作区'
-              : '没有匹配的话题'}
+            {emptyCount === 0 ? '等待飞书话题进入该工作区' : '没有匹配的话题'}
           </div>
         ) : (
           topicAgents.map((agent) => {
@@ -51,24 +49,23 @@ export function TopicSidebar({
                 key={agent.id}
                 className={cn(
                   'group mb-0.5 flex items-center rounded-lg transition-colors',
-                  active
-                    ? 'bg-primary/10'
-                    : 'hover:bg-muted/50',
+                  active ? 'bg-primary/10' : 'hover:bg-muted/50',
                 )}
               >
                 <button
                   onClick={() => onSelectAgent(agent.id)}
                   className={cn(
                     'min-w-0 flex-1 px-3 py-2 text-left text-sm truncate cursor-pointer',
-                    active
-                      ? 'font-medium text-primary'
-                      : 'text-foreground',
+                    active ? 'font-medium text-primary' : 'text-foreground',
                   )}
                 >
                   {agent.name}
                 </button>
                 <button
-                  onClick={(e) => { e.stopPropagation(); onDeleteAgent(agent.id); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteAgent(agent.id);
+                  }}
                   className="mr-1 shrink-0 rounded p-1 text-muted-foreground opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100 cursor-pointer"
                   aria-label="删除话题会话"
                 >

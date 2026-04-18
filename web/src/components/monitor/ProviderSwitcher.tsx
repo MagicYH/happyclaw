@@ -62,7 +62,10 @@ export function ProviderSwitcher({
         {currentProviderName || currentProviderId || '-'}
       </span>
       {error && (
-        <span className="text-destructive text-xs truncate max-w-[100px]" title={error}>
+        <span
+          className="text-destructive text-xs truncate max-w-[100px]"
+          title={error}
+        >
           {error}
         </span>
       )}

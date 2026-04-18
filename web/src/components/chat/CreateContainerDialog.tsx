@@ -37,7 +37,9 @@ export function CreateContainerDialog({
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
-  const [executionMode, setExecutionMode] = useState<'container' | 'host'>('container');
+  const [executionMode, setExecutionMode] = useState<'container' | 'host'>(
+    'container',
+  );
   const [customCwd, setCustomCwd] = useState('');
   const [initMode, setInitMode] = useState<'empty' | 'local' | 'git'>('empty');
   const [initSourcePath, setInitSourcePath] = useState('');
@@ -78,7 +80,10 @@ export function CreateContainerDialog({
           options.init_git_url = initGitUrl.trim();
         }
       }
-      const created = await createFlow(trimmed, Object.keys(options).length ? options : undefined);
+      const created = await createFlow(
+        trimmed,
+        Object.keys(options).length ? options : undefined,
+      );
       if (created) {
         onCreated(created.jid, created.folder);
         handleClose();
@@ -106,7 +111,9 @@ export function CreateContainerDialog({
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') handleConfirm(); }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleConfirm();
+              }}
               placeholder="输入工作区名称"
               autoFocus
             />
@@ -119,14 +126,20 @@ export function CreateContainerDialog({
               onClick={() => setAdvancedOpen(!advancedOpen)}
               className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:bg-accent transition-colors cursor-pointer"
             >
-              {advancedOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+              {advancedOpen ? (
+                <ChevronDown className="w-4 h-4" />
+              ) : (
+                <ChevronRight className="w-4 h-4" />
+              )}
               高级选项
             </button>
             {advancedOpen && (
               <div className="px-3 pb-3 space-y-3 border-t">
                 {/* Execution mode */}
                 <div className="pt-3">
-                  <label className="block text-sm font-medium mb-2">执行模式</label>
+                  <label className="block text-sm font-medium mb-2">
+                    执行模式
+                  </label>
                   <div className="space-y-2">
                     <label className="flex items-start gap-3 p-2 rounded-lg border cursor-pointer hover:bg-accent/50 transition-colors">
                       <input
@@ -134,35 +147,57 @@ export function CreateContainerDialog({
                         name="execution_mode"
                         value="container"
                         checked={executionMode === 'container'}
-                        onChange={() => { setExecutionMode('container'); setCustomCwd(''); }}
+                        onChange={() => {
+                          setExecutionMode('container');
+                          setCustomCwd('');
+                        }}
                         className="mt-0.5 accent-primary"
                       />
                       <div>
                         <div className="flex items-center gap-1.5">
                           <Box className="w-4 h-4 text-muted-foreground" />
-                          <span className="text-sm font-medium">Docker 模式</span>
-                          <span className="text-xs text-primary font-medium">推荐</span>
+                          <span className="text-sm font-medium">
+                            Docker 模式
+                          </span>
+                          <span className="text-xs text-primary font-medium">
+                            推荐
+                          </span>
                         </div>
-                        <p className="text-xs text-muted-foreground mt-0.5">在隔离的 Docker 环境中执行</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          在隔离的 Docker 环境中执行
+                        </p>
                       </div>
                     </label>
-                    <label className={`flex items-start gap-3 p-2 rounded-lg border transition-colors ${canHostExec ? 'cursor-pointer hover:bg-accent/50' : 'opacity-50 cursor-not-allowed'}`}>
+                    <label
+                      className={`flex items-start gap-3 p-2 rounded-lg border transition-colors ${canHostExec ? 'cursor-pointer hover:bg-accent/50' : 'opacity-50 cursor-not-allowed'}`}
+                    >
                       <input
                         type="radio"
                         name="execution_mode"
                         value="host"
                         checked={executionMode === 'host'}
-                        onChange={() => { if (canHostExec) { setExecutionMode('host'); setInitMode('empty'); setInitSourcePath(''); setInitGitUrl(''); } }}
+                        onChange={() => {
+                          if (canHostExec) {
+                            setExecutionMode('host');
+                            setInitMode('empty');
+                            setInitSourcePath('');
+                            setInitGitUrl('');
+                          }
+                        }}
                         disabled={!canHostExec}
                         className="mt-0.5 accent-primary"
                       />
                       <div>
                         <div className="flex items-center gap-1.5">
                           <Monitor className="w-4 h-4 text-muted-foreground" />
-                          <span className="text-sm font-medium">宿主机模式</span>
+                          <span className="text-sm font-medium">
+                            宿主机模式
+                          </span>
                         </div>
                         <p className="text-xs text-muted-foreground mt-0.5">
-                          {canHostExec ? '直接在服务器上执行' : '需要管理员权限'}
+                          {canHostExec
+                            ? '直接在服务器上执行'
+                            : '需要管理员权限'}
                         </p>
                       </div>
                     </label>
@@ -172,40 +207,79 @@ export function CreateContainerDialog({
                 {/* Container mode: workspace source */}
                 {executionMode === 'container' && (
                   <div className="pt-1">
-                    <label className="block text-sm font-medium mb-2">工作区来源</label>
+                    <label className="block text-sm font-medium mb-2">
+                      工作区来源
+                    </label>
                     <div className="space-y-2">
                       <label className="flex items-start gap-3 p-2 rounded-lg border cursor-pointer hover:bg-accent/50 transition-colors">
-                        <input type="radio" name="init_mode" value="empty" checked={initMode === 'empty'} onChange={() => setInitMode('empty')} className="mt-0.5 accent-primary" />
+                        <input
+                          type="radio"
+                          name="init_mode"
+                          value="empty"
+                          checked={initMode === 'empty'}
+                          onChange={() => setInitMode('empty')}
+                          className="mt-0.5 accent-primary"
+                        />
                         <div>
-                          <span className="text-sm font-medium">空白工作区</span>
-                          <p className="text-xs text-muted-foreground mt-0.5">从空目录开始</p>
+                          <span className="text-sm font-medium">
+                            空白工作区
+                          </span>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            从空目录开始
+                          </p>
                         </div>
                       </label>
                       {canHostExec && (
                         <label className="flex items-start gap-3 p-2 rounded-lg border cursor-pointer hover:bg-accent/50 transition-colors">
-                          <input type="radio" name="init_mode" value="local" checked={initMode === 'local'} onChange={() => setInitMode('local')} className="mt-0.5 accent-primary" />
+                          <input
+                            type="radio"
+                            name="init_mode"
+                            value="local"
+                            checked={initMode === 'local'}
+                            onChange={() => setInitMode('local')}
+                            className="mt-0.5 accent-primary"
+                          />
                           <div className="flex-1">
                             <div className="flex items-center gap-1.5">
                               <FolderInput className="w-4 h-4 text-muted-foreground" />
-                              <span className="text-sm font-medium">复制本地目录</span>
+                              <span className="text-sm font-medium">
+                                复制本地目录
+                              </span>
                             </div>
-                            <p className="text-xs text-muted-foreground mt-0.5">将宿主机目录复制到工作区（隔离副本）</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              将宿主机目录复制到工作区（隔离副本）
+                            </p>
                           </div>
                         </label>
                       )}
                       {initMode === 'local' && canHostExec && (
                         <div className="ml-6">
-                          <DirectoryBrowser value={initSourcePath} onChange={setInitSourcePath} placeholder="选择要复制的目录" />
+                          <DirectoryBrowser
+                            value={initSourcePath}
+                            onChange={setInitSourcePath}
+                            placeholder="选择要复制的目录"
+                          />
                         </div>
                       )}
                       <label className="flex items-start gap-3 p-2 rounded-lg border cursor-pointer hover:bg-accent/50 transition-colors">
-                        <input type="radio" name="init_mode" value="git" checked={initMode === 'git'} onChange={() => setInitMode('git')} className="mt-0.5 accent-primary" />
+                        <input
+                          type="radio"
+                          name="init_mode"
+                          value="git"
+                          checked={initMode === 'git'}
+                          onChange={() => setInitMode('git')}
+                          className="mt-0.5 accent-primary"
+                        />
                         <div className="flex-1">
                           <div className="flex items-center gap-1.5">
                             <GitBranch className="w-4 h-4 text-muted-foreground" />
-                            <span className="text-sm font-medium">克隆 Git 仓库</span>
+                            <span className="text-sm font-medium">
+                              克隆 Git 仓库
+                            </span>
                           </div>
-                          <p className="text-xs text-muted-foreground mt-0.5">从 GitHub 等平台克隆仓库到工作区</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            从 GitHub 等平台克隆仓库到工作区
+                          </p>
                         </div>
                       </label>
                       {initMode === 'git' && (
@@ -224,11 +298,16 @@ export function CreateContainerDialog({
                 {/* Host mode: custom cwd */}
                 {executionMode === 'host' && (
                   <>
-                    <DirectoryBrowser value={customCwd} onChange={setCustomCwd} placeholder="默认: data/groups/{folder}/" />
+                    <DirectoryBrowser
+                      value={customCwd}
+                      onChange={setCustomCwd}
+                      placeholder="默认: data/groups/{folder}/"
+                    />
                     <div className="flex items-start gap-2 p-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
                       <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
                       <p className="text-xs text-amber-700 dark:text-amber-300">
-                        宿主机模式下 Agent 可访问完整文件系统和工具链，请谨慎使用。
+                        宿主机模式下 Agent
+                        可访问完整文件系统和工具链，请谨慎使用。
                       </p>
                     </div>
                   </>
@@ -236,7 +315,6 @@ export function CreateContainerDialog({
               </div>
             )}
           </div>
-
         </div>
 
         <DialogFooter>
@@ -245,7 +323,9 @@ export function CreateContainerDialog({
           </Button>
           <Button onClick={handleConfirm} disabled={loading || !name.trim()}>
             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-            {loading && (initMode === 'local' || initMode === 'git') ? '正在初始化工作区...' : '创建'}
+            {loading && (initMode === 'local' || initMode === 'git')
+              ? '正在初始化工作区...'
+              : '创建'}
           </Button>
         </DialogFooter>
       </DialogContent>

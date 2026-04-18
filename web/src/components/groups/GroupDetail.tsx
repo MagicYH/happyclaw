@@ -32,7 +32,9 @@ export function GroupDetail({ group }: GroupDetailProps) {
       {/* Folder */}
       <div>
         <div className="text-xs text-muted-foreground mb-1">文件夹</div>
-        <div className="text-sm text-foreground font-medium">{group.folder}</div>
+        <div className="text-sm text-foreground font-medium">
+          {group.folder}
+        </div>
       </div>
 
       {/* Added At */}
@@ -63,7 +65,11 @@ export function GroupDetail({ group }: GroupDetailProps) {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => navigate(`/settings?tab=memory&folder=${encodeURIComponent(group.folder)}`)}
+          onClick={() =>
+            navigate(
+              `/settings?tab=memory&folder=${encodeURIComponent(group.folder)}`,
+            )
+          }
         >
           <BookOpen className="w-4 h-4" />
           记忆管理

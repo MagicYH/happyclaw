@@ -23,7 +23,8 @@ const SOURCE_LABELS: Record<string, string> = {
 };
 
 export default function TransactionsList() {
-  const { transactions, transactionsTotal, loadMyTransactions } = useBillingStore();
+  const { transactions, transactionsTotal, loadMyTransactions } =
+    useBillingStore();
   const fmt = useCurrency();
 
   useEffect(() => {
@@ -38,7 +39,9 @@ export default function TransactionsList() {
           <h3 className="font-semibold">余额变动记录</h3>
         </div>
         {transactionsTotal > 0 && (
-          <span className="text-xs text-zinc-400">共 {transactionsTotal} 条</span>
+          <span className="text-xs text-zinc-400">
+            共 {transactionsTotal} 条
+          </span>
         )}
       </div>
 
@@ -59,7 +62,9 @@ export default function TransactionsList() {
                   <span>{new Date(tx.created_at).toLocaleString()}</span>
                   {(tx.source || tx.type) && (
                     <span className="px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400">
-                      {SOURCE_LABELS[tx.source || ''] || TYPE_LABELS[tx.type] || tx.type}
+                      {SOURCE_LABELS[tx.source || ''] ||
+                        TYPE_LABELS[tx.type] ||
+                        tx.type}
                     </span>
                   )}
                 </div>

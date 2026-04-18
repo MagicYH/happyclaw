@@ -60,7 +60,15 @@ export function BindingTargetDialog({
   }, [filtered]);
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) { onClose(); setFilter(''); } }}>
+    <Dialog
+      open={open}
+      onOpenChange={(v) => {
+        if (!v) {
+          onClose();
+          setFilter('');
+        }
+      }}
+    >
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-base truncate">
@@ -120,7 +128,9 @@ export function BindingTargetDialog({
                           ? target.agentName || 'Agent'
                           : '主对话'}
                       </span>
-                      {isSelecting && <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />}
+                      {isSelecting && (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
+                      )}
                     </button>
                   );
                 })}

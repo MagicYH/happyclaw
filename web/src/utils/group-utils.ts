@@ -5,7 +5,10 @@ export type DateSection = { label: string; items: GroupEntry[] };
 
 /** Sort comparator: newest activity first. */
 export function compareByLastActivity(a: GroupEntry, b: GroupEntry): number {
-  return new Date(b.lastMessageTime || b.added_at).getTime() - new Date(a.lastMessageTime || a.added_at).getTime();
+  return (
+    new Date(b.lastMessageTime || b.added_at).getTime() -
+    new Date(a.lastMessageTime || a.added_at).getTime()
+  );
 }
 
 /** Bucket groups into date sections (today / last 7 days / earlier). */

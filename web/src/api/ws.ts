@@ -86,14 +86,17 @@ class WsManager {
   }
 
   private emit(type: string, data: any) {
-    this.handlers.get(type)?.forEach(h => h(data));
+    this.handlers.get(type)?.forEach((h) => h(data));
   }
 
   private scheduleReconnect() {
     if (this.reconnectTimer) return;
     this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = null;
-      this.reconnectDelay = Math.min(this.reconnectDelay * 2, this.maxReconnectDelay);
+      this.reconnectDelay = Math.min(
+        this.reconnectDelay * 2,
+        this.maxReconnectDelay,
+      );
       this.connect();
     }, this.reconnectDelay);
   }

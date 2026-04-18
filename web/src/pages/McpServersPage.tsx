@@ -81,13 +81,27 @@ export function McpServersPage() {
             actions={
               <div className="flex items-center gap-3">
                 {isAdmin && (
-                  <Button variant="outline" onClick={handleSync} disabled={syncing}>
-                    <Download size={18} className={syncing ? 'animate-pulse' : ''} />
+                  <Button
+                    variant="outline"
+                    onClick={handleSync}
+                    disabled={syncing}
+                  >
+                    <Download
+                      size={18}
+                      className={syncing ? 'animate-pulse' : ''}
+                    />
                     {syncing ? '同步中...' : '同步宿主机'}
                   </Button>
                 )}
-                <Button variant="outline" onClick={loadServers} disabled={loading}>
-                  <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+                <Button
+                  variant="outline"
+                  onClick={loadServers}
+                  disabled={loading}
+                >
+                  <RefreshCw
+                    size={18}
+                    className={loading ? 'animate-spin' : ''}
+                  />
                   刷新
                 </Button>
                 <Button onClick={() => setShowAddDialog(true)}>
@@ -130,8 +144,16 @@ export function McpServersPage() {
               ) : filtered.length === 0 ? (
                 <EmptyState
                   icon={Server}
-                  title={searchQuery ? '没有找到匹配的 MCP 服务器' : '暂无 MCP 服务器'}
-                  description={searchQuery ? undefined : '点击"添加"按钮添加第一个 MCP 服务器'}
+                  title={
+                    searchQuery
+                      ? '没有找到匹配的 MCP 服务器'
+                      : '暂无 MCP 服务器'
+                  }
+                  description={
+                    searchQuery
+                      ? undefined
+                      : '点击"添加"按钮添加第一个 MCP 服务器'
+                  }
                 />
               ) : (
                 <>
@@ -177,14 +199,20 @@ export function McpServersPage() {
 
           {/* Right detail (desktop) */}
           <div className="hidden lg:block lg:w-1/2 xl:w-3/5">
-            <McpServerDetail server={selectedServer} onDeleted={() => setSelectedId(null)} />
+            <McpServerDetail
+              server={selectedServer}
+              onDeleted={() => setSelectedId(null)}
+            />
           </div>
         </div>
 
         {/* Mobile detail */}
         {selectedId && selectedServer && (
           <div className="lg:hidden p-4">
-            <McpServerDetail server={selectedServer} onDeleted={() => setSelectedId(null)} />
+            <McpServerDetail
+              server={selectedServer}
+              onDeleted={() => setSelectedId(null)}
+            />
           </div>
         )}
       </div>

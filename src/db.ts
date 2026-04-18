@@ -1435,9 +1435,17 @@ export function initDatabase(customDbPath?: string): void {
   const v36Ver = getRouterStateInternal('schema_version');
   if (!v36Ver || parseInt(v36Ver, 10) < 36) {
     db.transaction(() => {
-      ensureColumn('bots', 'connection_state', "TEXT NOT NULL DEFAULT 'disconnected'");
+      ensureColumn(
+        'bots',
+        'connection_state',
+        "TEXT NOT NULL DEFAULT 'disconnected'",
+      );
       ensureColumn('bots', 'last_connected_at', 'TEXT');
-      ensureColumn('bots', 'consecutive_failures', 'INTEGER NOT NULL DEFAULT 0');
+      ensureColumn(
+        'bots',
+        'consecutive_failures',
+        'INTEGER NOT NULL DEFAULT 0',
+      );
       ensureColumn('bots', 'last_error_code', 'TEXT');
       db.exec(
         `CREATE INDEX IF NOT EXISTS idx_bots_conn_state

@@ -127,7 +127,12 @@ export function useImBindings() {
         unbind?: boolean;
         force?: boolean;
         reply_policy?: 'source_only' | 'mirror';
-        activation_mode?: 'auto' | 'always' | 'when_mentioned' | 'owner_mentioned' | 'disabled';
+        activation_mode?:
+          | 'auto'
+          | 'always'
+          | 'when_mentioned'
+          | 'owner_mentioned'
+          | 'disabled';
         owner_im_id?: string;
       },
     ): Promise<string | null> => {
@@ -140,8 +145,7 @@ export function useImBindings() {
         await loadBindings();
         return null;
       } catch (err) {
-        const msg =
-          err instanceof Error ? err.message : '操作失败，请重试';
+        const msg = err instanceof Error ? err.message : '操作失败，请重试';
         setError(msg);
         return msg;
       }
@@ -156,5 +160,14 @@ export function useImBindings() {
 
   const clearError = useCallback(() => setError(null), []);
 
-  return { bindings, loading, targets, targetsLoading, reload, rebind, error, clearError };
+  return {
+    bindings,
+    loading,
+    targets,
+    targetsLoading,
+    reload,
+    rebind,
+    error,
+    clearError,
+  };
 }

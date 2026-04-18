@@ -24,9 +24,42 @@ import { MonitorPage } from './MonitorPage';
 import { Card, CardContent } from '@/components/ui/card';
 import type { SettingsTab } from '../components/settings/types';
 
-const VALID_TABS: SettingsTab[] = ['claude', 'registration', 'appearance', 'system', 'profile', 'my-channels', 'security', 'groups', 'memory', 'skills', 'mcp-servers', 'agent-definitions', 'users', 'about', 'bindings', 'usage', 'monitor'];
-const SYSTEM_TABS: SettingsTab[] = ['claude', 'registration', 'appearance', 'system'];
-const FULLPAGE_TABS: SettingsTab[] = ['groups', 'memory', 'skills', 'mcp-servers', 'agent-definitions', 'users', 'bindings', 'usage', 'monitor'];
+const VALID_TABS: SettingsTab[] = [
+  'claude',
+  'registration',
+  'appearance',
+  'system',
+  'profile',
+  'my-channels',
+  'security',
+  'groups',
+  'memory',
+  'skills',
+  'mcp-servers',
+  'agent-definitions',
+  'users',
+  'about',
+  'bindings',
+  'usage',
+  'monitor',
+];
+const SYSTEM_TABS: SettingsTab[] = [
+  'claude',
+  'registration',
+  'appearance',
+  'system',
+];
+const FULLPAGE_TABS: SettingsTab[] = [
+  'groups',
+  'memory',
+  'skills',
+  'mcp-servers',
+  'agent-definitions',
+  'users',
+  'bindings',
+  'usage',
+  'monitor',
+];
 
 export function SettingsPage() {
   const { user: currentUser } = useAuthStore();
@@ -34,9 +67,11 @@ export function SettingsPage() {
   const [navOpen, setNavOpen] = useState(false);
 
   const hasSystemConfigPermission =
-    currentUser?.role === 'admin' || !!currentUser?.permissions.includes('manage_system_config');
+    currentUser?.role === 'admin' ||
+    !!currentUser?.permissions.includes('manage_system_config');
   const mustChangePassword = !!currentUser?.must_change_password;
-  const canManageSystemConfig = hasSystemConfigPermission && !mustChangePassword;
+  const canManageSystemConfig =
+    hasSystemConfigPermission && !mustChangePassword;
   const canManageUsers =
     currentUser?.role === 'admin' ||
     !!currentUser?.permissions.includes('manage_users') ||
@@ -49,18 +84,28 @@ export function SettingsPage() {
     if (mustChangePassword) return 'profile';
     const raw = searchParams.get('tab') as SettingsTab | null;
     if (raw && VALID_TABS.includes(raw)) {
-      if (SYSTEM_TABS.includes(raw) && !canManageSystemConfig) return defaultTab;
+      if (SYSTEM_TABS.includes(raw) && !canManageSystemConfig)
+        return defaultTab;
       if (raw === 'monitor' && !canManageSystemConfig) return defaultTab;
       if (raw === 'users' && !canManageUsers) return defaultTab;
       return raw;
     }
     return defaultTab;
-  }, [searchParams, canManageSystemConfig, canManageUsers, mustChangePassword, defaultTab]);
+  }, [
+    searchParams,
+    canManageSystemConfig,
+    canManageUsers,
+    mustChangePassword,
+    defaultTab,
+  ]);
 
-  const handleTabChange = useCallback((tab: SettingsTab) => {
-    setNavOpen(false);
-    setSearchParams({ tab }, { replace: true });
-  }, [setSearchParams]);
+  const handleTabChange = useCallback(
+    (tab: SettingsTab) => {
+      setNavOpen(false);
+      setSearchParams({ tab }, { replace: true });
+    },
+    [setSearchParams],
+  );
 
   // Mobile horizontal tab bar
   const mobileTabs = useMemo(() => {
@@ -98,7 +143,11 @@ export function SettingsPage() {
     if (!container) return;
     const activeEl = container.querySelector('[data-active="true"]');
     if (activeEl) {
-      activeEl.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+      activeEl.scrollIntoView({
+        inline: 'center',
+        block: 'nearest',
+        behavior: 'smooth',
+      });
     }
   }, [activeTab]);
 
@@ -125,9 +174,7 @@ export function SettingsPage() {
   return (
     <div className="h-full bg-background flex flex-col lg:flex-row overflow-hidden">
       {/* Mobile header */}
-      <div
-        className="lg:hidden sticky top-0 z-10 flex items-center bg-background border-b border-border px-4 h-12"
-      >
+      <div className="lg:hidden sticky top-0 z-10 flex items-center bg-background border-b border-border px-4 h-12">
         <button
           onClick={() => setNavOpen(true)}
           className="p-1.5 -ml-1.5 rounded-lg hover:bg-muted transition-colors"
@@ -135,14 +182,21 @@ export function SettingsPage() {
         >
           <Menu className="w-5 h-5 text-muted-foreground" />
         </button>
-        <span className="ml-3 text-sm font-semibold text-foreground truncate">{sectionTitle[activeTab]}</span>
+        <span className="ml-3 text-sm font-semibold text-foreground truncate">
+          {sectionTitle[activeTab]}
+        </span>
       </div>
 
       {/* Mobile horizontal tab bar */}
       <div
         ref={tabBarRef}
         className="lg:hidden flex items-center gap-1 px-3 py-2 overflow-x-auto bg-background border-b border-border [touch-action:pan-x] [&::-webkit-scrollbar]:hidden"
-        style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
+        style={
+          {
+            scrollbarWidth: 'none',
+            WebkitOverflowScrolling: 'touch',
+          } as React.CSSProperties
+        }
       >
         {mobileTabs.map((tab) => {
           const isActive = activeTab === tab.key;
@@ -194,7 +248,9 @@ export function SettingsPage() {
           <div className="p-4 lg:p-8">
             <div className="max-w-3xl mx-auto space-y-6">
               <div>
-                <h1 className="text-2xl font-bold text-foreground">{sectionTitle[activeTab]}</h1>
+                <h1 className="text-2xl font-bold text-foreground">
+                  {sectionTitle[activeTab]}
+                </h1>
               </div>
 
               {mustChangePassword && (
@@ -205,7 +261,12 @@ export function SettingsPage() {
 
               <Card>
                 <CardContent>
-                  {activeTab === 'claude' && <ClaudeProviderSection setNotice={() => {}} setError={() => {}} />}
+                  {activeTab === 'claude' && (
+                    <ClaudeProviderSection
+                      setNotice={() => {}}
+                      setError={() => {}}
+                    />
+                  )}
                   {activeTab === 'registration' && <RegistrationSection />}
                   {activeTab === 'appearance' && <AppearanceSection />}
                   {activeTab === 'system' && <SystemSettingsSection />}

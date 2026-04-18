@@ -130,9 +130,9 @@ const fields: FieldConfig[] = [
     key: 'autoCompactWindow',
     label: '对话自动压缩阈值',
     description:
-      '达到该 token 数时主动触发 SDK 对话压缩。0 = 保留 SDK 默认（约 1M）。'
-      + '经验值：Opus 1M 建议 300-500，Sonnet/Haiku 200K 建议 80-120。'
-      + '压缩前会通过 PreCompact hook 归档对话',
+      '达到该 token 数时主动触发 SDK 对话压缩。0 = 保留 SDK 默认（约 1M）。' +
+      '经验值：Opus 1M 建议 300-500，Sonnet/Haiku 200K 建议 80-120。' +
+      '压缩前会通过 PreCompact hook 归档对话',
     unit: 'K tokens',
     toDisplay: (v) => Math.round(v / 1000),
     toStored: (v) => v * 1000,
@@ -146,9 +146,12 @@ export function SystemSettingsSection() {
   const { hasPermission } = useAuthStore();
 
   const [settings, setSettings] = useState<SystemSettings | null>(null);
-  const [displayValues, setDisplayValues] = useState<Record<string, number>>({});
+  const [displayValues, setDisplayValues] = useState<Record<string, number>>(
+    {},
+  );
   const [billingEnabled, setBillingEnabled] = useState(false);
-  const [billingMinStartBalanceUsd, setBillingMinStartBalanceUsd] = useState(0.01);
+  const [billingMinStartBalanceUsd, setBillingMinStartBalanceUsd] =
+    useState(0.01);
   const [billingCurrency, setBillingCurrency] = useState('USD');
   const [billingCurrencyRate, setBillingCurrencyRate] = useState(1);
   const [externalClaudeDir, setExternalClaudeDir] = useState('');
@@ -260,7 +263,11 @@ export function SystemSettingsSection() {
   }
 
   if (!canManage) {
-    return <div className="text-sm text-muted-foreground">需要系统配置权限才能修改系统参数。</div>;
+    return (
+      <div className="text-sm text-muted-foreground">
+        需要系统配置权限才能修改系统参数。
+      </div>
+    );
   }
 
   if (!settings) return null;
@@ -274,9 +281,7 @@ export function SystemSettingsSection() {
       <div className="space-y-5">
         {fields.map((f) => (
           <div key={f.key}>
-            <Label className="mb-1">
-              {f.label}
-            </Label>
+            <Label className="mb-1">{f.label}</Label>
             <div className="flex items-center gap-2">
               <Input
                 type="number"
@@ -322,10 +327,8 @@ export function SystemSettingsSection() {
 
         {billingEnabled && (
           <>
-          <div>
-              <Label className="mb-1">
-                计费模式
-              </Label>
+            <div>
+              <Label className="mb-1">计费模式</Label>
               <div className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
                 钱包优先（固定）
               </div>
@@ -335,13 +338,13 @@ export function SystemSettingsSection() {
             </div>
 
             <div>
-              <Label className="mb-1">
-                最低起用余额
-              </Label>
+              <Label className="mb-1">最低起用余额</Label>
               <Input
                 type="number"
                 value={billingMinStartBalanceUsd}
-                onChange={(e) => setBillingMinStartBalanceUsd(Number(e.target.value) || 0)}
+                onChange={(e) =>
+                  setBillingMinStartBalanceUsd(Number(e.target.value) || 0)
+                }
                 min={0}
                 step={0.01}
                 className="max-w-32"
@@ -352,9 +355,7 @@ export function SystemSettingsSection() {
             </div>
 
             <div>
-              <Label className="mb-1">
-                显示货币符号
-              </Label>
+              <Label className="mb-1">显示货币符号</Label>
               <Input
                 type="text"
                 value={billingCurrency}
@@ -368,9 +369,7 @@ export function SystemSettingsSection() {
             </div>
 
             <div>
-              <Label className="mb-1">
-                汇率乘数
-              </Label>
+              <Label className="mb-1">汇率乘数</Label>
               <Input
                 type="number"
                 value={billingCurrencyRate}
@@ -389,13 +388,14 @@ export function SystemSettingsSection() {
             </div>
 
             <div>
-              <Label className="mb-1">
-                默认套餐
-              </Label>
+              <Label className="mb-1">默认套餐</Label>
               <select
                 value={defaultPlanId}
                 onChange={(e) => handleSetDefaultPlan(e.target.value)}
-                disabled={settingDefault || plans.filter((p: BillingPlan) => p.is_active).length === 0}
+                disabled={
+                  settingDefault ||
+                  plans.filter((p: BillingPlan) => p.is_active).length === 0
+                }
                 className="h-9 px-3 text-sm border border-border rounded-md bg-transparent max-w-64"
               >
                 <option value="" disabled>
@@ -407,7 +407,8 @@ export function SystemSettingsSection() {
                   .filter((p: BillingPlan) => p.is_active)
                   .map((p: BillingPlan) => (
                     <option key={p.id} value={p.id}>
-                      {p.name}{p.is_default ? ' (当前默认)' : ''}
+                      {p.name}
+                      {p.is_default ? ' (当前默认)' : ''}
                     </option>
                   ))}
               </select>

@@ -47,10 +47,16 @@ export default function DailyUsageChart() {
           {/* Hover tooltip */}
           {hoveredIdx !== null && (
             <div className="absolute -top-2 left-1/2 -translate-x-1/2 z-10 bg-zinc-900 dark:bg-zinc-700 text-white text-xs rounded-md px-3 py-2 shadow-lg pointer-events-none whitespace-nowrap">
-              <div className="font-medium mb-1">{chartData[hoveredIdx].date}</div>
+              <div className="font-medium mb-1">
+                {chartData[hoveredIdx].date}
+              </div>
               <div>费用: {fmt(chartData[hoveredIdx].cost)}</div>
               <div>
-                Token: {formatTokens(chartData[hoveredIdx].inputTokens + chartData[hoveredIdx].outputTokens)}
+                Token:{' '}
+                {formatTokens(
+                  chartData[hoveredIdx].inputTokens +
+                    chartData[hoveredIdx].outputTokens,
+                )}
               </div>
               <div>消息: {chartData[hoveredIdx].messages}</div>
             </div>

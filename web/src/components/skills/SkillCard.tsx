@@ -30,7 +30,9 @@ export function SkillCard({ skill, selected, onSelect }: SkillCardProps) {
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-medium text-foreground truncate">{skill.name}</h3>
+            <h3 className="font-medium text-foreground truncate">
+              {skill.name}
+            </h3>
             <span
               className={`px-2 py-0.5 rounded text-xs font-medium ${
                 skill.source === 'user'
@@ -46,9 +48,13 @@ export function SkillCard({ skill, selected, onSelect }: SkillCardProps) {
               </span>
             )}
           </div>
-          <p className="text-sm text-muted-foreground line-clamp-2">{skill.description}</p>
+          <p className="text-sm text-muted-foreground line-clamp-2">
+            {skill.description}
+          </p>
           {skill.packageName && (
-            <p className="text-xs text-muted-foreground mt-1 font-mono truncate">{skill.packageName}</p>
+            <p className="text-xs text-muted-foreground mt-1 font-mono truncate">
+              {skill.packageName}
+            </p>
           )}
         </div>
 

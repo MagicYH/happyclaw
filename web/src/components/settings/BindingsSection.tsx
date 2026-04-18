@@ -10,10 +10,26 @@ import { BindingTargetDialog } from './BindingTargetDialog';
 import type { AvailableImGroup } from '../../types';
 import type { BindingTarget } from './hooks/useImBindings';
 
-type ChannelFilter = 'all' | 'feishu' | 'telegram' | 'qq' | 'wechat' | 'dingtalk' | 'discord';
+type ChannelFilter =
+  | 'all'
+  | 'feishu'
+  | 'telegram'
+  | 'qq'
+  | 'wechat'
+  | 'dingtalk'
+  | 'discord';
 
 export function BindingsSection() {
-  const { bindings, loading, targets, targetsLoading, reload, rebind, error: hookError, clearError: clearHookError } = useImBindings();
+  const {
+    bindings,
+    loading,
+    targets,
+    targetsLoading,
+    reload,
+    rebind,
+    error: hookError,
+    clearError: clearHookError,
+  } = useImBindings();
   const [localError, setLocalError] = useState<string | null>(null);
   const errorMsg = localError || hookError;
   const [search, setSearch] = useState('');
@@ -27,7 +43,9 @@ export function BindingsSection() {
 
   const channels: { key: ChannelFilter; label: string }[] = useMemo(() => {
     const types = new Set(bindings.map((b) => b.channel_type));
-    const all: { key: ChannelFilter; label: string }[] = [{ key: 'all', label: '全部' }];
+    const all: { key: ChannelFilter; label: string }[] = [
+      { key: 'all', label: '全部' },
+    ];
     if (types.has('feishu')) all.push({ key: 'feishu', label: '飞书' });
     if (types.has('telegram')) all.push({ key: 'telegram', label: 'Telegram' });
     if (types.has('qq')) all.push({ key: 'qq', label: 'QQ' });
@@ -48,7 +66,8 @@ export function BindingsSection() {
         (b) =>
           b.name.toLowerCase().includes(q) ||
           b.jid.toLowerCase().includes(q) ||
-          (b.bound_target_name && b.bound_target_name.toLowerCase().includes(q)),
+          (b.bound_target_name &&
+            b.bound_target_name.toLowerCase().includes(q)),
       );
     }
     return list;
@@ -62,13 +81,23 @@ export function BindingsSection() {
     setUnbindGroup(group);
   }, []);
 
-  const handleActivationModeChange = useCallback(async (jid: string, mode: string) => {
-    setActioningJid(jid);
-    setLocalError(null);
-    const err = await rebind(jid, { activation_mode: mode as 'auto' | 'always' | 'when_mentioned' | 'owner_mentioned' | 'disabled' });
-    setActioningJid(null);
-    if (err) setLocalError(err);
-  }, [rebind]);
+  const handleActivationModeChange = useCallback(
+    async (jid: string, mode: string) => {
+      setActioningJid(jid);
+      setLocalError(null);
+      const err = await rebind(jid, {
+        activation_mode: mode as
+          | 'auto'
+          | 'always'
+          | 'when_mentioned'
+          | 'owner_mentioned'
+          | 'disabled',
+      });
+      setActioningJid(null);
+      if (err) setLocalError(err);
+    },
+    [rebind],
+  );
 
   const confirmUnbind = useCallback(async () => {
     if (!unbindGroup) return;
@@ -81,34 +110,39 @@ export function BindingsSection() {
     if (err) setLocalError(err);
   }, [unbindGroup, rebind]);
 
-  const handleSelectTarget = useCallback(async (target: BindingTarget) => {
-    if (!rebindGroup) return;
-    const imJid = rebindGroup.jid;
-    const key = target.agentId || `main:${target.groupJid}`;
-    setSelectingKey(key);
-    setLocalError(null);
+  const handleSelectTarget = useCallback(
+    async (target: BindingTarget) => {
+      if (!rebindGroup) return;
+      const imJid = rebindGroup.jid;
+      const key = target.agentId || `main:${target.groupJid}`;
+      setSelectingKey(key);
+      setLocalError(null);
 
-    const hasBound = !!rebindGroup.bound_agent_id || !!rebindGroup.bound_main_jid;
-    const payload: {
-      target_agent_id?: string;
-      target_main_jid?: string;
-      force?: boolean;
-    } = {};
+      const hasBound =
+        !!rebindGroup.bound_agent_id || !!rebindGroup.bound_main_jid;
+      const payload: {
+        target_agent_id?: string;
+        target_main_jid?: string;
+        force?: boolean;
+      } = {};
 
-    if (target.type === 'agent' && target.agentId) {
-      payload.target_agent_id = target.agentId;
-    } else {
-      payload.target_main_jid = target.groupJid;
-    }
-    if (hasBound) payload.force = true;
+      if (target.type === 'agent' && target.agentId) {
+        payload.target_agent_id = target.agentId;
+      } else {
+        payload.target_main_jid = target.groupJid;
+      }
+      if (hasBound) payload.force = true;
 
-    const err = await rebind(imJid, payload);
-    setSelectingKey(null);
-    if (!err) setRebindGroup(null);
-    else setLocalError(err);
-  }, [rebindGroup, rebind]);
+      const err = await rebind(imJid, payload);
+      setSelectingKey(null);
+      if (!err) setRebindGroup(null);
+      else setLocalError(err);
+    },
+    [rebindGroup, rebind],
+  );
 
-  const [restoreConfirmGroup, setRestoreConfirmGroup] = useState<AvailableImGroup | null>(null);
+  const [restoreConfirmGroup, setRestoreConfirmGroup] =
+    useState<AvailableImGroup | null>(null);
 
   const handleRestoreDefault = useCallback(() => {
     if (!rebindGroup) return;
@@ -138,7 +172,8 @@ export function BindingsSection() {
               IM 绑定管理
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              查看和管理所有 IM 渠道的消息路由。未绑定的渠道默认发送到你的主工作区。
+              查看和管理所有 IM
+              渠道的消息路由。未绑定的渠道默认发送到你的主工作区。
             </p>
           </div>
           <Button
@@ -147,7 +182,9 @@ export function BindingsSection() {
             onClick={reload}
             disabled={loading}
           >
-            <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw
+              className={`w-3.5 h-3.5 mr-1.5 ${loading ? 'animate-spin' : ''}`}
+            />
             刷新
           </Button>
         </div>
@@ -156,7 +193,15 @@ export function BindingsSection() {
         {errorMsg && (
           <div className="bg-error-bg border border-error/20 text-error text-sm rounded-lg px-4 py-2.5 flex items-center justify-between">
             <span>{errorMsg}</span>
-            <button onClick={() => { setLocalError(null); clearHookError(); }} className="text-error hover:text-error ml-2 text-xs">✕</button>
+            <button
+              onClick={() => {
+                setLocalError(null);
+                clearHookError();
+              }}
+              className="text-error hover:text-error ml-2 text-xs"
+            >
+              ✕
+            </button>
           </div>
         )}
 
@@ -200,10 +245,11 @@ export function BindingsSection() {
         ) : bindings.length === 0 ? (
           <Card>
             <CardContent className="text-center">
-            <MessageSquare className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
-            <p className="text-sm text-muted-foreground">
-              暂无 IM 渠道。在飞书、Telegram、QQ、微信、钉钉或 Discord 中向 Bot 发送消息后，渠道会自动出现在这里。
-            </p>
+              <MessageSquare className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
+              <p className="text-sm text-muted-foreground">
+                暂无 IM 渠道。在飞书、Telegram、QQ、微信、钉钉或 Discord 中向
+                Bot 发送消息后，渠道会自动出现在这里。
+              </p>
             </CardContent>
           </Card>
         ) : filtered.length === 0 ? (
@@ -244,7 +290,11 @@ export function BindingsSection() {
         onClose={() => setUnbindGroup(null)}
         onConfirm={confirmUnbind}
         title="确认解绑"
-        message={unbindGroup ? `解绑后，「${unbindGroup.name}」的消息将恢复默认路由到主工作区。确认解绑？` : ''}
+        message={
+          unbindGroup
+            ? `解绑后，「${unbindGroup.name}」的消息将恢复默认路由到主工作区。确认解绑？`
+            : ''
+        }
         confirmText="解绑"
       />
 
@@ -254,7 +304,11 @@ export function BindingsSection() {
         onClose={() => setRestoreConfirmGroup(null)}
         onConfirm={confirmRestoreDefault}
         title="恢复默认路由"
-        message={restoreConfirmGroup ? `确认将「${restoreConfirmGroup.name}」恢复为默认路由（消息发送到主工作区）？` : ''}
+        message={
+          restoreConfirmGroup
+            ? `确认将「${restoreConfirmGroup.name}」恢复为默认路由（消息发送到主工作区）？`
+            : ''
+        }
         confirmText="恢复默认"
       />
     </div>

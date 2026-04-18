@@ -294,9 +294,7 @@ export default function PlanFormDialog({
                 type="number"
                 step="0.1"
                 value={form.rate_multiplier}
-                onChange={(e) =>
-                  set('rate_multiplier', Number(e.target.value))
-                }
+                onChange={(e) => set('rate_multiplier', Number(e.target.value))}
               />
             </Field>
             <Field label="试用天数">

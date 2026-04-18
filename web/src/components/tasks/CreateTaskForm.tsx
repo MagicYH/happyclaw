@@ -13,7 +13,11 @@ import {
 import { cn } from '@/lib/utils';
 import { api } from '../../api/client';
 import { showToast } from '../../utils/toast';
-import { INTERVAL_UNITS, CHANNEL_OPTIONS, toggleNotifyChannel } from '../../utils/task-utils';
+import {
+  INTERVAL_UNITS,
+  CHANNEL_OPTIONS,
+  toggleNotifyChannel,
+} from '../../utils/task-utils';
 import { useConnectedChannels } from '../../hooks/useConnectedChannels';
 
 interface CreateTaskFormProps {
@@ -32,7 +36,11 @@ interface CreateTaskFormProps {
 
 type CreateMode = 'ai' | 'manual';
 
-export function CreateTaskForm({ onSubmit, onClose, isAdmin }: CreateTaskFormProps) {
+export function CreateTaskForm({
+  onSubmit,
+  onClose,
+  isAdmin,
+}: CreateTaskFormProps) {
   const [mode, setMode] = useState<CreateMode>('ai');
 
   // --- AI mode state ---
@@ -60,7 +68,9 @@ export function CreateTaskForm({ onSubmit, onClose, isAdmin }: CreateTaskFormPro
 
   const isScript = formData.executionType === 'script';
 
-  const connectedKeys = CHANNEL_OPTIONS.filter((c) => connectedChannels[c.key]).map((c) => c.key);
+  const connectedKeys = CHANNEL_OPTIONS.filter(
+    (c) => connectedChannels[c.key],
+  ).map((c) => c.key);
 
   const isChannelSelected = (key: string) => {
     if (notifyChannels === null) return true;
@@ -83,7 +93,10 @@ export function CreateTaskForm({ onSubmit, onClose, isAdmin }: CreateTaskFormPro
       showToast('任务已创建', 'AI 正在后台解析调度参数，稍后自动激活');
       onClose();
     } catch (error) {
-      showToast('创建失败', error instanceof Error ? error.message : '请稍后重试');
+      showToast(
+        '创建失败',
+        error instanceof Error ? error.message : '请稍后重试',
+      );
     } finally {
       setAiSubmitting(false);
     }
@@ -93,7 +106,8 @@ export function CreateTaskForm({ onSubmit, onClose, isAdmin }: CreateTaskFormPro
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     if (isScript) {
-      if (!formData.scriptCommand.trim()) newErrors.scriptCommand = '请输入脚本命令';
+      if (!formData.scriptCommand.trim())
+        newErrors.scriptCommand = '请输入脚本命令';
     } else {
       if (!formData.prompt.trim()) newErrors.prompt = '请输入 Prompt';
     }
@@ -108,7 +122,8 @@ export function CreateTaskForm({ onSubmit, onClose, isAdmin }: CreateTaskFormPro
         newErrors.scheduleValue = '请输入间隔数值';
       } else {
         const num = parseInt(intervalNumber);
-        if (isNaN(num) || num <= 0) newErrors.scheduleValue = '间隔必须是正整数';
+        if (isNaN(num) || num <= 0)
+          newErrors.scheduleValue = '间隔必须是正整数';
       }
     } else if (formData.scheduleType === 'once') {
       if (!onceDateTime) {
@@ -129,7 +144,9 @@ export function CreateTaskForm({ onSubmit, onClose, isAdmin }: CreateTaskFormPro
     if (!validateForm()) return;
     let finalScheduleValue = formData.scheduleValue;
     if (formData.scheduleType === 'interval') {
-      finalScheduleValue = String(parseInt(intervalNumber, 10) * parseInt(intervalUnit, 10));
+      finalScheduleValue = String(
+        parseInt(intervalNumber, 10) * parseInt(intervalUnit, 10),
+      );
     } else if (formData.scheduleType === 'once') {
       finalScheduleValue = new Date(onceDateTime).toISOString();
     }
@@ -152,11 +169,15 @@ export function CreateTaskForm({ onSubmit, onClose, isAdmin }: CreateTaskFormPro
   };
 
   // --- Notify channels UI (shared) ---
-  const connectedOptions = CHANNEL_OPTIONS.filter((ch) => connectedChannels[ch.key]);
+  const connectedOptions = CHANNEL_OPTIONS.filter(
+    (ch) => connectedChannels[ch.key],
+  );
 
   const renderNotifyChannels = () => (
     <div>
-      <label className="block text-sm font-medium text-foreground mb-2">通知渠道</label>
+      <label className="block text-sm font-medium text-foreground mb-2">
+        通知渠道
+      </label>
       <div className="flex flex-wrap gap-3">
         <label className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
           <input type="checkbox" checked disabled className="rounded" />
@@ -291,7 +312,10 @@ export function CreateTaskForm({ onSubmit, onClose, isAdmin }: CreateTaskFormPro
                 <Select
                   value={formData.executionType}
                   onValueChange={(value) =>
-                    setFormData({ ...formData, executionType: value as 'agent' | 'script' })
+                    setFormData({
+                      ...formData,
+                      executionType: value as 'agent' | 'script',
+                    })
                   }
                 >
                   <SelectTrigger className="w-full">
@@ -319,7 +343,10 @@ export function CreateTaskForm({ onSubmit, onClose, isAdmin }: CreateTaskFormPro
                 <Select
                   value={formData.executionMode}
                   onValueChange={(value) =>
-                    setFormData({ ...formData, executionMode: value as 'host' | 'container' })
+                    setFormData({
+                      ...formData,
+                      executionMode: value as 'host' | 'container',
+                    })
                   }
                 >
                   <SelectTrigger className="w-full">
@@ -344,14 +371,21 @@ export function CreateTaskForm({ onSubmit, onClose, isAdmin }: CreateTaskFormPro
                 </label>
                 <Textarea
                   value={formData.scriptCommand}
-                  onChange={(e) => setFormData({ ...formData, scriptCommand: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, scriptCommand: e.target.value })
+                  }
                   rows={3}
                   maxLength={4096}
-                  className={cn("resize-none font-mono text-sm", errors.scriptCommand && "border-red-500")}
+                  className={cn(
+                    'resize-none font-mono text-sm',
+                    errors.scriptCommand && 'border-red-500',
+                  )}
                   placeholder="例如: curl -s https://api.example.com/health | jq .status"
                 />
                 {errors.scriptCommand && (
-                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.scriptCommand}</p>
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                    {errors.scriptCommand}
+                  </p>
                 )}
                 <p className="mt-1 text-xs text-muted-foreground">
                   命令在群组工作目录下执行，最大 4096 字符
@@ -367,13 +401,19 @@ export function CreateTaskForm({ onSubmit, onClose, isAdmin }: CreateTaskFormPro
               </label>
               <Textarea
                 value={formData.prompt}
-                onChange={(e) => setFormData({ ...formData, prompt: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, prompt: e.target.value })
+                }
                 rows={isScript ? 2 : 4}
-                className={cn("resize-none", errors.prompt && "border-red-500")}
-                placeholder={isScript ? '可选的任务描述...' : '输入任务的提示词...'}
+                className={cn('resize-none', errors.prompt && 'border-red-500')}
+                placeholder={
+                  isScript ? '可选的任务描述...' : '输入任务的提示词...'
+                }
               />
               {errors.prompt && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.prompt}</p>
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                  {errors.prompt}
+                </p>
               )}
             </div>
 
@@ -387,7 +427,11 @@ export function CreateTaskForm({ onSubmit, onClose, isAdmin }: CreateTaskFormPro
                 onValueChange={(value) => {
                   setIntervalNumber('');
                   setOnceDateTime('');
-                  setFormData({ ...formData, scheduleType: value as 'cron' | 'interval' | 'once', scheduleValue: '' });
+                  setFormData({
+                    ...formData,
+                    scheduleType: value as 'cron' | 'interval' | 'once',
+                    scheduleValue: '',
+                  });
                 }}
               >
                 <SelectTrigger className="w-full">
@@ -411,12 +455,22 @@ export function CreateTaskForm({ onSubmit, onClose, isAdmin }: CreateTaskFormPro
                   <Input
                     type="text"
                     value={formData.scheduleValue}
-                    onChange={(e) => setFormData({ ...formData, scheduleValue: e.target.value })}
-                    className={cn(errors.scheduleValue && "border-red-500")}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        scheduleValue: e.target.value,
+                      })
+                    }
+                    className={cn(errors.scheduleValue && 'border-red-500')}
                     placeholder="例如: 0 9 * * * (每天 9 点)"
                   />
                   <p className="mt-1 text-xs text-muted-foreground">
-                    格式: 分 时 日 月 星期（北京时间 UTC+8）。常用: <code className="bg-muted px-1 rounded">*/5 * * * *</code> 每5分钟, <code className="bg-muted px-1 rounded">0 9 * * 1-5</code> 工作日9点, <code className="bg-muted px-1 rounded">@daily</code> 每天
+                    格式: 分 时 日 月 星期（北京时间 UTC+8）。常用:{' '}
+                    <code className="bg-muted px-1 rounded">*/5 * * * *</code>{' '}
+                    每5分钟,{' '}
+                    <code className="bg-muted px-1 rounded">0 9 * * 1-5</code>{' '}
+                    工作日9点,{' '}
+                    <code className="bg-muted px-1 rounded">@daily</code> 每天
                   </p>
                 </>
               )}
@@ -428,10 +482,16 @@ export function CreateTaskForm({ onSubmit, onClose, isAdmin }: CreateTaskFormPro
                       min="1"
                       value={intervalNumber}
                       onChange={(e) => setIntervalNumber(e.target.value)}
-                      className={cn("flex-1", errors.scheduleValue && "border-red-500")}
+                      className={cn(
+                        'flex-1',
+                        errors.scheduleValue && 'border-red-500',
+                      )}
                       placeholder="数值"
                     />
-                    <Select value={intervalUnit} onValueChange={setIntervalUnit}>
+                    <Select
+                      value={intervalUnit}
+                      onValueChange={setIntervalUnit}
+                    >
                       <SelectTrigger className="w-28">
                         <SelectValue />
                       </SelectTrigger>
@@ -444,7 +504,9 @@ export function CreateTaskForm({ onSubmit, onClose, isAdmin }: CreateTaskFormPro
                       </SelectContent>
                     </Select>
                   </div>
-                  <p className="mt-1 text-xs text-muted-foreground">设置任务执行间隔</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    设置任务执行间隔
+                  </p>
                 </>
               )}
               {formData.scheduleType === 'once' && (
@@ -453,13 +515,17 @@ export function CreateTaskForm({ onSubmit, onClose, isAdmin }: CreateTaskFormPro
                     type="datetime-local"
                     value={onceDateTime}
                     onChange={(e) => setOnceDateTime(e.target.value)}
-                    className={cn(errors.scheduleValue && "border-red-500")}
+                    className={cn(errors.scheduleValue && 'border-red-500')}
                   />
-                  <p className="mt-1 text-xs text-muted-foreground">选择任务的执行时间</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    选择任务的执行时间
+                  </p>
                 </>
               )}
               {errors.scheduleValue && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.scheduleValue}</p>
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                  {errors.scheduleValue}
+                </p>
               )}
             </div>
 

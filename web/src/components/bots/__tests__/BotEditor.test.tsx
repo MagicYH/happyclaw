@@ -10,7 +10,9 @@ const mockStore = {
   enableBot: vi.fn().mockResolvedValue(undefined),
   disableBot: vi.fn().mockResolvedValue(undefined),
   testConnection: vi.fn().mockResolvedValue({ ok: true }),
-  getProfile: vi.fn().mockResolvedValue({ content: '# Profile', mode: 'writer' }),
+  getProfile: vi
+    .fn()
+    .mockResolvedValue({ content: '# Profile', mode: 'writer' }),
   saveProfile: vi.fn().mockResolvedValue(undefined),
   listBindings: vi.fn().mockResolvedValue([]),
   addBinding: vi.fn().mockResolvedValue(undefined),
@@ -61,7 +63,10 @@ describe('BotEditor', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockStore.listBindings.mockResolvedValue([]);
-    mockStore.getProfile.mockResolvedValue({ content: '# Profile', mode: 'writer' });
+    mockStore.getProfile.mockResolvedValue({
+      content: '# Profile',
+      mode: 'writer',
+    });
     mockStore.testConnection.mockResolvedValue({ ok: true });
     mockStore.updateBot.mockResolvedValue(undefined);
   });
@@ -73,7 +78,12 @@ describe('BotEditor', () => {
   });
 
   test('displays BotConnectionBadge in header', () => {
-    render(<BotEditor bot={makeBot({ connection_state: 'connected' })} onDelete={() => {}} />);
+    render(
+      <BotEditor
+        bot={makeBot({ connection_state: 'connected' })}
+        onDelete={() => {}}
+      />,
+    );
     expect(screen.getByLabelText(/已连接/)).toBeInTheDocument();
   });
 
@@ -114,12 +124,20 @@ describe('BotEditor', () => {
     await userEvent.type(input, 'Renamed');
     await userEvent.click(screen.getByRole('button', { name: /^保存$/ }));
     await waitFor(() =>
-      expect(mockStore.updateBot).toHaveBeenCalledWith('bot_test123', expect.objectContaining({ name: 'Renamed' })),
+      expect(mockStore.updateBot).toHaveBeenCalledWith(
+        'bot_test123',
+        expect.objectContaining({ name: 'Renamed' }),
+      ),
     );
   });
 
   test('shows concurrency_mode as read-only info', () => {
-    render(<BotEditor bot={makeBot({ concurrency_mode: 'advisor' })} onDelete={() => {}} />);
+    render(
+      <BotEditor
+        bot={makeBot({ concurrency_mode: 'advisor' })}
+        onDelete={() => {}}
+      />,
+    );
     expect(screen.getByText(/advisor/)).toBeInTheDocument();
   });
 
@@ -141,32 +159,45 @@ describe('BotEditor', () => {
   test('switching to 绑定 tab triggers listBindings', async () => {
     render(<BotEditor bot={makeBot()} onDelete={() => {}} />);
     await userEvent.click(screen.getByRole('tab', { name: '绑定' }));
-    await waitFor(() => expect(mockStore.listBindings).toHaveBeenCalledWith('bot_test123'));
+    await waitFor(() =>
+      expect(mockStore.listBindings).toHaveBeenCalledWith('bot_test123'),
+    );
   });
 
   test('bindings tab shows empty state when no bindings', async () => {
     mockStore.listBindings.mockResolvedValue([]);
     render(<BotEditor bot={makeBot()} onDelete={() => {}} />);
     await userEvent.click(screen.getByRole('tab', { name: '绑定' }));
-    await waitFor(() => expect(screen.getByText(/暂无绑定|没有绑定/)).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText(/暂无绑定|没有绑定/)).toBeInTheDocument(),
+    );
   });
 
   test('bindings tab shows existing binding group_jid', async () => {
-    mockStore.listBindings.mockResolvedValue([{ group_jid: 'feishu:room123', folder: 'main' }]);
+    mockStore.listBindings.mockResolvedValue([
+      { group_jid: 'feishu:room123', folder: 'main' },
+    ]);
     render(<BotEditor bot={makeBot()} onDelete={() => {}} />);
     await userEvent.click(screen.getByRole('tab', { name: '绑定' }));
-    await waitFor(() => expect(screen.getByText(/feishu:room123/)).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText(/feishu:room123/)).toBeInTheDocument(),
+    );
   });
 
   test('remove binding button calls removeBinding', async () => {
-    mockStore.listBindings.mockResolvedValue([{ group_jid: 'feishu:room123', folder: 'main' }]);
+    mockStore.listBindings.mockResolvedValue([
+      { group_jid: 'feishu:room123', folder: 'main' },
+    ]);
     render(<BotEditor bot={makeBot()} onDelete={() => {}} />);
     await userEvent.click(screen.getByRole('tab', { name: '绑定' }));
     await waitFor(() => screen.getByText(/feishu:room123/));
     const removeBtn = screen.getByRole('button', { name: /移除/ });
     await userEvent.click(removeBtn);
     await waitFor(() =>
-      expect(mockStore.removeBinding).toHaveBeenCalledWith('bot_test123', 'feishu:room123'),
+      expect(mockStore.removeBinding).toHaveBeenCalledWith(
+        'bot_test123',
+        'feishu:room123',
+      ),
     );
   });
 
@@ -174,19 +205,29 @@ describe('BotEditor', () => {
   test('test connection button calls testConnection', async () => {
     render(<BotEditor bot={makeBot()} onDelete={() => {}} />);
     await userEvent.click(screen.getByRole('button', { name: /测试连接/ }));
-    await waitFor(() => expect(mockStore.testConnection).toHaveBeenCalledWith('bot_test123'));
+    await waitFor(() =>
+      expect(mockStore.testConnection).toHaveBeenCalledWith('bot_test123'),
+    );
   });
 
   test('disable button calls disableBot when bot is active', async () => {
-    render(<BotEditor bot={makeBot({ status: 'active' })} onDelete={() => {}} />);
+    render(
+      <BotEditor bot={makeBot({ status: 'active' })} onDelete={() => {}} />,
+    );
     await userEvent.click(screen.getByRole('button', { name: /停用/ }));
-    await waitFor(() => expect(mockStore.disableBot).toHaveBeenCalledWith('bot_test123'));
+    await waitFor(() =>
+      expect(mockStore.disableBot).toHaveBeenCalledWith('bot_test123'),
+    );
   });
 
   test('enable button calls enableBot when bot is inactive', async () => {
-    render(<BotEditor bot={makeBot({ status: 'inactive' })} onDelete={() => {}} />);
+    render(
+      <BotEditor bot={makeBot({ status: 'inactive' })} onDelete={() => {}} />,
+    );
     await userEvent.click(screen.getByRole('button', { name: /启用/ }));
-    await waitFor(() => expect(mockStore.enableBot).toHaveBeenCalledWith('bot_test123'));
+    await waitFor(() =>
+      expect(mockStore.enableBot).toHaveBeenCalledWith('bot_test123'),
+    );
   });
 
   test('delete button calls onDelete', async () => {

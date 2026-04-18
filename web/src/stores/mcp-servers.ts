@@ -60,7 +60,10 @@ export const useMcpServersStore = create<McpServersState>((set, get) => ({
       const data = await api.get<{ servers: McpServer[] }>('/api/mcp-servers');
       set({ servers: data.servers, loading: false, error: null });
     } catch (err) {
-      set({ loading: false, error: err instanceof Error ? err.message : String(err) });
+      set({
+        loading: false,
+        error: err instanceof Error ? err.message : String(err),
+      });
     }
   },
 
@@ -88,7 +91,9 @@ export const useMcpServersStore = create<McpServersState>((set, get) => ({
 
   toggleServer: async (id, enabled) => {
     try {
-      await api.patch(`/api/mcp-servers/${encodeURIComponent(id)}`, { enabled });
+      await api.patch(`/api/mcp-servers/${encodeURIComponent(id)}`, {
+        enabled,
+      });
       set({ error: null });
       await get().loadServers();
     } catch (err) {
@@ -110,7 +115,10 @@ export const useMcpServersStore = create<McpServersState>((set, get) => ({
   syncHostServers: async () => {
     set({ syncing: true, error: null });
     try {
-      const result = await api.post<SyncHostResult>('/api/mcp-servers/sync-host', {});
+      const result = await api.post<SyncHostResult>(
+        '/api/mcp-servers/sync-host',
+        {},
+      );
       await get().loadServers();
       return result;
     } catch (err: any) {
